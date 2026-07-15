@@ -1,7 +1,7 @@
-diff --git a/docs/requirements/REQ-036-booking-fixture/01-prd.md b/docs/requirements/REQ-036-booking-fixture/01-prd.md
+diff --git a/docs/requirements/REQ-0036-booking-fixture/01-prd.md b/docs/requirements/REQ-0036-booking-fixture/01-prd.md
 new file mode 100644
 --- /dev/null
-+++ b/docs/requirements/REQ-036-booking-fixture/01-prd.md
++++ b/docs/requirements/REQ-0036-booking-fixture/01-prd.md
 @@ -0,0 +1,34 @@
 +# 预约修复 PRD
 +

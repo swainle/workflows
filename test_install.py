@@ -6,18 +6,30 @@ import install
 
 class InstallTest(unittest.TestCase):
     @patch("install.subprocess.run")
-    def test_installs_with_updated_latest_script(self, run):
+    def test_installs_with_selected_branch_script(self, run):
         run.return_value.returncode = 0
 
-        self.assertEqual(install.install_latest(), 0)
+        self.assertEqual(install.install_branch("develop"), 0)
 
         self.assertEqual(
             run.call_args_list,
             [
-                call(["git", "switch", "latest"], cwd=install.WORKFLOW_ROOT, check=True),
+                call(["git", "switch", "develop"], cwd=install.WORKFLOW_ROOT, check=True),
                 call(
-                    ["git", "pull", "--ff-only", "origin", "latest"],
+                    ["git", "pull", "--ff-only", "origin", "develop"],
                     cwd=install.WORKFLOW_ROOT,
+                    check=True,
+                ),
+                call(
+                    [
+                        "git",
+                        "submodule",
+                        "set-branch",
+                        "--branch",
+                        "develop",
+                        "docs/workflows",
+                    ],
+                    cwd=install.PROJECT_ROOT,
                     check=True,
                 ),
                 call(
@@ -25,11 +37,21 @@ class InstallTest(unittest.TestCase):
                         install.sys.executable,
                         str(install.WORKFLOW_ROOT / "install.py"),
                         install.UPDATED_FLAG,
+                        "--branch",
+                        "develop",
                     ],
                     cwd=install.PROJECT_ROOT,
                 ),
             ],
         )
+
+    @patch.object(install.sys, "argv", ["install.py", "--branch", "main"])
+    def test_parses_selected_branch(self):
+        self.assertEqual(install.parse_branch(), "main")
+
+    @patch.object(install.sys, "argv", ["install.py"])
+    def test_defaults_to_latest_branch(self):
+        self.assertEqual(install.parse_branch(), "latest")
 
 
 if __name__ == "__main__":

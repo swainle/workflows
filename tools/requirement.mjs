@@ -3,14 +3,14 @@ import path from "node:path";
 import { PROJECT_ROOT, fromProject, projectRelative } from "./core/paths.mjs";
 
 const input = process.argv[2];
-if (!input) throw new Error("Usage: pnpm docs:workflows:req <REQ-nnn-name|requirement-directory>");
+if (!input) throw new Error("Usage: pnpm docs:workflows:req <REQ-0010-feature|requirement-directory>");
 
 const requirementDir = input.includes("/") || input.includes("\\")
   ? fromProject(input)
   : path.join(PROJECT_ROOT, "docs", "requirements", input);
 
-if (!/^REQ-\d{3,}-[A-Za-z0-9_-]+$/.test(path.basename(requirementDir))) {
-  throw new Error("Requirement name must look like REQ-036-booking-fixture.");
+if (!/^REQ-\d{4}-[A-Za-z0-9][A-Za-z0-9_-]*$/.test(path.basename(requirementDir))) {
+  throw new Error("Requirement name must look like REQ-0010-booking.");
 }
 
 const existed = existsSync(requirementDir);

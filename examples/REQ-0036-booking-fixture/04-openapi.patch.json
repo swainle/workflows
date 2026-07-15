@@ -1,7 +1,7 @@
 {
   "openapi": "3.1.0",
   "info": {
-    "title": "REQ-036 Booking Changes",
+    "title": "REQ-0036 Booking Changes",
     "version": "1.0.0"
   },
   "paths": {

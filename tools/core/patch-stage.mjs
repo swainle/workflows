@@ -15,7 +15,9 @@ function printDiff(target) {
 function requirementName(source) {
   const parts = projectRelative(source).split("/");
   const name = parts.find((part) => part.startsWith("REQ-"));
-  if (!name) throw new Error("Patch file must be inside docs/requirements/REQ-*/.");
+  if (!/^REQ-\d{4}-[A-Za-z0-9][A-Za-z0-9_-]*$/.test(name ?? "")) {
+    throw new Error("Patch file must be inside docs/requirements/REQ-0010-feature/.");
+  }
   return name;
 }
 

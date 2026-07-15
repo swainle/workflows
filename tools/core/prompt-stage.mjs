@@ -155,7 +155,9 @@ export async function runPromptStage(config) {
     prdFile = targetPath;
     requirementDir = path.dirname(prdFile);
   }
-  if (!/^REQ-[A-Za-z0-9_-]+$/.test(path.basename(requirementDir))) throw new Error("Requirement directory must start with REQ-.");
+  if (!/^REQ-\d{4}-[A-Za-z0-9][A-Za-z0-9_-]*$/.test(path.basename(requirementDir))) {
+    throw new Error("Requirement directory must look like REQ-0010-feature.");
+  }
 
   const createdAt = timestamp();
   const outputDir = path.join(requirementDir, "change", config.stageId);

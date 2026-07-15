@@ -1,7 +1,7 @@
 {
   "asyncapi": "3.0.0",
   "info": {
-    "title": "REQ-036 Booking Events",
+    "title": "REQ-0036 Booking Events",
     "version": "1.0.0"
   },
   "channels": {

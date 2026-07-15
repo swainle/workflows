@@ -6,7 +6,7 @@
 pnpm dlx create-turbo@latest
 cd <项目目录>
 git submodule add -b latest https://github.com/swainle/workflows.git docs/workflows
-python docs/workflows/install.py
+python docs/workflows/install.py --branch latest
 pnpm docs:workflows:check
 ```
 
@@ -16,13 +16,13 @@ pnpm docs:workflows:check
 
 ```bash
 git submodule add -b latest https://github.com/swainle/workflows.git docs/workflows
-python docs/workflows/install.py
+python docs/workflows/install.py --branch latest
 ```
 
 通过 `--include` 指定 workspace：
 
 ```bash
-pnpm docs:workflows:prompt:backend docs/requirements/REQ-036-booking-fixture/01-prd.md \
+pnpm docs:workflows:prompt:backend docs/requirements/REQ-0036-booking-fixture/01-prd.md \
   --include apps/api/src \
   --include packages/domain/src
 ```

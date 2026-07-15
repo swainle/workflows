@@ -43,6 +43,7 @@ DEFAULT_TARGETS = {
     "design-tokens": PROJECT_ROOT / "packages" / "design-tokens" / "tokens",
 }
 UPDATED_FLAG = "--workflows-updated"
+DEFAULT_BRANCH = "latest"
 
 
 def require_mount_location() -> None:
@@ -53,15 +54,35 @@ def require_mount_location() -> None:
         )
 
 
-def install_latest() -> int:
-    subprocess.run(["git", "switch", "latest"], cwd=WORKFLOW_ROOT, check=True)
+def parse_branch() -> str:
+    args = [arg for arg in sys.argv[1:] if arg != UPDATED_FLAG]
+    if not args:
+        return DEFAULT_BRANCH
+    if len(args) == 2 and args[0] == "--branch" and not args[1].startswith("-"):
+        return args[1]
+    raise ValueError("Usage: install.py [--branch <branch>]")
+
+
+def install_branch(branch: str) -> int:
+    subprocess.run(["git", "switch", branch], cwd=WORKFLOW_ROOT, check=True)
     subprocess.run(
-        ["git", "pull", "--ff-only", "origin", "latest"],
+        ["git", "pull", "--ff-only", "origin", branch],
         cwd=WORKFLOW_ROOT,
         check=True,
     )
+    subprocess.run(
+        ["git", "submodule", "set-branch", "--branch", branch, "docs/workflows"],
+        cwd=PROJECT_ROOT,
+        check=True,
+    )
     return subprocess.run(
-        [sys.executable, str(WORKFLOW_ROOT / "install.py"), UPDATED_FLAG],
+        [
+            sys.executable,
+            str(WORKFLOW_ROOT / "install.py"),
+            UPDATED_FLAG,
+            "--branch",
+            branch,
+        ],
         cwd=PROJECT_ROOT,
     ).returncode
 
@@ -107,9 +128,10 @@ def copy_defaults() -> list[Path]:
 
 def main() -> int:
     try:
+        branch = parse_branch()
         require_mount_location()
         if UPDATED_FLAG not in sys.argv:
-            return install_latest()
+            return install_branch(branch)
         update_package_json()
         created = copy_defaults()
     except (OSError, ValueError, RuntimeError, subprocess.CalledProcessError) as error:

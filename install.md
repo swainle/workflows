@@ -20,16 +20,22 @@ gh auth login
 
 ```bash
 git submodule add -b latest https://github.com/swainle/workflows.git docs/workflows
-python docs/workflows/install.py
+python docs/workflows/install.py --branch latest
 pnpm docs:workflows:check
 ```
 
 ## 更新 workflows
 
 ```bash
-python docs/workflows/install.py
+python docs/workflows/install.py --branch latest
 ```
 
-安装器会自动切换到 `latest` 分支，并通过 fast-forward 拉取其最新提交。
+通过 `--branch <分支>` 指定 workflows 分支；省略时默认使用 `latest`。安装器会切换分支、通过 fast-forward 拉取最新提交，并同步宿主项目 `.gitmodules` 中的分支设置。
+
+例如改用 `main`：
+
+```bash
+python docs/workflows/install.py --branch main
+```
 
 第二次运行安装器不会覆盖已经修改的项目文档。
