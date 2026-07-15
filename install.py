@@ -80,7 +80,14 @@ def install_branch(branch: str) -> int:
         cwd=WORKFLOW_ROOT,
         check=True,
     )
-    subprocess.run(["git", "switch", branch], cwd=WORKFLOW_ROOT, check=True)
+    local_branch = subprocess.run(
+        ["git", "show-ref", "--verify", "--quiet", f"refs/heads/{branch}"],
+        cwd=WORKFLOW_ROOT,
+    ).returncode == 0
+    switch = ["git", "switch", branch] if local_branch else [
+        "git", "switch", "-c", branch, f"origin/{branch}",
+    ]
+    subprocess.run(switch, cwd=WORKFLOW_ROOT, check=True)
     subprocess.run(
         ["git", "merge", "--ff-only", f"origin/{branch}"],
         cwd=WORKFLOW_ROOT,
