@@ -63,11 +63,14 @@ export function runJsonPatch({ targets, kind }) {
   printDiff(target);
 }
 
-export function runTextPatch({ expectedName, target: targetRelative }) {
+export function runTextPatch({ expectedName, expectedPattern, target: targetRelative }) {
   const input = process.argv[2];
   if (!input) throw new Error("Missing requirement patch file.");
   const source = requireFile(input, "Requirement patch");
-  if (path.basename(source) !== expectedName) throw new Error(`Expected ${expectedName}.`);
+  const filename = path.basename(source);
+  if (expectedPattern ? !expectedPattern.test(filename) : filename !== expectedName) {
+    throw new Error(`Expected ${expectedName}.`);
+  }
   const requirement = requirementName(source);
   const target = requireFile(targetRelative, "Global target");
   const merged = mergeText(

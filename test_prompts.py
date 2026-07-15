@@ -37,6 +37,9 @@ class IssuesPromptTest(unittest.TestCase):
             "共同分析框架",
             "每次只问一个",
             "至少有 95% 的把握",
+            "02-process-<topic>.patch.puml",
+            "通常控制在 2～5 个文件",
+            "不得按产品、前端、架构、后端角色机械拆分",
         ):
             self.assertIn(required, template)
 

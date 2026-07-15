@@ -61,6 +61,8 @@ pnpm docs:workflows:patch:permission docs/requirements/REQ-0036-booking-fixture/
 pnpm docs:workflows:patch:deployment docs/requirements/REQ-0036-booking-fixture/09-deployment.patch.md
 ```
 
+Process 阶段如果生成多个 `02-process-<topic>.patch.puml`，需要逐个执行 `docs:workflows:patch:process` 合并。
+
 人工执行合并命令就代表接受。脚本完成后会显示 Git diff。
 
 ## 规则

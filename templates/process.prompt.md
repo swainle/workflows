@@ -30,13 +30,19 @@
 
 # 输出要求
 
-- `02-process.patch.puml` 必须与最终确认的流程一致，清楚表达参与者、触发条件、主流程、关键分支、失败处理、状态变化和结束状态。
+- 默认生成一个 `02-process.patch.puml`。只有存在可独立触发和结束的业务子流程，或单图已经难以阅读和审查时，才拆成多个文件。
+- 拆分文件使用 `02-process-<topic>.patch.puml`，例如 `02-process-create.patch.puml`、`02-process-cancel.patch.puml`；`<topic>` 使用简短的英文 kebab-case，并表达业务流程而不是技术层。
+- 每个文件只描述一个完整子流程，必须包含 `@startuml` 和 `@enduml`、能够独立渲染，并清楚表达参与者、触发条件、主流程、关键分支、失败处理、状态变化和结束状态。
+- 不得按产品、前端、架构、后端角色机械拆分，不得创建只有一两个步骤的碎片文件。通常控制在 2～5 个文件；能用一个清晰图表达时不要拆分。
+- 所有流程文件必须共同覆盖最终确认的完整需求，不能重复描述同一流程，也不能遗漏跨文件的衔接条件。
 - 分析文件的概要和人工检查必须根据本次实际流程动态生成，不能照抄固定清单。
+- 分析文件必须列出每个 PlantUML 文件负责的子流程及拆分原因；人工检查应包含跨文件入口、出口和状态衔接检查。
 - 对全局流程已有内容只做必要增量，避免复制无关流程。
 
 # 允许修改
 
 - `{{REQUIREMENT_DIR}}/02-process.patch.puml`
+- `{{REQUIREMENT_DIR}}/02-process-<topic>.patch.puml`
 - `{{REQUIREMENT_DIR}}/02-*.md`
 
 不得直接修改 `docs/architecture/process.puml`，它由 `docs:workflows:patch:process` 合并。
