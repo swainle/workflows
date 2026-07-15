@@ -11,6 +11,7 @@ python docs/workflows/install.py
 
 安装器会：
 
+- 自动切换并快进更新 workflows 的 `latest` 分支；
 - 把 `docs:workflows:*` 命令写入宿主项目 `package.json`；
 - 创建缺失的全局示例文件；
 - 不覆盖已有项目文档。

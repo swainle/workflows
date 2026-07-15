@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import json
 import shutil
+import subprocess
 import sys
 from pathlib import Path
 
@@ -41,6 +42,7 @@ DEFAULT_TARGETS = {
     "operations": PROJECT_ROOT / "docs" / "operations",
     "design-tokens": PROJECT_ROOT / "packages" / "design-tokens" / "tokens",
 }
+UPDATED_FLAG = "--workflows-updated"
 
 
 def require_mount_location() -> None:
@@ -51,11 +53,28 @@ def require_mount_location() -> None:
         )
 
 
+def install_latest() -> int:
+    subprocess.run(["git", "switch", "latest"], cwd=WORKFLOW_ROOT, check=True)
+    subprocess.run(
+        ["git", "pull", "--ff-only", "origin", "latest"],
+        cwd=WORKFLOW_ROOT,
+        check=True,
+    )
+    return subprocess.run(
+        [sys.executable, str(WORKFLOW_ROOT / "install.py"), UPDATED_FLAG],
+        cwd=PROJECT_ROOT,
+    ).returncode
+
+
 def update_package_json() -> None:
     if not PACKAGE_FILE.exists():
         raise RuntimeError(f"host package.json not found: {PACKAGE_FILE}")
     data = json.loads(PACKAGE_FILE.read_text(encoding="utf-8"))
+    if not isinstance(data, dict):
+        raise ValueError(f"host package.json must contain an object: {PACKAGE_FILE}")
     scripts = data.setdefault("scripts", {})
+    if not isinstance(scripts, dict):
+        raise ValueError(f"host package.json scripts must be an object: {PACKAGE_FILE}")
     for name in list(scripts):
         if name.startswith("docs:workflows:"):
             del scripts[name]
@@ -89,9 +108,11 @@ def copy_defaults() -> list[Path]:
 def main() -> int:
     try:
         require_mount_location()
+        if UPDATED_FLAG not in sys.argv:
+            return install_latest()
         update_package_json()
         created = copy_defaults()
-    except (OSError, ValueError, RuntimeError, json.JSONDecodeError) as error:
+    except (OSError, ValueError, RuntimeError, subprocess.CalledProcessError) as error:
         print(f"Installation failed: {error}", file=sys.stderr)
         return 1
 

@@ -27,8 +27,9 @@ pnpm docs:workflows:check
 ## 更新 workflows
 
 ```bash
-git submodule update --remote docs/workflows
 python docs/workflows/install.py
 ```
+
+安装器会自动切换到 `latest` 分支，并通过 fast-forward 拉取其最新提交。
 
 第二次运行安装器不会覆盖已经修改的项目文档。
