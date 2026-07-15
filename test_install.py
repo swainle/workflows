@@ -14,9 +14,25 @@ class InstallTest(unittest.TestCase):
         self.assertEqual(
             run.call_args_list,
             [
+                call(
+                    ["git", "check-ref-format", "--branch", "develop"],
+                    cwd=install.WORKFLOW_ROOT,
+                    stdout=install.subprocess.DEVNULL,
+                    check=True,
+                ),
+                call(
+                    [
+                        "git",
+                        "fetch",
+                        "origin",
+                        "refs/heads/develop:refs/remotes/origin/develop",
+                    ],
+                    cwd=install.WORKFLOW_ROOT,
+                    check=True,
+                ),
                 call(["git", "switch", "develop"], cwd=install.WORKFLOW_ROOT, check=True),
                 call(
-                    ["git", "pull", "--ff-only", "origin", "develop"],
+                    ["git", "merge", "--ff-only", "origin/develop"],
                     cwd=install.WORKFLOW_ROOT,
                     check=True,
                 ),

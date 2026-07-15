@@ -64,9 +64,25 @@ def parse_branch() -> str:
 
 
 def install_branch(branch: str) -> int:
+    subprocess.run(
+        ["git", "check-ref-format", "--branch", branch],
+        cwd=WORKFLOW_ROOT,
+        stdout=subprocess.DEVNULL,
+        check=True,
+    )
+    subprocess.run(
+        [
+            "git",
+            "fetch",
+            "origin",
+            f"refs/heads/{branch}:refs/remotes/origin/{branch}",
+        ],
+        cwd=WORKFLOW_ROOT,
+        check=True,
+    )
     subprocess.run(["git", "switch", branch], cwd=WORKFLOW_ROOT, check=True)
     subprocess.run(
-        ["git", "pull", "--ff-only", "origin", branch],
+        ["git", "merge", "--ff-only", f"origin/{branch}"],
         cwd=WORKFLOW_ROOT,
         check=True,
     )

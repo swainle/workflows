@@ -30,7 +30,7 @@ pnpm docs:workflows:check
 python docs/workflows/install.py --branch latest
 ```
 
-通过 `--branch <分支>` 指定 workflows 分支；省略时默认使用 `latest`。安装器会切换分支、通过 fast-forward 拉取最新提交，并同步宿主项目 `.gitmodules` 中的分支设置。
+通过 `--branch <分支>` 指定 workflows 分支；省略时默认使用 `latest`。安装器会先抓取远端分支，再切换并通过 fast-forward 更新，同时同步宿主项目 `.gitmodules` 中的分支设置。
 
 例如改用 `main`：
 
