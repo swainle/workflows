@@ -1,2 +1,22 @@
+# Python
 __pycache__/
-*.pyc
+*.py[cod]
+.venv/
+
+# Node.js and build output
+node_modules/
+.next/
+build/
+coverage/
+dist/
+
+# Local secrets
+.env
+.env.*
+!.env.example
+*.key
+*.pem
+
+# OS metadata
+.DS_Store
+Thumbs.db
