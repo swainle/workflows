@@ -24,6 +24,22 @@ class IssuesPromptTest(unittest.TestCase):
         ):
             self.assertIn(required, template)
 
+    def test_process_uses_joint_analysis_and_one_question_at_a_time(self):
+        template = (Path(__file__).parent / "templates" / "process.prompt.md").read_text(
+            encoding="utf-8"
+        )
+
+        for required in (
+            "产品经理",
+            "前端专家",
+            "架构师",
+            "后端专家",
+            "共同分析框架",
+            "每次只问一个",
+            "至少有 95% 的把握",
+        ):
+            self.assertIn(required, template)
+
 
 if __name__ == "__main__":
     unittest.main()
