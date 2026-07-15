@@ -18,6 +18,9 @@ class IssuesPromptTest(unittest.TestCase):
             "禁止编造业务规则",
             "根据本次产品分析结果组织",
             "根据本次 Git Patch 的实际文件和内容生成检查步骤",
+            "表格只列与主 Issue",
+            "每次只问一个最关键的问题",
+            "至少有 95% 的把握",
         ):
             self.assertIn(required, template)
 
