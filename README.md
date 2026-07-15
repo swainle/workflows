@@ -5,7 +5,7 @@
 ## 安装
 
 ```bash
-git submodule add -b latest <仓库地址> docs/workflows
+git submodule add -b latest https://github.com/swainle/workflows.git docs/workflows
 python docs/workflows/install.py
 ```
 

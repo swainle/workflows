@@ -122,11 +122,14 @@ function collectContext(config, requirementDir, prdFile, includes) {
   if (config.githubIssues) {
     const issues = githubIssues();
     const mainNumber = issueNumberFromRequirement(requirementDir);
+    const mainIssue = issues.find((issue) => issue.number === mainNumber);
     blocks.unshift([
       "## GitHub Issues",
       "",
       `- 主 Issue：${mainNumber ? `#${mainNumber}` : "无法从需求目录判断"}`,
+      `- 主 Issue 标题：${mainIssue?.title ?? "未找到"}`,
       `- Issues 数量：${issues.length}`,
+      `- 已有 PRD 数量：${existsSync(prdFile) ? 1 : 0}`,
       "",
       "```json",
       JSON.stringify(issues, null, 2),
@@ -166,12 +169,14 @@ export async function runPromptStage(config) {
   const base = readFileSync(path.join(WORKFLOW_ROOT, "templates", "base.prompt.md"), "utf8");
   const stage = readFileSync(path.join(WORKFLOW_ROOT, "templates", config.template), "utf8");
   const replacements = {
+    "{{STAGE}}": config.command,
     "{{STAGE_ID}}": config.stageId,
     "{{STAGE_NAME}}": config.stageName,
     "{{REQUIREMENT}}": path.basename(requirementDir),
     "{{REQUIREMENT_DIR}}": projectRelative(requirementDir),
     "{{PRD_PATH}}": projectRelative(prdFile),
     "{{PROMPT_FILE}}": projectRelative(promptFile),
+    "{{PATCH_NAME}}": patchName,
     "{{PATCH_FILE}}": projectRelative(path.join(outputDir, patchName)),
     "{{ANALYSIS_FILE}}": projectRelative(path.join(outputDir, analysisName)),
     "{{CREATED_AT}}": createdAt,
