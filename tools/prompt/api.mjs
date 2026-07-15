@@ -1,0 +1,7 @@
+import { runPromptStage } from "../core/prompt-stage.mjs";
+await runPromptStage({
+  command: "api", stageId: "04-api", stageName: "API 契约",
+  targetKind: "prd", template: "api.prompt.md",
+  globals: ["docs/architecture/product.md", "docs/architecture/c4.puml", "docs/contracts/openapi.json", "docs/contracts/asyncapi.json"],
+  maxRequirementPrefix: 4,
+});

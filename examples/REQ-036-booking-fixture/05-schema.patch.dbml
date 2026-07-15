@@ -1,0 +1,6 @@
+Table booking_change_requests {
+  id uuid [pk]
+  booking_id uuid [not null, ref: > bookings.id]
+  idempotency_key varchar [not null, unique]
+  requested_at timestamp [not null]
+}

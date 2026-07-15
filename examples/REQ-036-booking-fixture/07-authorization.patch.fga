@@ -1,0 +1,6 @@
+type booking
+  relations
+    define customer: [user]
+    define staff: [user]
+    define can_update: customer or staff
+    define can_cancel: customer or staff
