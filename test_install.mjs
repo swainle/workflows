@@ -1,7 +1,10 @@
 import assert from "node:assert/strict";
+import { createHash } from "node:crypto";
+import { mkdtempSync, readFileSync, rmSync } from "node:fs";
 import test from "node:test";
+import { tmpdir } from "node:os";
 import path from "node:path";
-import { installBranch, parseBranch, PROJECT_ROOT, WORKFLOW_ROOT } from "./install.mjs";
+import { installBranch, installPlantUml, parseBranch, PROJECT_ROOT, WORKFLOW_ROOT } from "./install.mjs";
 
 test("installs with selected branch", () => {
   const calls = [];
@@ -28,4 +31,25 @@ test("parses selected branch", () => {
 
 test("defaults to main branch", () => {
   assert.equal(parseBranch([]), "main");
+});
+
+test("downloads PlantUML once and reuses the verified file", async () => {
+  const directory = mkdtempSync(path.join(tmpdir(), "workflows-install-"));
+  const target = path.join(directory, "packages/plantuml.jar");
+  const data = Buffer.from("plantuml test jar");
+  const expectedSha256 = createHash("sha256").update(data).digest("hex");
+  let downloads = 0;
+  const fetcher = async () => {
+    downloads += 1;
+    return { ok: true, arrayBuffer: async () => Uint8Array.from(data).buffer };
+  };
+
+  try {
+    assert.equal(await installPlantUml({ target, expectedSha256, fetcher }), true);
+    assert.equal(await installPlantUml({ target, expectedSha256, fetcher }), false);
+    assert.deepEqual(readFileSync(target), data);
+    assert.equal(downloads, 1);
+  } finally {
+    rmSync(directory, { recursive: true, force: true });
+  }
 });

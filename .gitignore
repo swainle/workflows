@@ -5,6 +5,7 @@ __pycache__/
 
 # Node.js and build output
 node_modules/
+/packages/
 .next/
 build/
 coverage/

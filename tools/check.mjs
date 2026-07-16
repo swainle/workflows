@@ -7,12 +7,13 @@ const required = [
   "docs/architecture/product.md", "docs/architecture/process.puml", "docs/architecture/c4.puml",
   "docs/contracts/openapi.json", "docs/contracts/asyncapi.json", "docs/contracts/schema.dbml",
   "docs/contracts/authorization.fga", "docs/operations/deployment.md",
+  "docs/workflows/packages/plantuml.jar",
   "packages/design-tokens/tokens/index.tokens.json",
 ];
 const failures = [];
 if (Number(process.versions.node.split(".")[0]) < 20) failures.push(`Node.js 20+ required; current ${process.versions.node}`);
-for (const command of ["git", "gh"]) {
-  try { execFileSync(command, ["--version"], { stdio: "ignore" }); }
+for (const [command, args] of [["git", ["--version"]], ["gh", ["--version"]], ["java", ["-version"]]]) {
+  try { execFileSync(command, args, { stdio: "ignore" }); }
   catch { failures.push(`Command not found: ${command}`); }
 }
 for (const relative of required) {

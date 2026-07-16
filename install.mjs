@@ -2,6 +2,7 @@
 /** Install AI project workflow commands and default documents into a host repo. */
 
 import { spawnSync } from "node:child_process";
+import { createHash } from "node:crypto";
 import {
   chmodSync,
   copyFileSync,
@@ -10,6 +11,7 @@ import {
   readFileSync,
   readdirSync,
   renameSync,
+  rmSync,
   statSync,
   utimesSync,
   writeFileSync,
@@ -50,6 +52,10 @@ const DEFAULT_TARGETS = {
 };
 const UPDATED_FLAG = "--workflows-updated";
 const DEFAULT_BRANCH = "main";
+const PLANTUML_VERSION = "1.2026.6";
+const PLANTUML_URL = `https://github.com/plantuml/plantuml/releases/download/v${PLANTUML_VERSION}/plantuml-${PLANTUML_VERSION}.jar`;
+const PLANTUML_SHA256 = "89948f14c93756c7a3fb7b69078ff37e8489fd79dd430c582b931e2f65358690";
+const PLANTUML_FILE = path.join(WORKFLOW_ROOT, "packages/plantuml.jar");
 
 function run(command, args, options = {}, runner = spawnSync) {
   return runner(command, args, { stdio: "inherit", ...options });
@@ -90,6 +96,31 @@ export function installBranch(branch, runner = spawnSync) {
   const result = run(process.execPath, [path.join(WORKFLOW_ROOT, "install.mjs"), UPDATED_FLAG, "--branch", branch], { cwd: PROJECT_ROOT }, runner);
   if (result.error) throw result.error;
   return result.status ?? 1;
+}
+
+export async function installPlantUml({
+  target = PLANTUML_FILE,
+  url = PLANTUML_URL,
+  expectedSha256 = PLANTUML_SHA256,
+  fetcher = fetch,
+} = {}) {
+  const sha256 = (data) => createHash("sha256").update(data).digest("hex");
+  if (existsSync(target) && sha256(readFileSync(target)) === expectedSha256) return false;
+
+  const response = await fetcher(url);
+  if (!response.ok) throw new Error(`Unable to download PlantUML: HTTP ${response.status}`);
+  const data = Buffer.from(await response.arrayBuffer());
+  const actualSha256 = sha256(data);
+  if (actualSha256 !== expectedSha256) {
+    throw new Error(`PlantUML checksum mismatch: expected ${expectedSha256}, received ${actualSha256}`);
+  }
+
+  mkdirSync(path.dirname(target), { recursive: true });
+  const temporary = `${target}.tmp`;
+  writeFileSync(temporary, data);
+  rmSync(target, { force: true });
+  renameSync(temporary, target);
+  return true;
 }
 
 function updatePackageJson() {
@@ -142,14 +173,16 @@ function copyDefaults() {
   return created;
 }
 
-export function main() {
+export async function main() {
   try {
     const branch = parseBranch();
     requireMountLocation();
     if (!process.argv.includes(UPDATED_FLAG)) return installBranch(branch);
+    const downloadedPlantUml = await installPlantUml();
     updatePackageJson();
     const created = copyDefaults();
     console.log(`Installed ${Object.keys(SCRIPTS).length} pnpm commands.`);
+    console.log(downloadedPlantUml ? `Downloaded PlantUML ${PLANTUML_VERSION}.` : "PlantUML is ready.");
     console.log(`Created ${created.length} missing default files.`);
     console.log("Existing project documents were not overwritten.");
     return 0;
@@ -160,5 +193,5 @@ export function main() {
 }
 
 if (process.argv[1] && pathToFileURL(path.resolve(process.argv[1])).href === import.meta.url) {
-  process.exitCode = main();
+  process.exitCode = await main();
 }
