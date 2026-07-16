@@ -101,6 +101,29 @@ class IssuesPromptTest(unittest.TestCase):
         self.assertNotIn("globalPatch:", backend)
         self.assertNotIn("05-c4.puml", backend_template)
 
+    def test_backend_only_prepares_the_source_execution_prompt(self):
+        root = Path(__file__).parent
+        template = (root / "templates" / "backend.prompt.md").read_text(
+            encoding="utf-8"
+        )
+        config = (root / "tools" / "prompt" / "backend.mjs").read_text(
+            encoding="utf-8"
+        )
+
+        for required in (
+            "后端编码提示词",
+            "本阶段只整理提示词，不执行其中的编码任务",
+            "06-backend.prompt.md",
+            "识别实际框架",
+            "必要的 DDD 边界",
+            "Monorepo 的 workspace 与依赖边界",
+            "直接修改完成需求所需的后端源码",
+            "不生成 Git Patch",
+            "只能创建或更新上述文件",
+        ):
+            self.assertIn(required, f"{config}\n{template}")
+        self.assertNotIn("完成需求必须修改的后端源码、迁移和后端单元测试", template)
+
     def test_database_enforces_table_and_timestamp_conventions(self):
         template = (
             Path(__file__).parent / "templates" / "database.prompt.md"

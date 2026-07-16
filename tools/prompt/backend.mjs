@@ -1,6 +1,6 @@
 import { runPromptStage } from "../core/prompt-stage.mjs";
 await runPromptStage({
-  command: "backend", stageId: "06-backend", stageName: "后端设计与实现",
+  command: "backend", stageId: "06-backend", stageName: "后端编码提示词",
   template: "backend.prompt.md",
   roles: [
     "系统架构师：确认服务边界、依赖方向、可靠性和全局架构影响。",

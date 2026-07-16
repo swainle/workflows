@@ -51,7 +51,9 @@ pnpm docs:workflows:prompt:deployment docs/requirements/REQ-0036-booking-fixture
 
 已有当前阶段产物会再次完整交给 AI。例如人工修改过 `04-openapi.json` 后，再运行 API Prompt，AI 会基于它继续优化。
 
-`c4` 位于业务流程和 API 之间，负责评审系统边界、容器职责和依赖关系。架构边界没有变化时可跳过；有变化时生成需求级 `03-c4.puml`，并用 `03-c4.git.patch` 单独修改全局 `docs/architecture/c4.puml`。backend 阶段只按已确认的 C4 架构实现，不再修改全局 C4。
+`c4` 位于业务流程和 API 之间，负责评审系统边界、容器职责和依赖关系。架构边界没有变化时可跳过；有变化时生成需求级 `03-c4.puml`，并用 `03-c4.git.patch` 单独修改全局 `docs/architecture/c4.puml`。
+
+backend 阶段先逐条确认实现需求，其外层 Git Patch 只创建或更新需求目录中的 `06-backend.prompt.md`，不修改源码。人工应用 Patch 后，把该文件直接交给具备本地文件操作能力的 AI；AI 会检查实际框架、DDD 与 Monorepo 边界，直接修改后端源码、迁移和单元测试并运行项目已有检查。实现中发现不明确或需要改变架构、流程、数据库或契约时，必须暂停并返回对应阶段。
 
 每个阶段都由该领域的多名专业人员共同分析。AI 会先整理当前理解，对不清楚的需求每次只询问一个问题并等待回答，逐条确认到理解达到至少 95% 后才形成一致结论并生成文件。应用外层 AI Patch 和本阶段全局 Patch 后，再进入下一阶段，确保后续 Prompt 读取到最新事实。
 
