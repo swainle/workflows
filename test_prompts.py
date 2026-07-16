@@ -68,13 +68,14 @@ class IssuesPromptTest(unittest.TestCase):
         root = Path(__file__).parent / "tools" / "prompt"
         expected = {
             "process.mjs": "02-process",
-            "api.mjs": "03-api",
-            "database.mjs": "04-database",
-            "backend.mjs": "05-backend",
-            "permission.mjs": "06-permission",
-            "frontend.mjs": "07-frontend",
-            "test.mjs": "08-test",
-            "deployment.mjs": "09-deployment",
+            "c4.mjs": "03-c4",
+            "api.mjs": "04-api",
+            "database.mjs": "05-database",
+            "backend.mjs": "06-backend",
+            "permission.mjs": "07-permission",
+            "frontend.mjs": "08-frontend",
+            "test.mjs": "09-test",
+            "deployment.mjs": "10-deployment",
         }
         for filename, stage_id in expected.items():
             config = (root / filename).read_text(encoding="utf-8")
@@ -83,6 +84,17 @@ class IssuesPromptTest(unittest.TestCase):
         frontend = (root / "frontend.mjs").read_text(encoding="utf-8")
         self.assertIn("docs/contracts/openapi.json", frontend)
         self.assertIn("docs/contracts/authorization.fga", frontend)
+
+        c4 = (root / "c4.mjs").read_text(encoding="utf-8")
+        self.assertIn('globalPatch: "03-c4.git.patch"', c4)
+        self.assertIn("docs/architecture/c4.puml", c4)
+
+        backend = (root / "backend.mjs").read_text(encoding="utf-8")
+        backend_template = (
+            root.parent.parent / "templates" / "backend.prompt.md"
+        ).read_text(encoding="utf-8")
+        self.assertNotIn("globalPatch:", backend)
+        self.assertNotIn("05-c4.puml", backend_template)
 
     def test_ai_results_follow_prompt_attempt_names(self):
         root = Path(__file__).parent
