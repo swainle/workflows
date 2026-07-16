@@ -67,6 +67,18 @@ class IssuesPromptTest(unittest.TestCase):
         self.assertFalse((root / "tools" / "core" / "patch-stage.mjs").exists())
         self.assertFalse((root / "tools" / "core" / "merge-json.mjs").exists())
 
+    def test_prompt_commands_accept_requirement_directories(self):
+        root = Path(__file__).parent
+        engine = (root / "tools" / "core" / "prompt-stage.mjs").read_text(
+            encoding="utf-8"
+        )
+
+        self.assertIn("<requirement-directory>", engine)
+        self.assertIn('path.join(requirementDir, "01-prd.md")', engine)
+        self.assertNotIn("targetKind", engine)
+        for config in (root / "tools" / "prompt").glob("*.mjs"):
+            self.assertNotIn("targetKind", config.read_text(encoding="utf-8"))
+
 
 if __name__ == "__main__":
     unittest.main()

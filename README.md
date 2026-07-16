@@ -35,15 +35,17 @@ pnpm docs:workflows:prompt:issues docs/requirements/REQ-0036-booking-fixture
 
 Prompt 文件名为 `{时间戳}_prompt.md`。同一个 Prompt 的 AI 结果依次保存为 `{时间戳}_prompt.01.git.patch`、`{时间戳}_prompt.01.git.patch.md`，再次尝试时序号递增且不得覆盖已有结果。人工检查并应用 Git Patch 后，再进入下一阶段。后续阶段按需求影响执行，`test` 建议保留，不涉及的阶段直接跳过。
 
+所有 `docs:workflows:prompt:*` 命令只接收需求目录。脚本会自动定位 `01-prd.md`，并收集当前阶段需要的全局文档和已有需求产物。
+
 ```bash
-pnpm docs:workflows:prompt:process docs/requirements/REQ-0036-booking-fixture/01-prd.md
-pnpm docs:workflows:prompt:frontend docs/requirements/REQ-0036-booking-fixture/01-prd.md
-pnpm docs:workflows:prompt:api docs/requirements/REQ-0036-booking-fixture/01-prd.md
-pnpm docs:workflows:prompt:database docs/requirements/REQ-0036-booking-fixture/01-prd.md
-pnpm docs:workflows:prompt:backend docs/requirements/REQ-0036-booking-fixture/01-prd.md
-pnpm docs:workflows:prompt:permission docs/requirements/REQ-0036-booking-fixture/01-prd.md
-pnpm docs:workflows:prompt:test docs/requirements/REQ-0036-booking-fixture/01-prd.md
-pnpm docs:workflows:prompt:deployment docs/requirements/REQ-0036-booking-fixture/01-prd.md
+pnpm docs:workflows:prompt:process docs/requirements/REQ-0036-booking-fixture
+pnpm docs:workflows:prompt:frontend docs/requirements/REQ-0036-booking-fixture
+pnpm docs:workflows:prompt:api docs/requirements/REQ-0036-booking-fixture
+pnpm docs:workflows:prompt:database docs/requirements/REQ-0036-booking-fixture
+pnpm docs:workflows:prompt:backend docs/requirements/REQ-0036-booking-fixture
+pnpm docs:workflows:prompt:permission docs/requirements/REQ-0036-booking-fixture
+pnpm docs:workflows:prompt:test docs/requirements/REQ-0036-booking-fixture
+pnpm docs:workflows:prompt:deployment docs/requirements/REQ-0036-booking-fixture
 ```
 
 已有当前阶段产物会再次完整交给 AI。例如人工修改过 `04-openapi.json` 后，再运行 API Prompt，AI 会基于它继续优化。

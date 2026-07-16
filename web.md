@@ -12,7 +12,7 @@
 也可以执行 Prompt 时手动加入：
 
 ```bash
-pnpm docs:workflows:prompt:frontend docs/requirements/REQ-0036-booking-fixture/01-prd.md \
+pnpm docs:workflows:prompt:frontend docs/requirements/REQ-0036-booking-fixture \
   --include apps/web/src/pages/booking \
   --include packages/ui/src
 ```

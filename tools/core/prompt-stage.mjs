@@ -6,20 +6,19 @@ import { PROJECT_ROOT, WORKFLOW_ROOT, fromProject, projectRelative } from "./pat
 
 const MAX_CONTEXT_BYTES = 1_500_000;
 
-function parseArguments(stage, targetKind) {
+function parseArguments(stage) {
   const args = process.argv.slice(2);
   const target = args.shift();
   const includes = [];
   while (args.length) {
     const flag = args.shift();
     if (flag !== "--include" || !args.length) {
-      throw new Error(`Usage: pnpm docs:workflows:prompt:${stage} <target> [--include <path>]`);
+      throw new Error(`Usage: pnpm docs:workflows:prompt:${stage} <requirement-directory> [--include <path>]`);
     }
     includes.push(args.shift());
   }
   if (!target) {
-    const expected = targetKind === "requirement-directory" ? "requirement directory" : "01-prd.md";
-    throw new Error(`Missing ${expected}.`);
+    throw new Error("Missing requirement directory.");
   }
   return { target, includes };
 }
@@ -140,20 +139,14 @@ function collectContext(config, requirementDir, prdFile, includes) {
 }
 
 export async function runPromptStage(config) {
-  const { target, includes } = parseArguments(config.command, config.targetKind);
-  const targetPath = fromProject(target);
-  let requirementDir;
-  let prdFile;
-  if (config.targetKind === "requirement-directory") {
-    if (!existsSync(targetPath) || !statSync(targetPath).isDirectory()) throw new Error(`Requirement directory not found: ${target}`);
-    requirementDir = targetPath;
-    prdFile = path.join(requirementDir, "01-prd.md");
-  } else {
-    if (!existsSync(targetPath) || !statSync(targetPath).isFile() || path.basename(targetPath) !== "01-prd.md") {
-      throw new Error(`01-prd.md not found: ${target}`);
-    }
-    prdFile = targetPath;
-    requirementDir = path.dirname(prdFile);
+  const { target, includes } = parseArguments(config.command);
+  const requirementDir = fromProject(target);
+  if (!existsSync(requirementDir) || !statSync(requirementDir).isDirectory()) {
+    throw new Error(`Requirement directory not found: ${target}`);
+  }
+  const prdFile = path.join(requirementDir, "01-prd.md");
+  if (config.command !== "issues" && (!existsSync(prdFile) || !statSync(prdFile).isFile())) {
+    throw new Error(`01-prd.md not found in requirement directory: ${target}`);
   }
   if (!/^REQ-\d{4}-[A-Za-z0-9][A-Za-z0-9_-]*$/.test(path.basename(requirementDir))) {
     throw new Error("Requirement directory must look like REQ-0010-feature.");

@@ -22,7 +22,7 @@ node docs/workflows/install.mjs
 通过 `--include` 指定 workspace：
 
 ```bash
-pnpm docs:workflows:prompt:backend docs/requirements/REQ-0036-booking-fixture/01-prd.md \
+pnpm docs:workflows:prompt:backend docs/requirements/REQ-0036-booking-fixture \
   --include apps/api/src \
   --include packages/domain/src
 ```
