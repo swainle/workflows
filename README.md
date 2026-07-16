@@ -51,6 +51,7 @@ pnpm docs:workflows:prompt:deployment docs/requirements/REQ-0036-booking-fixture
 ## 合并到全局文件
 
 ```bash
+pnpm docs:workflows:patch:product docs/requirements/REQ-0036-booking-fixture/01-product.patch.md
 pnpm docs:workflows:patch:process docs/requirements/REQ-0036-booking-fixture/02-process.patch.puml
 pnpm docs:workflows:patch:frontend docs/requirements/REQ-0036-booking-fixture/03-design-tokens.patch.json
 pnpm docs:workflows:patch:api docs/requirements/REQ-0036-booking-fixture/04-openapi.patch.json
@@ -60,6 +61,8 @@ pnpm docs:workflows:patch:backend docs/requirements/REQ-0036-booking-fixture/06-
 pnpm docs:workflows:patch:permission docs/requirements/REQ-0036-booking-fixture/07-authorization.patch.fga
 pnpm docs:workflows:patch:deployment docs/requirements/REQ-0036-booking-fixture/09-deployment.patch.md
 ```
+
+只有需求改变长期有效的产品目标、用户角色、产品范围或全局业务规则时，才会生成并合并 `01-product.patch.md`。完整 PRD 不会合并到全局 `product.md`。
 
 Process 阶段如果生成多个 `02-process-<topic>.patch.puml`，需要逐个执行 `docs:workflows:patch:process` 合并。
 

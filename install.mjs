@@ -35,6 +35,7 @@ const SCRIPTS = {
   "docs:workflows:prompt:permission": "node docs/workflows/tools/prompt/permission.mjs",
   "docs:workflows:prompt:test": "node docs/workflows/tools/prompt/test.mjs",
   "docs:workflows:prompt:deployment": "node docs/workflows/tools/prompt/deployment.mjs",
+  "docs:workflows:patch:product": "node docs/workflows/tools/patch/product.mjs",
   "docs:workflows:patch:process": "node docs/workflows/tools/patch/process.mjs",
   "docs:workflows:patch:frontend": "node docs/workflows/tools/patch/frontend.mjs",
   "docs:workflows:patch:api": "node docs/workflows/tools/patch/api.mjs",

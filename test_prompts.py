@@ -21,6 +21,9 @@ class IssuesPromptTest(unittest.TestCase):
             "表格只列与主 Issue",
             "每次只问一个最关键的问题",
             "至少有 95% 的把握",
+            "01-product.patch.md",
+            "产品目标、用户角色、产品范围或全局业务规则",
+            "没有全局产品变化时不得创建",
         ):
             self.assertIn(required, template)
 
