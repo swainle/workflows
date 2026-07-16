@@ -134,6 +134,14 @@ class IssuesPromptTest(unittest.TestCase):
         ).read_text(encoding="utf-8")
 
         for required in (
+            "数据库产品及主版本",
+            "ORM 框架及主版本",
+            "不使用 ORM",
+            "每次只确认一个选型",
+            "两项都得到明确确认后才能生成文件",
+            "不得仅根据默认文件自行决定",
+            "适配所选数据库",
+            "适配所选 ORM",
             "表名必须以 `t_` 开头",
             "`create_at` 和 `update_at`",
             "数据库在插入时自动写入当前时间",
