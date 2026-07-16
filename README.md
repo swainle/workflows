@@ -5,13 +5,13 @@
 ## 安装
 
 ```bash
-git submodule add -b latest https://github.com/swainle/workflows.git docs/workflows
-python docs/workflows/install.py --branch latest
+git submodule add -b main https://github.com/swainle/workflows.git docs/workflows
+node docs/workflows/install.mjs
 ```
 
 安装器会：
 
-- 自动切换并快进更新指定分支，默认使用 `latest`；
+- 自动切换并快进更新指定分支，默认使用 `main`；
 - 把 `docs:workflows:*` 命令写入宿主项目 `package.json`；
 - 创建缺失的全局示例文件；
 - 不覆盖已有项目文档。

@@ -5,8 +5,8 @@
 ```bash
 pnpm dlx create-turbo@latest
 cd <项目目录>
-git submodule add -b latest https://github.com/swainle/workflows.git docs/workflows
-python docs/workflows/install.py --branch latest
+git submodule add -b main https://github.com/swainle/workflows.git docs/workflows
+node docs/workflows/install.mjs
 pnpm docs:workflows:check
 ```
 
@@ -15,8 +15,8 @@ pnpm docs:workflows:check
 ## 已有项目
 
 ```bash
-git submodule add -b latest https://github.com/swainle/workflows.git docs/workflows
-python docs/workflows/install.py --branch latest
+git submodule add -b main https://github.com/swainle/workflows.git docs/workflows
+node docs/workflows/install.mjs
 ```
 
 通过 `--include` 指定 workspace：
