@@ -25,7 +25,6 @@ const SCRIPTS = {
   "docs:workflows:check": "node docs/workflows/tools/check.mjs",
   "docs:workflows:req": "node docs/workflows/tools/requirement.mjs",
   "docs:workflows:prompt:issues": "node docs/workflows/tools/prompt/issues.mjs",
-  "docs:workflows:prompt:prd": "node docs/workflows/tools/prompt/prd.mjs",
   "docs:workflows:prompt:process": "node docs/workflows/tools/prompt/process.mjs",
   "docs:workflows:prompt:frontend": "node docs/workflows/tools/prompt/frontend.mjs",
   "docs:workflows:prompt:api": "node docs/workflows/tools/prompt/api.mjs",

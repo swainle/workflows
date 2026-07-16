@@ -32,10 +32,9 @@ pnpm docs:workflows:req REQ-0036-booking-fixture
 pnpm docs:workflows:prompt:issues docs/requirements/REQ-0036-booking-fixture
 ```
 
-Prompt 会要求 AI直接生成 `.git.patch` 和简单的 `.git.patch.md`。人工检查并应用 Git Patch 后，再进入下一阶段。
+Prompt 会要求 AI直接生成 `.git.patch` 和简单的 `.git.patch.md`。人工检查并应用 Git Patch 后，再进入下一阶段。后续阶段按需求影响执行，`test` 建议保留，不涉及的阶段直接跳过。
 
 ```bash
-pnpm docs:workflows:prompt:prd docs/requirements/REQ-0036-booking-fixture/01-prd.md
 pnpm docs:workflows:prompt:process docs/requirements/REQ-0036-booking-fixture/01-prd.md
 pnpm docs:workflows:prompt:frontend docs/requirements/REQ-0036-booking-fixture/01-prd.md
 pnpm docs:workflows:prompt:api docs/requirements/REQ-0036-booking-fixture/01-prd.md
