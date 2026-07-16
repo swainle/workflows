@@ -4,8 +4,8 @@
 
 # 允许修改
 
-- `{{REQUIREMENT_DIR}}/07-authorization.fga`
-- `{{REQUIREMENT_DIR}}/07-*.md`
+- `{{REQUIREMENT_DIR}}/06-authorization.fga`
+- `{{REQUIREMENT_DIR}}/06-*.md`
 - 完成需求必须修改的授权实现和权限测试
 
-不得直接修改全局权限模型；全局权限变化写入 `07-permission.git.patch`。
+不得直接修改全局权限模型；全局权限变化写入 `06-permission.git.patch`。

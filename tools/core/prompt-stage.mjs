@@ -175,6 +175,15 @@ export async function runPromptStage(config) {
     "{{PATCH_FILE}}": projectRelative(path.join(outputDir, patchName)),
     "{{ANALYSIS_FILE}}": projectRelative(path.join(outputDir, analysisName)),
     "{{CREATED_AT}}": createdAt,
+    "{{PROFESSIONAL_DISCUSSION}}": [
+      "# 多专业共同讨论",
+      "",
+      "由以下专业人员从各自角度共同分析，但最终必须形成一个一致结论，不要分别输出互相重复或冲突的方案：",
+      "",
+      ...config.roles.map((role) => `- ${role}`),
+      "",
+      "各角色必须互相检查假设、边界和遗漏。存在会改变范围、设计或验收结果的不确定信息时，先与使用者逐项确认；达成一致后再生成文件。",
+    ].join("\n"),
     "{{STAGE_INSTRUCTIONS}}": stage.trim(),
     "{{GLOBAL_PATCH_INSTRUCTIONS}}": config.globalPatch ? [
       "# 全局文件 Patch",

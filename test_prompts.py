@@ -1,15 +1,17 @@
+import re
 import unittest
 from pathlib import Path
 
 
 class IssuesPromptTest(unittest.TestCase):
     def test_requires_product_analysis_report(self):
-        template = (Path(__file__).parent / "templates" / "issues.prompt.md").read_text(
-            encoding="utf-8"
-        )
+        root = Path(__file__).parent
+        template = (root / "templates" / "issues.prompt.md").read_text(encoding="utf-8")
+        config = (root / "tools" / "prompt" / "issues.mjs").read_text(encoding="utf-8")
+        prompt = f"{config}\n{template}"
 
         for required in (
-            "你是一名专业产品经理",
+            "专业产品经理",
             "stage: issues",
             "patch_file: {{PATCH_NAME}}",
             "# 相关 Issues",
@@ -25,12 +27,13 @@ class IssuesPromptTest(unittest.TestCase):
             "产品目标、用户角色、产品范围或全局业务规则",
             "没有全局产品变化时不得创建",
         ):
-            self.assertIn(required, template)
+            self.assertIn(required, prompt)
 
     def test_process_uses_joint_analysis_and_one_question_at_a_time(self):
-        template = (Path(__file__).parent / "templates" / "process.prompt.md").read_text(
-            encoding="utf-8"
-        )
+        root = Path(__file__).parent
+        template = (root / "templates" / "process.prompt.md").read_text(encoding="utf-8")
+        config = (root / "tools" / "prompt" / "process.mjs").read_text(encoding="utf-8")
+        prompt = f"{config}\n{template}"
 
         for required in (
             "产品经理",
@@ -45,7 +48,41 @@ class IssuesPromptTest(unittest.TestCase):
             "通常控制在 2～5 个文件",
             "不得按产品、前端、架构、后端角色机械拆分",
         ):
-            self.assertIn(required, template)
+            self.assertIn(required, prompt)
+
+    def test_every_stage_uses_multiple_professional_roles(self):
+        root = Path(__file__).parent
+        base = (root / "templates" / "base.prompt.md").read_text(encoding="utf-8")
+        engine = (root / "tools" / "core" / "prompt-stage.mjs").read_text(
+            encoding="utf-8"
+        )
+
+        self.assertIn("{{PROFESSIONAL_DISCUSSION}}", base)
+        self.assertIn("多专业共同讨论", engine)
+        for config in (root / "tools" / "prompt").glob("*.mjs"):
+            roles = re.search(r"roles:\s*\[(.*?)\]", config.read_text(encoding="utf-8"), re.S)
+            self.assertIsNotNone(roles, config.name)
+            self.assertGreaterEqual(len(re.findall(r'^\s*"', roles.group(1), re.M)), 3, config.name)
+
+    def test_stages_follow_contract_first_order(self):
+        root = Path(__file__).parent / "tools" / "prompt"
+        expected = {
+            "process.mjs": "02-process",
+            "api.mjs": "03-api",
+            "database.mjs": "04-database",
+            "backend.mjs": "05-backend",
+            "permission.mjs": "06-permission",
+            "frontend.mjs": "07-frontend",
+            "test.mjs": "08-test",
+            "deployment.mjs": "09-deployment",
+        }
+        for filename, stage_id in expected.items():
+            config = (root / filename).read_text(encoding="utf-8")
+            self.assertIn(f'stageId: "{stage_id}"', config)
+
+        frontend = (root / "frontend.mjs").read_text(encoding="utf-8")
+        self.assertIn("docs/contracts/openapi.json", frontend)
+        self.assertIn("docs/contracts/authorization.fga", frontend)
 
     def test_ai_results_follow_prompt_attempt_names(self):
         root = Path(__file__).parent

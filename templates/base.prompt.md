@@ -12,6 +12,8 @@ created_at: {{CREATED_AT}}
 
 人工可能已经修改需求产物。已有文件代表当前最新状态，不要无理由重新生成或覆盖。
 
+{{PROFESSIONAL_DISCUSSION}}
+
 {{STAGE_INSTRUCTIONS}}
 
 {{GLOBAL_PATCH_INSTRUCTIONS}}
