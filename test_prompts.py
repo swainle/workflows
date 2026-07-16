@@ -113,6 +113,8 @@ class IssuesPromptTest(unittest.TestCase):
         for required in (
             "后端编码提示词",
             "本阶段只整理提示词，不执行其中的编码任务",
+            "当前任务与后续编码任务是两个严格分离的阶段",
+            "只能作为外层 `*_prompt.NN.git.patch` 新增或修改 `06-backend.prompt.md` 的内容",
             "06-backend.prompt.md",
             "识别实际框架",
             "必要的 DDD 边界",
@@ -120,6 +122,8 @@ class IssuesPromptTest(unittest.TestCase):
             "直接修改完成需求所需的后端源码",
             "不生成 Git Patch",
             "只能创建或更新上述文件",
+            "生成外层 Git Patch 和分析文件后立即停止",
+            "不得绕过外层 Git Patch 直接新增或修改 `06-backend.prompt.md`",
         ):
             self.assertIn(required, f"{config}\n{template}")
         self.assertNotIn("完成需求必须修改的后端源码、迁移和后端单元测试", template)
