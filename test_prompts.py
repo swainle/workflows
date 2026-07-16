@@ -101,6 +101,20 @@ class IssuesPromptTest(unittest.TestCase):
         self.assertNotIn("globalPatch:", backend)
         self.assertNotIn("05-c4.puml", backend_template)
 
+    def test_database_enforces_table_and_timestamp_conventions(self):
+        template = (
+            Path(__file__).parent / "templates" / "database.prompt.md"
+        ).read_text(encoding="utf-8")
+
+        for required in (
+            "表名必须以 `t_` 开头",
+            "`create_at` 和 `update_at`",
+            "数据库在插入时自动写入当前时间",
+            "在每次更新时自动刷新",
+            "应用代码不得赋值",
+        ):
+            self.assertIn(required, template)
+
     def test_ai_results_follow_prompt_attempt_names(self):
         root = Path(__file__).parent
         base = (root / "templates" / "base.prompt.md").read_text(encoding="utf-8")
