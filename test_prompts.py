@@ -59,6 +59,11 @@ class IssuesPromptTest(unittest.TestCase):
 
         self.assertIn("{{PROFESSIONAL_DISCUSSION}}", base)
         self.assertIn("多专业共同讨论", engine)
+        self.assertIn("先向使用者简洁整理当前理解", engine)
+        self.assertIn("每次只询问一个最关键的问题", engine)
+        self.assertIn("等待使用者回答后更新理解和信心", engine)
+        self.assertIn("达到至少 95%", engine)
+        self.assertIn("未达到时必须继续逐条确认", engine)
         for config in (root / "tools" / "prompt").glob("*.mjs"):
             roles = re.search(r"roles:\s*\[(.*?)\]", config.read_text(encoding="utf-8"), re.S)
             self.assertIsNotNone(roles, config.name)

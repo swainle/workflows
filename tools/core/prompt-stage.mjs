@@ -182,7 +182,9 @@ export async function runPromptStage(config) {
       "",
       ...config.roles.map((role) => `- ${role}`),
       "",
-      "各角色必须互相检查假设、边界和遗漏。存在会改变范围、设计或验收结果的不确定信息时，先与使用者逐项确认；达成一致后再生成文件。",
+      "各角色必须互相检查假设、边界和遗漏，并先向使用者简洁整理当前理解。",
+      "存在任何不清楚的需求时，每次只询问一个最关键的问题，等待使用者回答后更新理解和信心，再询问下一个问题；不得一次提出多个问题，也不得重复询问已经明确的内容。",
+      "只有对使用者真实需求的理解达到至少 95% 并形成一致结论后，才能生成 Git Patch 和分析文件；未达到时必须继续逐条确认，不得自行假设。",
     ].join("\n"),
     "{{STAGE_INSTRUCTIONS}}": stage.trim(),
     "{{GLOBAL_PATCH_INSTRUCTIONS}}": config.globalPatch ? [

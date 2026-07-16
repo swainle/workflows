@@ -53,7 +53,7 @@ pnpm docs:workflows:prompt:deployment docs/requirements/REQ-0036-booking-fixture
 
 `c4` 位于业务流程和 API 之间，负责评审系统边界、容器职责和依赖关系。架构边界没有变化时可跳过；有变化时生成需求级 `03-c4.puml`，并用 `03-c4.git.patch` 单独修改全局 `docs/architecture/c4.puml`。backend 阶段只按已确认的 C4 架构实现，不再修改全局 C4。
 
-每个阶段都由该领域的多名专业人员共同分析并形成一致结论。应用外层 AI Patch 和本阶段全局 Patch 后，再进入下一阶段，确保后续 Prompt 读取到最新事实。
+每个阶段都由该领域的多名专业人员共同分析。AI 会先整理当前理解，对不清楚的需求每次只询问一个问题并等待回答，逐条确认到理解达到至少 95% 后才形成一致结论并生成文件。应用外层 AI Patch 和本阶段全局 Patch 后，再进入下一阶段，确保后续 Prompt 读取到最新事实。
 
 ## 应用全局文件 Patch
 
