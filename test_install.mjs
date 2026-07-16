@@ -1,10 +1,10 @@
 import assert from "node:assert/strict";
 import { createHash } from "node:crypto";
-import { mkdtempSync, readFileSync, rmSync } from "node:fs";
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import test from "node:test";
 import { tmpdir } from "node:os";
 import path from "node:path";
-import { installBranch, installPlantUml, parseBranch, PROJECT_ROOT, WORKFLOW_ROOT } from "./install.mjs";
+import { installBranch, installPlantUml, migrateDeploymentDocument, parseBranch, PROJECT_ROOT, WORKFLOW_ROOT } from "./install.mjs";
 
 test("installs with selected branch", () => {
   const calls = [];
@@ -51,5 +51,21 @@ test("downloads PlantUML once and reuses the verified file", async () => {
     assert.equal(downloads, 1);
   } finally {
     rmSync(directory, { recursive: true, force: true });
+  }
+});
+
+test("moves the existing deployment document into architecture", () => {
+  const projectRoot = mkdtempSync(path.join(tmpdir(), "workflows-install-"));
+  const source = path.join(projectRoot, "docs/operations/deployment.md");
+  const target = path.join(projectRoot, "docs/architecture/deployment.md");
+  mkdirSync(path.dirname(source), { recursive: true });
+  writeFileSync(source, "deployment\n");
+
+  try {
+    assert.equal(migrateDeploymentDocument(projectRoot), true);
+    assert.equal(existsSync(source), false);
+    assert.equal(readFileSync(target, "utf8"), "deployment\n");
+  } finally {
+    rmSync(projectRoot, { recursive: true, force: true });
   }
 });

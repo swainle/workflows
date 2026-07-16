@@ -47,7 +47,6 @@ const SCRIPTS = {
 const DEFAULT_TARGETS = {
   architecture: path.join(PROJECT_ROOT, "docs/architecture"),
   contracts: path.join(PROJECT_ROOT, "docs/contracts"),
-  operations: path.join(PROJECT_ROOT, "docs/operations"),
   "design-tokens": path.join(PROJECT_ROOT, "packages/design-tokens/tokens"),
 };
 const UPDATED_FLAG = "--workflows-updated";
@@ -173,6 +172,15 @@ function copyDefaults() {
   return created;
 }
 
+export function migrateDeploymentDocument(projectRoot = PROJECT_ROOT) {
+  const source = path.join(projectRoot, "docs/operations/deployment.md");
+  const target = path.join(projectRoot, "docs/architecture/deployment.md");
+  if (!existsSync(source) || existsSync(target)) return false;
+  mkdirSync(path.dirname(target), { recursive: true });
+  renameSync(source, target);
+  return true;
+}
+
 export async function main() {
   try {
     const branch = parseBranch();
@@ -180,9 +188,11 @@ export async function main() {
     if (!process.argv.includes(UPDATED_FLAG)) return installBranch(branch);
     const downloadedPlantUml = await installPlantUml();
     updatePackageJson();
+    const migratedDeployment = migrateDeploymentDocument();
     const created = copyDefaults();
     console.log(`Installed ${Object.keys(SCRIPTS).length} pnpm commands.`);
     console.log(downloadedPlantUml ? `Downloaded PlantUML ${PLANTUML_VERSION}.` : "PlantUML is ready.");
+    if (migratedDeployment) console.log("Moved docs/operations/deployment.md to docs/architecture/deployment.md.");
     console.log(`Created ${created.length} missing default files.`);
     console.log("Existing project documents were not overwritten.");
     return 0;

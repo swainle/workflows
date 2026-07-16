@@ -6,7 +6,7 @@ import { PROJECT_ROOT } from "./core/paths.mjs";
 const required = [
   "docs/architecture/product.md", "docs/architecture/process.puml", "docs/architecture/c4.puml",
   "docs/contracts/openapi.json", "docs/contracts/asyncapi.json", "docs/contracts/schema.dbml",
-  "docs/contracts/authorization.fga", "docs/operations/deployment.md",
+  "docs/contracts/authorization.fga", "docs/architecture/deployment.md",
   "docs/workflows/packages/plantuml.jar",
   "packages/design-tokens/tokens/index.tokens.json",
 ];
