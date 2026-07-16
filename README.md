@@ -33,7 +33,7 @@ pnpm docs:workflows:req REQ-0036-booking-fixture
 pnpm docs:workflows:prompt:issues docs/requirements/REQ-0036-booking-fixture
 ```
 
-Prompt 会要求 AI直接生成 `.git.patch` 和简单的 `.git.patch.md`。人工检查并应用 Git Patch 后，再进入下一阶段。后续阶段按需求影响执行，`test` 建议保留，不涉及的阶段直接跳过。
+Prompt 文件名为 `{时间戳}_prompt.md`。同一个 Prompt 的 AI 结果依次保存为 `{时间戳}_prompt.01.git.patch`、`{时间戳}_prompt.01.git.patch.md`，再次尝试时序号递增且不得覆盖已有结果。人工检查并应用 Git Patch 后，再进入下一阶段。后续阶段按需求影响执行，`test` 建议保留，不涉及的阶段直接跳过。
 
 ```bash
 pnpm docs:workflows:prompt:process docs/requirements/REQ-0036-booking-fixture/01-prd.md
@@ -46,33 +46,27 @@ pnpm docs:workflows:prompt:test docs/requirements/REQ-0036-booking-fixture/01-pr
 pnpm docs:workflows:prompt:deployment docs/requirements/REQ-0036-booking-fixture/01-prd.md
 ```
 
-已有当前阶段产物会再次完整交给 AI。例如人工修改过 `04-openapi.patch.json` 后，再运行 API Prompt，AI 会基于它继续优化。
+已有当前阶段产物会再次完整交给 AI。例如人工修改过 `04-openapi.json` 后，再运行 API Prompt，AI 会基于它继续优化。
 
-## 合并到全局文件
+## 应用全局文件 Patch
+
+AI 外层提案不仅可以修改需求产物和业务源码，还会按需创建阶段级全局 Patch，例如 `02-process.git.patch`。阶段级 Patch 只修改全局架构、契约或配置文件，人工单独检查并应用：
 
 ```bash
-pnpm docs:workflows:patch:product docs/requirements/REQ-0036-booking-fixture/01-product.patch.md
-pnpm docs:workflows:patch:process docs/requirements/REQ-0036-booking-fixture/02-process.patch.puml
-pnpm docs:workflows:patch:frontend docs/requirements/REQ-0036-booking-fixture/03-design-tokens.patch.json
-pnpm docs:workflows:patch:api docs/requirements/REQ-0036-booking-fixture/04-openapi.patch.json
-pnpm docs:workflows:patch:api docs/requirements/REQ-0036-booking-fixture/04-asyncapi.patch.json
-pnpm docs:workflows:patch:database docs/requirements/REQ-0036-booking-fixture/05-schema.patch.dbml
-pnpm docs:workflows:patch:backend docs/requirements/REQ-0036-booking-fixture/06-c4.patch.puml
-pnpm docs:workflows:patch:permission docs/requirements/REQ-0036-booking-fixture/07-authorization.patch.fga
-pnpm docs:workflows:patch:deployment docs/requirements/REQ-0036-booking-fixture/09-deployment.patch.md
+git apply --check docs/requirements/REQ-0036-booking-fixture/02-process.git.patch
+git apply docs/requirements/REQ-0036-booking-fixture/02-process.git.patch
 ```
 
-只有需求改变长期有效的产品目标、用户角色、产品范围或全局业务规则时，才会生成并合并 `01-product.patch.md`。完整 PRD 不会合并到全局 `product.md`。
+只有需求改变长期有效的产品目标、用户角色、产品范围或全局业务规则时，才会生成 `01-product.git.patch`。完整 PRD 不会合并到全局 `product.md`。没有全局变化的阶段不创建空 Patch。
 
-Process 阶段如果生成多个 `02-process-<topic>.patch.puml`，需要逐个执行 `docs:workflows:patch:process` 合并。
-
-人工执行合并命令就代表接受。脚本完成后会显示 Git diff。
+全局流程按业务模块存放在 `docs/architecture/process/`。需求级流程文件使用 `02-process.puml` 或 `02-process-<topic>.puml`，对应的 `02-process.git.patch` 负责修改全局流程模块。
 
 ## 规则
 
 - 全局文件表示项目当前事实。
 - 需求目录名使用四位编号，例如 `REQ-0010-booking`。
-- 需求差异文件表示一个需求改变了什么。
+- `NN-*` 需求文件表示一个阶段分析或实现了什么。
+- `NN-*.git.patch` 表示一个阶段需要如何更新全局项目事实。
 - `change/` 保存 Prompt 和 AI 工作记录。
 - 待确认的 Issue 本次不动，留到下次需求流程。
 - 不记录 `base_commit`，不提供 `save` 和 `review` 命令。

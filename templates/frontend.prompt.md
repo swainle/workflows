@@ -4,8 +4,8 @@
 
 # 允许修改
 
-- `{{REQUIREMENT_DIR}}/03-design-tokens.patch.json`
+- `{{REQUIREMENT_DIR}}/03-design-tokens.json`
 - `{{REQUIREMENT_DIR}}/03-*.md`
 - 完成需求必须修改的前端源码和文字资源
 
-不得修改后端、数据库、部署文件或全局 Design Tokens；全局 Token 由 patch 命令合并。
+不得修改后端、数据库或部署文件；全局 Design Tokens 变化写入 `03-frontend.git.patch`。

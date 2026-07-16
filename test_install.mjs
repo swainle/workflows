@@ -4,7 +4,7 @@ import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync
 import test from "node:test";
 import { tmpdir } from "node:os";
 import path from "node:path";
-import { installBranch, installPlantUml, migrateDeploymentDocument, parseBranch, PROJECT_ROOT, WORKFLOW_ROOT } from "./install.mjs";
+import { installBranch, installPlantUml, migrateDeploymentDocument, migrateProcessDocument, parseBranch, PROJECT_ROOT, WORKFLOW_ROOT } from "./install.mjs";
 
 test("installs with selected branch", () => {
   const calls = [];
@@ -65,6 +65,22 @@ test("moves the existing deployment document into architecture", () => {
     assert.equal(migrateDeploymentDocument(projectRoot), true);
     assert.equal(existsSync(source), false);
     assert.equal(readFileSync(target, "utf8"), "deployment\n");
+  } finally {
+    rmSync(projectRoot, { recursive: true, force: true });
+  }
+});
+
+test("moves the existing process document into the process directory", () => {
+  const projectRoot = mkdtempSync(path.join(tmpdir(), "workflows-install-"));
+  const source = path.join(projectRoot, "docs/architecture/process.puml");
+  const target = path.join(projectRoot, "docs/architecture/process/overview.puml");
+  mkdirSync(path.dirname(source), { recursive: true });
+  writeFileSync(source, "@startuml\n@enduml\n");
+
+  try {
+    assert.equal(migrateProcessDocument(projectRoot), true);
+    assert.equal(existsSync(source), false);
+    assert.equal(readFileSync(target, "utf8"), "@startuml\n@enduml\n");
   } finally {
     rmSync(projectRoot, { recursive: true, force: true });
   }

@@ -4,7 +4,7 @@
 
 # 允许修改
 
-- `{{REQUIREMENT_DIR}}/08-*.patch.feature`
+- `{{REQUIREMENT_DIR}}/08-*.feature`
 - `{{REQUIREMENT_DIR}}/08-*.md`
 - 项目现有测试目录、测试夹具和必要测试配置
 

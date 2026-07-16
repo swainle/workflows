@@ -4,8 +4,8 @@
 
 # 允许修改
 
-- `{{REQUIREMENT_DIR}}/06-c4.patch.puml`
+- `{{REQUIREMENT_DIR}}/06-c4.puml`
 - `{{REQUIREMENT_DIR}}/06-*.md`
 - 完成需求必须修改的后端源码、迁移和后端单元测试
 
-不得修改前端源码和全局架构文件。
+不得修改前端源码；全局架构变化写入 `06-backend.git.patch`。

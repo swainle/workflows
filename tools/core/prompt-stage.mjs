@@ -163,7 +163,7 @@ export async function runPromptStage(config) {
   const outputDir = path.join(requirementDir, "change", config.stageId);
   mkdirSync(outputDir, { recursive: true });
   const promptName = `${createdAt}_prompt.md`;
-  const patchName = `${createdAt}_attempt-01.git.patch`;
+  const patchName = `${createdAt}_prompt.01.git.patch`;
   const analysisName = `${patchName}.md`;
   const promptFile = path.join(outputDir, promptName);
   if (existsSync(promptFile)) throw new Error(`Prompt already exists: ${projectRelative(promptFile)}`);
@@ -183,6 +183,13 @@ export async function runPromptStage(config) {
     "{{ANALYSIS_FILE}}": projectRelative(path.join(outputDir, analysisName)),
     "{{CREATED_AT}}": createdAt,
     "{{STAGE_INSTRUCTIONS}}": stage.trim(),
+    "{{GLOBAL_PATCH_INSTRUCTIONS}}": config.globalPatch ? [
+      "# 全局文件 Patch",
+      "",
+      `本阶段需要改变全局项目事实时，不要在外层 Git Patch 中直接修改全局文件。改为创建或更新 \`${projectRelative(path.join(requirementDir, config.globalPatch))}\`，其内容必须是从 \`diff --git\` 开始、使用项目相对路径的完整 Git Patch。`,
+      "",
+      "需求级全局 Patch 只修改全局架构、契约或配置文档，不包含业务源码和需求目录文件。没有全局变化时不要创建空 Patch。人工应用外层 Git Patch 后，再单独检查并应用它。",
+    ].join("\n") : "",
     "{{CONTEXT}}": collectContext(config, requirementDir, prdFile, includes),
   };
   let prompt = base;

@@ -41,6 +41,6 @@ node docs/workflows/install.mjs
 直接指定 `.puml` 文件，PNG 会生成在源文件旁边：
 
 ```bash
-java -jar docs/workflows/packages/plantuml.jar docs/architecture/process.puml
+java -jar docs/workflows/packages/plantuml.jar docs/architecture/process/overview.puml
 java -jar docs/workflows/packages/plantuml.jar docs/architecture/c4.puml
 ```

@@ -35,14 +35,6 @@ const SCRIPTS = {
   "docs:workflows:prompt:permission": "node docs/workflows/tools/prompt/permission.mjs",
   "docs:workflows:prompt:test": "node docs/workflows/tools/prompt/test.mjs",
   "docs:workflows:prompt:deployment": "node docs/workflows/tools/prompt/deployment.mjs",
-  "docs:workflows:patch:product": "node docs/workflows/tools/patch/product.mjs",
-  "docs:workflows:patch:process": "node docs/workflows/tools/patch/process.mjs",
-  "docs:workflows:patch:frontend": "node docs/workflows/tools/patch/frontend.mjs",
-  "docs:workflows:patch:api": "node docs/workflows/tools/patch/api.mjs",
-  "docs:workflows:patch:database": "node docs/workflows/tools/patch/database.mjs",
-  "docs:workflows:patch:backend": "node docs/workflows/tools/patch/backend.mjs",
-  "docs:workflows:patch:permission": "node docs/workflows/tools/patch/permission.mjs",
-  "docs:workflows:patch:deployment": "node docs/workflows/tools/patch/deployment.mjs",
 };
 
 const DEFAULT_TARGETS = {
@@ -173,13 +165,21 @@ function copyDefaults() {
   return created;
 }
 
-export function migrateDeploymentDocument(projectRoot = PROJECT_ROOT) {
-  const source = path.join(projectRoot, "docs/operations/deployment.md");
-  const target = path.join(projectRoot, "docs/architecture/deployment.md");
+function migrateFile(projectRoot, sourceRelative, targetRelative) {
+  const source = path.join(projectRoot, sourceRelative);
+  const target = path.join(projectRoot, targetRelative);
   if (!existsSync(source) || existsSync(target)) return false;
   mkdirSync(path.dirname(target), { recursive: true });
   renameSync(source, target);
   return true;
+}
+
+export function migrateDeploymentDocument(projectRoot = PROJECT_ROOT) {
+  return migrateFile(projectRoot, "docs/operations/deployment.md", "docs/architecture/deployment.md");
+}
+
+export function migrateProcessDocument(projectRoot = PROJECT_ROOT) {
+  return migrateFile(projectRoot, "docs/architecture/process.puml", "docs/architecture/process/overview.puml");
 }
 
 export async function main() {
@@ -190,10 +190,12 @@ export async function main() {
     const downloadedPlantUml = await installPlantUml();
     updatePackageJson();
     const migratedDeployment = migrateDeploymentDocument();
+    const migratedProcess = migrateProcessDocument();
     const created = copyDefaults();
     console.log(`Installed ${Object.keys(SCRIPTS).length} pnpm commands.`);
     console.log(downloadedPlantUml ? `Downloaded PlantUML ${PLANTUML_VERSION}.` : "PlantUML is ready.");
     if (migratedDeployment) console.log("Moved docs/operations/deployment.md to docs/architecture/deployment.md.");
+    if (migratedProcess) console.log("Moved docs/architecture/process.puml to docs/architecture/process/overview.puml.");
     console.log(`Created ${created.length} missing default files.`);
     console.log("Existing project documents were not overwritten.");
     return 0;

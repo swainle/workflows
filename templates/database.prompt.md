@@ -4,7 +4,7 @@
 
 # 允许修改
 
-- `{{REQUIREMENT_DIR}}/05-schema.patch.dbml`
+- `{{REQUIREMENT_DIR}}/05-schema.dbml`
 - `{{REQUIREMENT_DIR}}/05-*.md`
 
-不得直接修改全局 schema 或业务源码。
+不得直接修改全局 schema 或业务源码；全局 schema 变化写入 `05-database.git.patch`。

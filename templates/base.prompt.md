@@ -14,6 +14,8 @@ created_at: {{CREATED_AT}}
 
 {{STAGE_INSTRUCTIONS}}
 
+{{GLOBAL_PATCH_INSTRUCTIONS}}
+
 # 输出文件
 
 需要修改时，直接创建：
@@ -22,6 +24,8 @@ created_at: {{CREATED_AT}}
 - 简单分析：`{{ANALYSIS_FILE}}`
 
 Git Patch 必须从 `diff --git` 开始，使用项目相对路径，不得省略内容。只提出修改，不要应用 Patch。
+
+`.01` 表示当前 Prompt 的第一次 AI 结果。如果同名结果已经存在，不得覆盖；两个输出文件同时改用下一个两位序号，例如 `.02`、`.03`，分析文件 frontmatter 中的 `patch_file` 也必须使用实际序号。
 
 不需要修改时，只创建分析文件 `{{ANALYSIS_FILE}}`，并将 `patch_file` 写为 `null`、`result` 写为 `no-changes`。
 
@@ -54,7 +58,7 @@ result: proposed
 
 # 通用边界
 
-- 不修改 `{{REQUIREMENT_DIR}}/change/` 下已有的 Prompt、Attempt 和资源。
+- 不修改 `{{REQUIREMENT_DIR}}/change/` 下已有的 Prompt、AI 结果和资源。
 - 不修改 `docs/workflows/` 子模块。
 - 不升级未授权依赖。
 - 不写入密钥、令牌或真实凭据。

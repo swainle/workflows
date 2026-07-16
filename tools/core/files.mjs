@@ -4,7 +4,7 @@ import { fromProject } from "./paths.mjs";
 
 const TEXT_EXTENSIONS = new Set([
   ".css", ".dbml", ".feature", ".fga", ".html", ".js", ".json", ".jsx",
-  ".md", ".mjs", ".puml", ".scss", ".svg", ".ts", ".tsx", ".yaml", ".yml",
+  ".md", ".mjs", ".patch", ".puml", ".scss", ".svg", ".ts", ".tsx", ".yaml", ".yml",
 ]);
 const EXCLUDED = new Set([".git", ".next", "build", "coverage", "dist", "node_modules"]);
 const MAX_FILE_BYTES = 150_000;

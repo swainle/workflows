@@ -4,8 +4,8 @@
 
 # 允许修改
 
-- `{{REQUIREMENT_DIR}}/09-deployment.patch.md`
+- `{{REQUIREMENT_DIR}}/09-deployment.md`
 - `{{REQUIREMENT_DIR}}/09-*.md`
 - 完成需求必须修改的部署、CI/CD、监控和非敏感环境变量模板
 
-不得直接修改全局部署文档；它由 patch 命令合并。
+不得直接修改全局部署文档；全局部署变化写入 `09-deployment.git.patch`。
