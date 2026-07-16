@@ -26,6 +26,7 @@ const PACKAGE_FILE = path.join(PROJECT_ROOT, "package.json");
 const SCRIPTS = {
   "docs:workflows:check": "node docs/workflows/tools/check.mjs",
   "docs:workflows:req": "node docs/workflows/tools/requirement.mjs",
+  "docs:workflows:prompt:flow": "node docs/workflows/tools/flow.mjs",
   "docs:workflows:prompt:issues": "node docs/workflows/tools/prompt/issues.mjs",
   "docs:workflows:prompt:process": "node docs/workflows/tools/prompt/process.mjs",
   "docs:workflows:prompt:c4": "node docs/workflows/tools/prompt/c4.mjs",

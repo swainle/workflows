@@ -35,7 +35,7 @@ pnpm docs:workflows:prompt:issues docs/requirements/REQ-0036-booking-fixture
 
 Prompt 文件名为 `{时间戳}_prompt.md`。同一个 Prompt 的 AI 结果依次保存为 `{时间戳}_prompt.01.git.patch`、`{时间戳}_prompt.01.git.patch.md`，再次尝试时序号递增且不得覆盖已有结果。人工检查并应用 Git Patch 后，再进入下一阶段。后续阶段按需求影响执行，`test` 建议保留，不涉及的阶段直接跳过。
 
-所有 `docs:workflows:prompt:*` 命令只接收需求目录。脚本会自动定位 `01-prd.md`，并收集当前阶段需要的全局文档和已有需求产物。
+各阶段的 `docs:workflows:prompt:*` 命令接收需求目录。脚本会自动定位 `01-prd.md`，并收集当前阶段需要的全局文档和已有需求产物。
 
 ```bash
 pnpm docs:workflows:prompt:process docs/requirements/REQ-0036-booking-fixture
@@ -48,6 +48,14 @@ pnpm docs:workflows:prompt:frontend docs/requirements/REQ-0036-booking-fixture
 pnpm docs:workflows:prompt:test docs/requirements/REQ-0036-booking-fixture
 pnpm docs:workflows:prompt:deployment docs/requirements/REQ-0036-booking-fixture
 ```
+
+需要从任意阶段连续推进到后续阶段时，使用 `flow` 提交本次修改需求：
+
+```bash
+pnpm docs:workflows:prompt:flow docs/requirements/REQ-0036-booking-fixture --from c4 --to backend --request "增加 Redis，用于会话和缓存"
+```
+
+支持的阶段顺序为 `issues`、`process`、`c4`、`api`、`database`、`backend`、`permission`、`frontend`、`test`、`deployment`。命令生成一份总控 Prompt；把它交给具备本地文件和命令操作能力的 AI 后，AI 会逐阶段即时生成 Prompt、逐条确认到至少 95%、等待人工批准并应用 Patch，再读取最新事实继续。它不会预先生成所有阶段 Prompt，也不是无人值守执行。以 backend 结束时只生成 `06-backend.prompt.md`；流程还包含后续阶段时，AI 会先执行该文件完成后端代码再继续。
 
 已有当前阶段产物会再次完整交给 AI。例如人工修改过 `04-openapi.json` 后，再运行 API Prompt，AI 会基于它继续优化。
 

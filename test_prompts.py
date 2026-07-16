@@ -158,6 +158,24 @@ class IssuesPromptTest(unittest.TestCase):
         self.assertFalse((root / "tools" / "core" / "patch-stage.mjs").exists())
         self.assertFalse((root / "tools" / "core" / "merge-json.mjs").exists())
 
+    def test_flow_command_orchestrates_existing_stages(self):
+        root = Path(__file__).parent
+        installer = (root / "install.mjs").read_text(encoding="utf-8")
+        template = (root / "templates" / "flow.prompt.md").read_text(
+            encoding="utf-8"
+        )
+
+        self.assertIn('"docs:workflows:prompt:flow"', installer)
+        for required in (
+            "不得预先生成后续阶段 Prompt",
+            "每次只询问使用者一个最关键的问题",
+            "理解达到至少 95%",
+            "等待明确批准",
+            "06-backend.prompt.md",
+            "不替使用者批准 Patch",
+        ):
+            self.assertIn(required, template)
+
     def test_prompt_commands_accept_requirement_directories(self):
         root = Path(__file__).parent
         engine = (root / "tools" / "core" / "prompt-stage.mjs").read_text(
