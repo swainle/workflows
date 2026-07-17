@@ -13,6 +13,9 @@ class PromptTest(unittest.TestCase):
 
         self.assertIn("{{DEFAULT_REQUIREMENTS}}", base)
         self.assertIn("{{USER_REQUIREMENT}}", base)
+        self.assertIn("# 专家协作", base)
+        self.assertIn("支持子代理", base)
+        self.assertIn("# 专家评审", base)
         self.assertIn('git apply --check "{{PATCH_FILE}}"', base)
         self.assertIn('require: { type: "string" }', cli)
         self.assertIn('list: { type: "boolean" }', cli)
