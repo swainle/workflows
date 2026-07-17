@@ -300,7 +300,7 @@ export async function main(args = process.argv.slice(2)) {
     const registered = parsed.command === "patch" ? PATCH_CONFIG : STAGE_BY_NAME[parsed.command];
     const config = parsed.command === "patch"
       ? PATCH_CONFIG
-      : { ...(await import(`./prompt/${registered.module}.mjs`)).default, module: registered.module };
+      : { ...(await import(`./prompt/${registered.module}.mjs`)).default, module: registered.module, platform: registered.platform };
     console.log(formatStageConfig(config));
     return;
   }

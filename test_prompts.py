@@ -17,6 +17,7 @@ class PromptTest(unittest.TestCase):
         self.assertIn('require: { type: "string" }', cli)
         self.assertIn('list: { type: "boolean" }', cli)
         self.assertIn("formatStageConfig", cli)
+        self.assertIn("# 阶段产物", engine)
         self.assertIn('"config", "stages"', engine)
         for name in (
             "issues", "process", "permission", "design", "c4", "api",
@@ -33,9 +34,10 @@ class PromptTest(unittest.TestCase):
         self.assertNotIn("referencedFiles", engine)
         self.assertNotIn("includes =", engine)
         for config in (ROOT / "tools/prompt").glob("*.mjs"):
+            text = config.read_text(encoding="utf-8")
+            self.assertIn("artifacts:", text, config.name)
             if config.name == "patch.mjs":
                 continue
-            text = config.read_text(encoding="utf-8")
             self.assertIn("globals:", text, config.name)
             self.assertNotIn("globalPatch:", text, config.name)
             self.assertNotIn("roles:", text, config.name)

@@ -92,8 +92,14 @@ export function readStageConfig(name) {
 }
 
 export function formatStageConfig(config) {
-  const globals = (config.globals ?? []).map((file) => `- ${file}`).join("\n") || "- 无";
-  return `${readStageConfig(config.module)}\n\n# 默认读取的全局产物\n\n${globals}`;
+  const list = (items) => items.map((file) => `- ${file.replaceAll("{{PLATFORM}}", config.platform || "<platform>")}`).join("\n") || "- 无";
+  return [
+    readStageConfig(config.module),
+    "# 默认读取的全局产物",
+    list(config.globals ?? []),
+    "# 阶段产物",
+    list(config.artifacts ?? []),
+  ].join("\n\n");
 }
 
 export async function runPromptStage(config, { target, requirement = "", issue = null, dependencies = [] }) {

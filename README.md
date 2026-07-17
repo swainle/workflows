@@ -31,7 +31,7 @@ pnpm -s work:backend --merge
 pnpm -s work:next frontend:web --require "复用现有组件库"
 ```
 
-`--require` 可选，只影响本次 Prompt，并优先于 `config/stages/` 中的阶段默认配置。它不能突破安全规则、输出格式和允许修改范围。`--list` 查看该阶段默认配置及只读全局输入清单。
+`--require` 可选，只影响本次 Prompt，并优先于 `config/stages/` 中的阶段默认配置。它不能突破安全规则、输出格式和允许修改范围。`--list` 查看该阶段默认配置、只读全局输入清单和稳定阶段产物；时间戳执行记录与 `.git.patch` 不属于阶段产物。
 
 阶段读取配置的全局产物、`issue/issue.md`、依赖阶段产物和当前阶段产物，不读取源码、其他需求目录或未提供的项目文件。阶段生成的外层 Git Patch 只能修改本阶段目录。`work:issue` 可以读取当前主 Issue；`reference/*.md` 只提供快速开发、命令、作用和例子。
 
