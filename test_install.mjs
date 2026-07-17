@@ -34,7 +34,7 @@ test("defaults to main branch", () => {
 });
 
 test("ships an OpenFGA playground compose file", () => {
-  const compose = readFileSync(path.join(WORKFLOW_ROOT, "defaults/openfga/compose.yml"), "utf8");
+  const compose = readFileSync(path.join(WORKFLOW_ROOT, "packages/openfga/compose.yml"), "utf8");
   assert.match(compose, /openfga\/openfga:v1\.16\.0/);
   assert.match(compose, /OPENFGA_PLAYGROUND_ENABLED/);
   assert.match(compose, /OPENFGA_PLAYGROUND_ADDR: "0\.0\.0\.0:3000"/);
