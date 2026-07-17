@@ -1,6 +1,6 @@
 # AI Project Workflows
 
-把一个需求拆成可检查的阶段产物。普通阶段只读写当前需求目录；编码阶段生成执行提示词；需求完成后再统一同步全局项目文件。
+把一个需求拆成可检查的阶段产物。阶段可读取全局事实和依赖链产物，但只能修改本阶段产物；编码阶段生成代码 Patch；需求完成后再统一同步全局项目文件。
 
 ## 安装
 
@@ -27,12 +27,13 @@ pnpm -s work:status
 pnpm -s work:api
 pnpm -s work:backend --require "使用现有框架"
 pnpm -s work:backend --list
+pnpm -s work:backend --patch
 pnpm -s work:next frontend:web --require "复用现有组件库"
 ```
 
 `--require` 可选，只影响本次 Prompt，并优先于 `config/stages/` 中的阶段默认配置。它不能突破安全规则、输出格式和允许修改范围。`--list` 查看该阶段默认配置。
 
-普通阶段只读取 `issue/issue.md`、依赖阶段产物和当前阶段产物，不读取全局架构、契约、源码或其他需求目录。`work:issue` 可以读取当前主 Issue；`reference/*.md` 只提供快速开发、命令、作用和例子。
+阶段读取配置的全局产物、`issue/issue.md`、依赖阶段产物和当前阶段产物，不读取源码、其他需求目录或未提供的项目文件。阶段生成的外层 Git Patch 只能修改本阶段目录。`work:issue` 可以读取当前主 Issue；`reference/*.md` 只提供快速开发、命令、作用和例子。
 
 ## 编码提示词
 
@@ -45,7 +46,15 @@ permission/permission.prompt.md
 deployment/deployment.prompt.md
 ```
 
-把这些文件交给具备本地文件能力的编码 AI，由它阅读需求产物和现有源码、直接修改代码并运行项目已有验证命令。工作流阶段本身不直接修改源码。
+把这些文件交给具备本地文件能力的编码 AI，由它阅读需求产物和现有源码，生成对应的 `<阶段>.git.patch`，例如 `backend/backend.git.patch`。工作流阶段本身不直接修改源码。
+
+人工检查代码 Patch 后执行：
+
+```bash
+pnpm -s work:backend --patch
+```
+
+命令会检查 Patch 路径、执行 `git apply --check`、展示统计，并在确认后合并代码。代码 Patch 不得修改需求目录、工作流工具或全局架构与契约产物。
 
 ## 重做阶段
 

@@ -23,6 +23,7 @@ import {
   completeActiveStage,
   dependencyStages,
   findActiveResult,
+  recordAppliedPatch,
   readWorkflowPlan,
   readWorkState,
   stageStatuses,
@@ -35,7 +36,7 @@ const usage = `Usage:
   pnpm -s work:status
   pnpm -s work:next [stage] [--require <text>]
   pnpm -s work:patch [--require <text>] [--list]
-  pnpm -s work:<stage> [--require <text>] [--list]`;
+  pnpm -s work:<stage> [--require <text>] [--list] [--patch]`;
 
 export function parseWorkArguments(args = process.argv.slice(2)) {
   args = [...args];
@@ -67,10 +68,10 @@ export function parseWorkArguments(args = process.argv.slice(2)) {
       args,
       allowPositionals: true,
       strict: true,
-      options: { require: { type: "string" }, list: { type: "boolean" } },
+      options: { require: { type: "string" }, list: { type: "boolean" }, patch: { type: "boolean" } },
     });
-    if (positionals.length || (values.list && values.require)) throw new Error(usage);
-    return { command, requirement: values.require ?? "", list: values.list ?? false };
+    if (positionals.length || (values.list && values.require) || (values.patch && (command === "patch" || values.list || values.require))) throw new Error(usage);
+    return { command, requirement: values.require ?? "", list: values.list ?? false, ...(values.patch ? { applyPatch: true } : {}) };
   }
   throw new Error(usage);
 }
@@ -166,11 +167,24 @@ function within(file, target) {
 }
 
 export function assertAllowedPatchPaths(current, stage, files) {
-  const allowed = stage === "patch" ? GLOBAL_PATHS : [projectRelative(current.requirementDir)];
+  const registered = STAGE_BY_NAME[stage];
+  const allowed = stage === "patch"
+    ? GLOBAL_PATHS
+    : [projectRelative(path.join(current.requirementDir, registered.directory))];
   for (const input of files) {
     const file = input.replaceAll("\\", "/");
     if (!file || path.isAbsolute(file) || file.split("/").includes("..") || !allowed.some((target) => within(file, target))) {
       throw new Error(`Patch for ${stage} cannot modify: ${input}`);
+    }
+  }
+}
+
+export function assertAllowedCodePatchPaths(files) {
+  const blocked = [".git", "docs/workflows", "docs/requirements", "docs/architecture", "docs/contracts", "packages/design-tokens/tokens"];
+  for (const input of files) {
+    const file = input.replaceAll("\\", "/");
+    if (!file || path.isAbsolute(file) || file.split("/").includes("..") || blocked.some((target) => within(file, target))) {
+      throw new Error(`Code Patch cannot modify: ${input}`);
     }
   }
 }
@@ -187,9 +201,34 @@ function patchPaths(patchFile) {
 }
 
 function checkPatch(current, stage, patchFile) {
-  assertAllowedPatchPaths(current, stage, patchPaths(patchFile));
+  const files = patchPaths(patchFile);
+  if (stage === "code") assertAllowedCodePatchPaths(files);
+  else assertAllowedPatchPaths(current, stage, files);
   execFileSync("git", ["apply", "--check", patchFile], { cwd: PROJECT_ROOT, stdio: "inherit" });
   execFileSync("git", ["apply", "--stat", patchFile], { cwd: PROJECT_ROOT, stdio: "inherit" });
+}
+
+export function stageCodePatchFile(current, stage) {
+  const registered = STAGE_BY_NAME[stage];
+  if (!registered) throw new Error(`Unknown stage: ${stage}.`);
+  const name = `${stage.replace(/[^A-Za-z0-9_-]+/g, "-")}.git.patch`;
+  return projectRelative(path.join(current.requirementDir, registered.directory, name));
+}
+
+async function applyStageCodePatch(current, stage) {
+  const state = readWorkState(current);
+  if (state.active) throw new Error(`Stage ${state.active.stage} still has an unapplied result.`);
+  const plan = readWorkflowPlan(current.requirementDir);
+  if (!plan.stages.some(({ name }) => name === stage)) throw new Error(`Stage ${stage} is not selected in issue/issue.md.`);
+  if (!state.completed.includes(stage)) throw new Error(`Stage ${stage} is not completed.`);
+  const patchFile = stageCodePatchFile(current, stage);
+  if (!existsSync(path.join(PROJECT_ROOT, patchFile))) throw new Error(`Stage Code Patch not found: ${patchFile}`);
+  checkPatch(current, "code", patchFile);
+  const answer = (await ask(`Apply ${patchFile}? [y/N] `)).trim().toLowerCase();
+  if (!["y", "yes"].includes(answer)) throw new Error("Cancelled.");
+  execFileSync("git", ["apply", patchFile], { cwd: PROJECT_ROOT, stdio: "inherit" });
+  recordAppliedPatch(current, patchFile);
+  console.log(`Applied: ${patchFile}`);
 }
 
 async function generatePatch(current, requirement = "") {
@@ -250,6 +289,7 @@ export async function main(args = process.argv.slice(2)) {
   if (parsed.command === "status") return printStatus(current);
   if (parsed.command === "next") return applyAndContinue(current, parsed.nextStage, parsed.requirement);
   if (parsed.command === "patch") return generatePatch(current, parsed.requirement);
+  if (parsed.applyPatch) return applyStageCodePatch(current, parsed.command);
   await generateStage(current, parsed.command, parsed.requirement);
 }
 

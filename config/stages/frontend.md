@@ -1,3 +1,3 @@
 - 识别目标平台现有框架、组件体系和测试命令，不自行更换。
 - 优先复用现有组件和 Design Tokens。
-- 生成 `frontend/<platform>/frontend.prompt.md`，由后续编码 AI 修改源码。
+- 生成 `frontend/<platform>/frontend.prompt.md`，由后续编码 AI 创建对应的阶段 Git Patch。

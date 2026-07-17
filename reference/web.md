@@ -11,10 +11,11 @@
 
 ## 作用
 
-生成需求目录内的 `frontend/web/frontend.prompt.md`，交给编码 AI 实现 Web 页面和测试。
+生成需求目录内的 `frontend/web/frontend.prompt.md`，交给编码 AI 创建 Web 代码 Patch。
 
 ## 例子
 
 ```bash
 pnpm -s work:frontend:web --require "使用现有组件库"
+pnpm -s work:frontend:web --patch
 ```

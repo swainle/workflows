@@ -120,6 +120,13 @@ export function completeActiveStage(current, result, { runner = execFileSync, pr
   return writeWorkState(current, state, runner, projectRoot);
 }
 
+export function recordAppliedPatch(current, patchFile, { runner = execFileSync, projectRoot = PROJECT_ROOT } = {}) {
+  const state = readWorkState(current, { runner, projectRoot });
+  state.appliedPatches ??= [];
+  if (!state.appliedPatches.includes(patchFile)) state.appliedPatches.push(patchFile);
+  return writeWorkState(current, state, runner, projectRoot);
+}
+
 export function stageStatuses(plan, state, completed = state.completed) {
   const done = new Set(completed);
   return plan.stages.map((stage) => {

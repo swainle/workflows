@@ -11,10 +11,11 @@
 
 ## 作用
 
-生成需求目录内的 `frontend/mobile/frontend.prompt.md`，交给编码 AI 实现移动端代码和测试。
+生成需求目录内的 `frontend/mobile/frontend.prompt.md`，交给编码 AI 创建移动端代码 Patch。
 
 ## 例子
 
 ```bash
 pnpm -s work:frontend:mobile --require "使用项目现有 Flutter 框架"
+pnpm -s work:frontend:mobile --patch
 ```

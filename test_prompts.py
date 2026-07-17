@@ -22,7 +22,7 @@ class PromptTest(unittest.TestCase):
         ):
             self.assertTrue((ROOT / f"config/stages/{name}.md").is_file(), name)
 
-    def test_regular_stages_only_collect_requirement_artifacts(self):
+    def test_regular_stages_collect_global_and_requirement_artifacts(self):
         engine = (ROOT / "tools/core/prompt-stage.mjs").read_text(encoding="utf-8")
         self.assertNotIn("referencedFiles", engine)
         self.assertNotIn("includes =", engine)
@@ -30,7 +30,7 @@ class PromptTest(unittest.TestCase):
             if config.name == "patch.mjs":
                 continue
             text = config.read_text(encoding="utf-8")
-            self.assertNotIn("globals:", text, config.name)
+            self.assertIn("globals:", text, config.name)
             self.assertNotIn("globalPatch:", text, config.name)
             self.assertNotIn("roles:", text, config.name)
 
@@ -44,7 +44,8 @@ class PromptTest(unittest.TestCase):
         for template, output in expected.items():
             text = (ROOT / "templates" / template).read_text(encoding="utf-8")
             self.assertIn(output, text)
-            self.assertIn("当前阶段不得直接修改", text)
+            self.assertIn("{{CODE_PATCH_FILE}}", text)
+            self.assertIn("外层 Git Patch 只能修改", text)
 
     def test_final_patch_is_installed_and_global_only(self):
         installer = (ROOT / "install.mjs").read_text(encoding="utf-8")
@@ -53,6 +54,7 @@ class PromptTest(unittest.TestCase):
         self.assertIn('"work:patch"', installer)
         self.assertIn("需求的选定阶段已经全部完成", prompt)
         self.assertIn("assertAllowedPatchPaths", cli)
+        self.assertIn("assertAllowedCodePatchPaths", cli)
         self.assertIn('["apply", "--check", patchFile]', cli)
 
     def test_references_are_short_operational_guides(self):

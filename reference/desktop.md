@@ -11,10 +11,11 @@
 
 ## 作用
 
-生成需求目录内的 `frontend/desktop/frontend.prompt.md`，交给编码 AI 实现桌面端代码和测试。
+生成需求目录内的 `frontend/desktop/frontend.prompt.md`，交给编码 AI 创建桌面端代码 Patch。
 
 ## 例子
 
 ```bash
 pnpm -s work:frontend:desktop --require "沿用现有 Tauri 壳层"
+pnpm -s work:frontend:desktop --patch
 ```

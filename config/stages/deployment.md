@@ -1,3 +1,3 @@
 - 复用现有构建、发布、监控和回滚工具。
 - 不写入密钥、令牌、证书或真实凭据。
-- 生成 `deployment/deployment.prompt.md`，由后续执行 AI 修改部署代码和配置。
+- 生成 `deployment/deployment.prompt.md`，由后续执行 AI 创建 `deployment/deployment.git.patch`。

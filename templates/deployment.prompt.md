@@ -2,7 +2,7 @@
 
 根据需求产物记录构建、发布、迁移、监控、回滚和非敏感配置。需要修改部署代码或配置时，生成 `deployment/deployment.prompt.md`。
 
-执行提示词必须要求执行 AI 阅读当前需求产物和现有项目配置，直接完成必要修改并运行已有验证命令；不得写入真实凭据。
+执行提示词必须要求执行 AI 阅读当前需求产物和现有项目配置，把必要修改生成到 `{{CODE_PATCH_FILE}}`，不得直接应用或写入真实凭据。
 
 # 允许修改
 
@@ -10,4 +10,4 @@
 - `{{REQUIREMENT_DIR}}/deployment/deployment.prompt.md`
 - `{{REQUIREMENT_DIR}}/deployment/*.md`
 
-当前阶段不得直接修改部署代码、配置或全局文件。
+当前阶段的外层 Git Patch 只能修改上述部署阶段产物。

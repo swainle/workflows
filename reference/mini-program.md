@@ -11,10 +11,11 @@
 
 ## 作用
 
-生成需求目录内的 `frontend/mini-program/frontend.prompt.md`，交给编码 AI 实现小程序代码和测试。
+生成需求目录内的 `frontend/mini-program/frontend.prompt.md`，交给编码 AI 创建小程序代码 Patch。
 
 ## 例子
 
 ```bash
 pnpm -s work:frontend:mini-program --require "目标平台为微信小程序"
+pnpm -s work:frontend:mini-program --patch
 ```

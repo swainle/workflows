@@ -4,7 +4,7 @@ import { tmpdir } from "node:os";
 import path from "node:path";
 import test from "node:test";
 import { currentRequirement, normalizeShortName, readGithubIssue, selectRequirement } from "./tools/core/current-requirement.mjs";
-import { assertAllowedPatchPaths, parseWorkArguments } from "./tools/work.mjs";
+import { assertAllowedCodePatchPaths, assertAllowedPatchPaths, parseWorkArguments, stageCodePatchFile } from "./tools/work.mjs";
 import { STAGES } from "./tools/core/stages.mjs";
 import { PROJECT_ROOT } from "./tools/core/paths.mjs";
 import { completeActiveStage, dependencyStages, findActiveResult, readWorkflowPlan, readWorkState, stageStatuses, startStage, validateWorkflowPlan } from "./tools/core/workflow.mjs";
@@ -27,7 +27,11 @@ test("parses requirement, status, next, and stage commands", () => {
     list: false,
   });
   assert.deepEqual(parseWorkArguments(["backend", "--list"]), { command: "backend", requirement: "", list: true });
+  assert.deepEqual(parseWorkArguments(["backend", "--patch"]), {
+    command: "backend", requirement: "", list: false, applyPatch: true,
+  });
   assert.deepEqual(parseWorkArguments(["patch"]), { command: "patch", requirement: "", list: false });
+  assert.throws(() => parseWorkArguments(["patch", "--patch"]));
   assert.throws(() => parseWorkArguments(["api", "--include", "packages/api"]));
 });
 
@@ -36,11 +40,22 @@ test("limits stage and final patches to their path scopes", () => {
   assert.doesNotThrow(() => assertAllowedPatchPaths(current, "backend", [
     "docs/requirements/REQ-0004-build/backend/backend.prompt.md",
   ]));
+  assert.throws(() => assertAllowedPatchPaths(current, "backend", [
+    "docs/requirements/REQ-0004-build/api/openapi.json",
+  ]), /cannot modify/);
   assert.throws(() => assertAllowedPatchPaths(current, "backend", ["apps/api/src/index.ts"]), /cannot modify/);
   assert.doesNotThrow(() => assertAllowedPatchPaths(current, "patch", [
     "docs/architecture/product.md", "package.json",
   ]));
   assert.throws(() => assertAllowedPatchPaths(current, "patch", ["apps/api/src/index.ts"]), /cannot modify/);
+  assert.doesNotThrow(() => assertAllowedCodePatchPaths(["apps/api/src/index.ts", "package.json"]));
+  assert.throws(() => assertAllowedCodePatchPaths([".git/config"]), /cannot modify/);
+  assert.throws(() => assertAllowedCodePatchPaths(["docs/contracts/openapi.json"]), /cannot modify/);
+  assert.throws(() => assertAllowedCodePatchPaths(["docs/requirements/REQ-0004-build/issue/issue.md"]), /cannot modify/);
+  assert.equal(
+    stageCodePatchFile(current, "frontend:web"),
+    "docs/requirements/REQ-0004-build/frontend/web/frontend-web.git.patch",
+  );
 });
 
 test("normalizes an English requirement short name", () => {
