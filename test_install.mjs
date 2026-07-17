@@ -33,6 +33,13 @@ test("defaults to main branch", () => {
   assert.equal(parseBranch([]), "main");
 });
 
+test("ships an OpenFGA playground compose file", () => {
+  const compose = readFileSync(path.join(WORKFLOW_ROOT, "defaults/openfga/compose.yml"), "utf8");
+  assert.match(compose, /openfga\/openfga:v1\.16\.0/);
+  assert.match(compose, /OPENFGA_PLAYGROUND_ENABLED/);
+  assert.match(compose, /"3000:3000"/);
+});
+
 test("downloads PlantUML once and reuses the verified file", async () => {
   const directory = mkdtempSync(path.join(tmpdir(), "workflows-install-"));
   const target = path.join(directory, "packages/plantuml.jar");

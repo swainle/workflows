@@ -1,0 +1,9 @@
+services:
+  openfga:
+    image: openfga/openfga:v1.16.0
+    command: run
+    environment:
+      OPENFGA_PLAYGROUND_ENABLED: "true"
+    ports:
+      - "8080:8080"
+      - "3000:3000"

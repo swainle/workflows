@@ -43,6 +43,7 @@ const DEFAULT_TARGETS = {
   architecture: path.join(PROJECT_ROOT, "docs/architecture"),
   contracts: path.join(PROJECT_ROOT, "docs/contracts"),
   "design-tokens": path.join(PROJECT_ROOT, "packages/design-tokens/tokens"),
+  openfga: path.join(PROJECT_ROOT, "packages/openfga"),
 };
 const UPDATED_FLAG = "--workflows-updated";
 const DEFAULT_BRANCH = "main";
