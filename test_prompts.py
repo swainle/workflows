@@ -15,12 +15,17 @@ class PromptTest(unittest.TestCase):
         self.assertIn("{{USER_REQUIREMENT}}", base)
         self.assertIn('require: { type: "string" }', cli)
         self.assertIn('list: { type: "boolean" }', cli)
+        self.assertIn("formatStageConfig", cli)
         self.assertIn('"config", "stages"', engine)
         for name in (
             "issues", "process", "permission", "design", "c4", "api",
             "database", "backend", "frontend", "test", "deployment", "patch",
         ):
             self.assertTrue((ROOT / f"config/stages/{name}.md").is_file(), name)
+
+        issues = (ROOT / "tools/prompt/issues.mjs").read_text(encoding="utf-8")
+        for path in ("product.md", "openapi.json", "asyncapi.json", "schema.dbml", "authorization.fga"):
+            self.assertIn(path, issues)
 
     def test_regular_stages_collect_global_and_requirement_artifacts(self):
         engine = (ROOT / "tools/core/prompt-stage.mjs").read_text(encoding="utf-8")

@@ -91,6 +91,11 @@ export function readStageConfig(name) {
   return readFileSync(file, "utf8").trim();
 }
 
+export function formatStageConfig(config) {
+  const globals = (config.globals ?? []).map((file) => `- ${file}`).join("\n") || "- 无";
+  return `${readStageConfig(config.module)}\n\n# 默认读取的全局产物\n\n${globals}`;
+}
+
 export async function runPromptStage(config, { target, requirement = "", issue = null, dependencies = [] }) {
   const requirementDir = fromProject(target);
   if (!existsSync(requirementDir) || !statSync(requirementDir).isDirectory()) {

@@ -15,7 +15,7 @@ import {
   selectRequirement,
 } from "./core/current-requirement.mjs";
 import { PROJECT_ROOT, projectRelative } from "./core/paths.mjs";
-import { readStageConfig, runPromptStage } from "./core/prompt-stage.mjs";
+import { formatStageConfig, runPromptStage } from "./core/prompt-stage.mjs";
 import { STAGE_BY_NAME } from "./core/stages.mjs";
 import PATCH_CONFIG, { GLOBAL_PATHS } from "./prompt/patch.mjs";
 import {
@@ -290,7 +290,10 @@ export async function main(args = process.argv.slice(2)) {
   const parsed = parseWorkArguments(args);
   if (parsed.list) {
     const registered = parsed.command === "patch" ? PATCH_CONFIG : STAGE_BY_NAME[parsed.command];
-    console.log(readStageConfig(registered.module));
+    const config = parsed.command === "patch"
+      ? PATCH_CONFIG
+      : { ...(await import(`./prompt/${registered.module}.mjs`)).default, module: registered.module };
+    console.log(formatStageConfig(config));
     return;
   }
   if (parsed.command === "req") {
