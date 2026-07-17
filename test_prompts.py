@@ -13,6 +13,7 @@ class PromptTest(unittest.TestCase):
 
         self.assertIn("{{DEFAULT_REQUIREMENTS}}", base)
         self.assertIn("{{USER_REQUIREMENT}}", base)
+        self.assertIn('git apply --check "{{PATCH_FILE}}"', base)
         self.assertIn('require: { type: "string" }', cli)
         self.assertIn('list: { type: "boolean" }', cli)
         self.assertIn("formatStageConfig", cli)

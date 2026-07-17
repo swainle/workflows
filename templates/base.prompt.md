@@ -37,6 +37,8 @@ created_at: {{CREATED_AT}}
 
 Git Patch 必须从 `diff --git` 开始，使用项目相对路径，不得省略内容。只提出修改，不要应用 Patch。
 
+创建 Git Patch 后必须在项目根目录运行 `git apply --check "{{PATCH_FILE}}"`。检查失败时先修复 Patch，直到检查通过；不得把损坏的 Patch 作为结果提交，也不得实际应用。
+
 `.01` 表示当前 Prompt 的第一次 AI 结果。如果同名结果已经存在，不得覆盖；本次所有输出同时改用下一个两位序号，例如 `.02`、`.03`，分析文件 frontmatter 中的文件名也必须使用实际序号。
 
 不需要修改时，只创建分析文件 `{{ANALYSIS_FILE}}`，并将 `patch_file` 写为 `null`，将 `result` 写为 `no-changes`。
