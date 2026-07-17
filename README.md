@@ -27,7 +27,7 @@ pnpm -s work:status
 pnpm -s work:api
 pnpm -s work:backend --require "使用现有框架"
 pnpm -s work:backend --list
-pnpm -s work:backend --patch
+pnpm -s work:backend --merge
 pnpm -s work:next frontend:web --require "复用现有组件库"
 ```
 
@@ -51,7 +51,7 @@ deployment/deployment.prompt.md
 人工检查代码 Patch 后执行：
 
 ```bash
-pnpm -s work:backend --patch
+pnpm -s work:backend --merge
 ```
 
 命令会检查 Patch 路径、执行 `git apply --check`、展示统计，并在确认后合并代码。代码 Patch 不得修改需求目录、工作流工具或全局架构与契约产物。

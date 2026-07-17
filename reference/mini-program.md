@@ -17,5 +17,5 @@
 
 ```bash
 pnpm -s work:frontend:mini-program --require "目标平台为微信小程序"
-pnpm -s work:frontend:mini-program --patch
+pnpm -s work:frontend:mini-program --merge
 ```

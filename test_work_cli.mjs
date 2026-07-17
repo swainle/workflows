@@ -27,11 +27,12 @@ test("parses requirement, status, next, and stage commands", () => {
     list: false,
   });
   assert.deepEqual(parseWorkArguments(["backend", "--list"]), { command: "backend", requirement: "", list: true });
-  assert.deepEqual(parseWorkArguments(["backend", "--patch"]), {
-    command: "backend", requirement: "", list: false, applyPatch: true,
+  assert.deepEqual(parseWorkArguments(["backend", "--merge"]), {
+    command: "backend", requirement: "", list: false, merge: true,
   });
   assert.deepEqual(parseWorkArguments(["patch"]), { command: "patch", requirement: "", list: false });
-  assert.throws(() => parseWorkArguments(["patch", "--patch"]));
+  assert.throws(() => parseWorkArguments(["patch", "--merge"]));
+  assert.throws(() => parseWorkArguments(["backend", "--patch"]));
   assert.throws(() => parseWorkArguments(["api", "--include", "packages/api"]));
 });
 

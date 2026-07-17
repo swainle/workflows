@@ -17,5 +17,5 @@
 
 ```bash
 pnpm -s work:frontend:desktop --require "沿用现有 Tauri 壳层"
-pnpm -s work:frontend:desktop --patch
+pnpm -s work:frontend:desktop --merge
 ```

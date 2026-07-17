@@ -36,7 +36,7 @@ const usage = `Usage:
   pnpm -s work:status
   pnpm -s work:next [stage] [--require <text>]
   pnpm -s work:patch [--require <text>] [--list]
-  pnpm -s work:<stage> [--require <text>] [--list] [--patch]`;
+  pnpm -s work:<stage> [--require <text>] [--list] [--merge]`;
 
 export function parseWorkArguments(args = process.argv.slice(2)) {
   args = [...args];
@@ -68,10 +68,10 @@ export function parseWorkArguments(args = process.argv.slice(2)) {
       args,
       allowPositionals: true,
       strict: true,
-      options: { require: { type: "string" }, list: { type: "boolean" }, patch: { type: "boolean" } },
+      options: { require: { type: "string" }, list: { type: "boolean" }, merge: { type: "boolean" } },
     });
-    if (positionals.length || (values.list && values.require) || (values.patch && (command === "patch" || values.list || values.require))) throw new Error(usage);
-    return { command, requirement: values.require ?? "", list: values.list ?? false, ...(values.patch ? { applyPatch: true } : {}) };
+    if (positionals.length || (values.list && values.require) || (values.merge && (command === "patch" || values.list || values.require))) throw new Error(usage);
+    return { command, requirement: values.require ?? "", list: values.list ?? false, ...(values.merge ? { merge: true } : {}) };
   }
   throw new Error(usage);
 }
@@ -217,7 +217,6 @@ export function stageCodePatchFile(current, stage) {
 
 async function applyStageCodePatch(current, stage) {
   const state = readWorkState(current);
-  if (state.active) throw new Error(`Stage ${state.active.stage} still has an unapplied result.`);
   const plan = readWorkflowPlan(current.requirementDir);
   if (!plan.stages.some(({ name }) => name === stage)) throw new Error(`Stage ${stage} is not selected in issue/issue.md.`);
   if (!state.completed.includes(stage)) throw new Error(`Stage ${stage} is not completed.`);
@@ -289,7 +288,7 @@ export async function main(args = process.argv.slice(2)) {
   if (parsed.command === "status") return printStatus(current);
   if (parsed.command === "next") return applyAndContinue(current, parsed.nextStage, parsed.requirement);
   if (parsed.command === "patch") return generatePatch(current, parsed.requirement);
-  if (parsed.applyPatch) return applyStageCodePatch(current, parsed.command);
+  if (parsed.merge) return applyStageCodePatch(current, parsed.command);
   await generateStage(current, parsed.command, parsed.requirement);
 }
 

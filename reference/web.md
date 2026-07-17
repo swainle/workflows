@@ -17,5 +17,5 @@
 
 ```bash
 pnpm -s work:frontend:web --require "使用现有组件库"
-pnpm -s work:frontend:web --patch
+pnpm -s work:frontend:web --merge
 ```

@@ -17,5 +17,5 @@
 
 ```bash
 pnpm -s work:frontend:mobile --require "使用项目现有 Flutter 框架"
-pnpm -s work:frontend:mobile --patch
+pnpm -s work:frontend:mobile --merge
 ```
