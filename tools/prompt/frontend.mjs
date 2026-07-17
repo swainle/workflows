@@ -1,5 +1,4 @@
-import { runPromptStage } from "../core/prompt-stage.mjs";
-await runPromptStage({
+export default {
   command: "frontend", stageId: "08-frontend", stageName: "前端设计与实现",
   template: "frontend.prompt.md",
   roles: [
@@ -11,4 +10,4 @@ await runPromptStage({
   globalPatch: "08-frontend.git.patch",
   globals: ["docs/architecture/product.md", "docs/architecture/process", "docs/architecture/c4.puml", "docs/contracts/openapi.json", "docs/contracts/asyncapi.json", "docs/contracts/authorization.fga", "packages/design-tokens/tokens"],
   maxRequirementPrefix: 8,
-});
+};

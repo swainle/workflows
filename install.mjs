@@ -24,19 +24,19 @@ export const PROJECT_ROOT = path.resolve(WORKFLOW_ROOT, "../..");
 const PACKAGE_FILE = path.join(PROJECT_ROOT, "package.json");
 
 const SCRIPTS = {
-  "docs:workflows:check": "node docs/workflows/tools/check.mjs",
-  "docs:workflows:req": "node docs/workflows/tools/requirement.mjs",
-  "docs:workflows:prompt:flow": "node docs/workflows/tools/flow.mjs",
-  "docs:workflows:prompt:issues": "node docs/workflows/tools/prompt/issues.mjs",
-  "docs:workflows:prompt:process": "node docs/workflows/tools/prompt/process.mjs",
-  "docs:workflows:prompt:c4": "node docs/workflows/tools/prompt/c4.mjs",
-  "docs:workflows:prompt:api": "node docs/workflows/tools/prompt/api.mjs",
-  "docs:workflows:prompt:database": "node docs/workflows/tools/prompt/database.mjs",
-  "docs:workflows:prompt:backend": "node docs/workflows/tools/prompt/backend.mjs",
-  "docs:workflows:prompt:permission": "node docs/workflows/tools/prompt/permission.mjs",
-  "docs:workflows:prompt:frontend": "node docs/workflows/tools/prompt/frontend.mjs",
-  "docs:workflows:prompt:test": "node docs/workflows/tools/prompt/test.mjs",
-  "docs:workflows:prompt:deployment": "node docs/workflows/tools/prompt/deployment.mjs",
+  "prompt:check": "node docs/workflows/tools/check.mjs",
+  "prompt:req": "node docs/workflows/tools/prompt.mjs req",
+  "prompt:flow": "node docs/workflows/tools/prompt.mjs flow",
+  "prompt:issue": "node docs/workflows/tools/prompt.mjs issue",
+  "prompt:process": "node docs/workflows/tools/prompt.mjs process",
+  "prompt:c4": "node docs/workflows/tools/prompt.mjs c4",
+  "prompt:api": "node docs/workflows/tools/prompt.mjs api",
+  "prompt:database": "node docs/workflows/tools/prompt.mjs database",
+  "prompt:backend": "node docs/workflows/tools/prompt.mjs backend",
+  "prompt:permission": "node docs/workflows/tools/prompt.mjs permission",
+  "prompt:frontend": "node docs/workflows/tools/prompt.mjs frontend",
+  "prompt:test": "node docs/workflows/tools/prompt.mjs test",
+  "prompt:deployment": "node docs/workflows/tools/prompt.mjs deployment",
 };
 
 const DEFAULT_TARGETS = {

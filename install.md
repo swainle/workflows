@@ -21,7 +21,7 @@ gh auth login
 ```bash
 git submodule add -b main https://github.com/swainle/workflows.git docs/workflows
 node docs/workflows/install.mjs
-pnpm docs:workflows:check
+pnpm prompt:check
 ```
 
 ## 更新 workflows

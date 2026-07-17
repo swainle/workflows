@@ -6,23 +6,6 @@ import { PROJECT_ROOT, WORKFLOW_ROOT, fromProject, projectRelative } from "./pat
 
 const MAX_CONTEXT_BYTES = 1_500_000;
 
-function parseArguments(stage) {
-  const args = process.argv.slice(2);
-  const target = args.shift();
-  const includes = [];
-  while (args.length) {
-    const flag = args.shift();
-    if (flag !== "--include" || !args.length) {
-      throw new Error(`Usage: pnpm docs:workflows:prompt:${stage} <requirement-directory> [--include <path>]`);
-    }
-    includes.push(args.shift());
-  }
-  if (!target) {
-    throw new Error("Missing requirement directory.");
-  }
-  return { target, includes };
-}
-
 function timestamp() {
   const now = new Date();
   const part = (value) => String(value).padStart(2, "0");
@@ -138,8 +121,7 @@ function collectContext(config, requirementDir, prdFile, includes) {
   return blocks.join("\n\n");
 }
 
-export async function runPromptStage(config) {
-  const { target, includes } = parseArguments(config.command);
+export async function runPromptStage(config, { target, includes = [] }) {
   const requirementDir = fromProject(target);
   if (!existsSync(requirementDir) || !statSync(requirementDir).isDirectory()) {
     throw new Error(`Requirement directory not found: ${target}`);

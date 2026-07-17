@@ -2,18 +2,16 @@
 
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import path from "node:path";
-import { pathToFileURL } from "node:url";
 import { projectRelative, requireDirectory, WORKFLOW_ROOT } from "./core/paths.mjs";
 
 export const STAGES = [
-  "issues", "process", "c4", "api", "database",
+  "issue", "process", "c4", "api", "database",
   "backend", "permission", "frontend", "test", "deployment",
 ];
 
-const usage = "Usage: pnpm docs:workflows:prompt:flow <requirement-directory> --from <stage> --to <stage> --request <text>";
+const usage = "Usage: pnpm prompt:flow --from <stage> --to <stage> --request <text>";
 
 export function parseFlowArguments(args = process.argv.slice(2)) {
-  const target = args.shift();
   const options = {};
   while (args.length) {
     const flag = args.shift();
@@ -22,13 +20,13 @@ export function parseFlowArguments(args = process.argv.slice(2)) {
     }
     options[flag] = args.shift();
   }
-  if (!target || !options["--from"] || !options["--to"] || !options["--request"]?.trim()) {
+  if (!options["--from"] || !options["--to"] || !options["--request"]?.trim()) {
     throw new Error(usage);
   }
   const from = STAGES.indexOf(options["--from"]);
   const to = STAGES.indexOf(options["--to"]);
   if (from < 0 || to < from) throw new Error(`Stages must follow this order: ${STAGES.join(", ")}`);
-  return { target, from: STAGES[from], to: STAGES[to], request: options["--request"].trim(), stages: STAGES.slice(from, to + 1) };
+  return { from: STAGES[from], to: STAGES[to], request: options["--request"].trim(), stages: STAGES.slice(from, to + 1) };
 }
 
 function timestamp(now = new Date()) {
@@ -45,7 +43,7 @@ export function createFlowPrompt({ target, from, to, request, stages }) {
     throw new Error("Requirement directory must look like REQ-0010-feature.");
   }
   const prdFile = path.join(requirementDir, "01-prd.md");
-  if (from !== "issues" && !existsSync(prdFile)) {
+  if (from !== "issue" && !existsSync(prdFile)) {
     throw new Error(`01-prd.md not found in requirement directory: ${target}`);
   }
 
@@ -61,7 +59,7 @@ export function createFlowPrompt({ target, from, to, request, stages }) {
     "{{FROM_STAGE}}": from,
     "{{TO_STAGE}}": to,
     "{{CREATED_AT}}": createdAt,
-    "{{STAGE_COMMANDS}}": stages.map((stage, index) => `${index + 1}. \`pnpm docs:workflows:prompt:${stage} ${projectRelative(requirementDir)}\``).join("\n"),
+    "{{STAGE_COMMANDS}}": stages.map((stage, index) => `${index + 1}. \`pnpm prompt:${stage}\``).join("\n"),
     "{{REQUEST}}": request,
   };
   let prompt = template;
@@ -70,10 +68,3 @@ export function createFlowPrompt({ target, from, to, request, stages }) {
   writeFileSync(outputFile, `${prompt.trimEnd()}\n`, "utf8");
   return projectRelative(outputFile);
 }
-
-export function main(args = process.argv.slice(2)) {
-  const output = createFlowPrompt(parseFlowArguments(args));
-  console.log(output);
-}
-
-if (process.argv[1] && pathToFileURL(path.resolve(process.argv[1])).href === import.meta.url) main();

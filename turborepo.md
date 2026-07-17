@@ -7,7 +7,7 @@ pnpm dlx create-turbo@latest
 cd <项目目录>
 git submodule add -b main https://github.com/swainle/workflows.git docs/workflows
 node docs/workflows/install.mjs
-pnpm docs:workflows:check
+pnpm prompt:check
 ```
 
 安装器修改根目录 `package.json`，所以所有 workflows 命令都从仓库根目录执行。
@@ -22,7 +22,7 @@ node docs/workflows/install.mjs
 通过 `--include` 指定 workspace：
 
 ```bash
-pnpm docs:workflows:prompt:backend docs/requirements/REQ-0036-booking-fixture \
+pnpm prompt:backend \
   --include apps/api/src \
   --include packages/domain/src
 ```

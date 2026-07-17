@@ -1,5 +1,4 @@
-import { runPromptStage } from "../core/prompt-stage.mjs";
-await runPromptStage({
+export default {
   command: "c4", stageId: "03-c4", stageName: "C4 架构",
   template: "c4.prompt.md",
   roles: [
@@ -11,4 +10,4 @@ await runPromptStage({
   globalPatch: "03-c4.git.patch",
   globals: ["docs/architecture/product.md", "docs/architecture/process", "docs/architecture/c4.puml"],
   maxRequirementPrefix: 3,
-});
+};

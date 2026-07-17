@@ -1,5 +1,4 @@
-import { runPromptStage } from "../core/prompt-stage.mjs";
-await runPromptStage({
+export default {
   command: "backend", stageId: "06-backend", stageName: "后端编码提示词",
   template: "backend.prompt.md",
   roles: [
@@ -10,4 +9,4 @@ await runPromptStage({
   ],
   globals: ["docs/architecture/product.md", "docs/architecture/c4.puml", "docs/architecture/process", "docs/contracts/openapi.json", "docs/contracts/asyncapi.json", "docs/contracts/schema.dbml"],
   maxRequirementPrefix: 6,
-});
+};

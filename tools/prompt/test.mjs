@@ -1,5 +1,4 @@
-import { runPromptStage } from "../core/prompt-stage.mjs";
-await runPromptStage({
+export default {
   command: "test", stageId: "09-test", stageName: "测试",
   template: "test.prompt.md",
   roles: [
@@ -10,4 +9,4 @@ await runPromptStage({
   ],
   globals: ["docs/architecture/product.md", "docs/architecture/process", "docs/architecture/c4.puml", "docs/contracts/openapi.json", "docs/contracts/asyncapi.json", "docs/contracts/schema.dbml", "docs/contracts/authorization.fga"],
   maxRequirementPrefix: 9,
-});
+};

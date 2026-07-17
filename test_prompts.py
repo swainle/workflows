@@ -195,7 +195,7 @@ class IssuesPromptTest(unittest.TestCase):
             encoding="utf-8"
         )
 
-        self.assertIn('"docs:workflows:prompt:flow"', installer)
+        self.assertIn('"prompt:flow"', installer)
         for required in (
             "不得预先生成后续阶段 Prompt",
             "每次只询问使用者一个最关键的问题",
@@ -206,14 +206,17 @@ class IssuesPromptTest(unittest.TestCase):
         ):
             self.assertIn(required, template)
 
-    def test_prompt_commands_accept_requirement_directories(self):
+    def test_prompt_commands_use_the_selected_requirement(self):
         root = Path(__file__).parent
         engine = (root / "tools" / "core" / "prompt-stage.mjs").read_text(
             encoding="utf-8"
         )
+        cli = (root / "tools" / "prompt.mjs").read_text(encoding="utf-8")
 
-        self.assertIn("<requirement-directory>", engine)
         self.assertIn('path.join(requirementDir, "01-prd.md")', engine)
+        self.assertIn("currentRequirement()", cli)
+        self.assertIn("parseArgs", cli)
+        self.assertIn('issue: "issues"', cli)
         self.assertNotIn("targetKind", engine)
         for config in (root / "tools" / "prompt").glob("*.mjs"):
             self.assertNotIn("targetKind", config.read_text(encoding="utf-8"))
