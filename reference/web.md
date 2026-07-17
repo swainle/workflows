@@ -1,8 +1,8 @@
 # Web 项目
 
-安装方法见 [install.md](install.md)。
+安装方法见 [install.md](../install.md)。
 
-建议在 PRD 中用反引号写出页面和组件路径：
+建议在 `issue/issue.md` 中用反引号写出页面和组件路径：
 
 ```md
 - 登录页：`apps/web/src/pages/login/page.tsx`
@@ -12,7 +12,7 @@
 也可以执行 Prompt 时手动加入：
 
 ```bash
-pnpm prompt:frontend \
+pnpm -s work:frontend:web \
   --include apps/web/src/pages/booking \
   --include packages/ui/src
 ```

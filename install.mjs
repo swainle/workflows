@@ -18,26 +18,25 @@ import {
 } from "node:fs";
 import path from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
+import { STAGE_NAMES } from "./tools/core/stages.mjs";
 
 export const WORKFLOW_ROOT = path.dirname(fileURLToPath(import.meta.url));
 export const PROJECT_ROOT = path.resolve(WORKFLOW_ROOT, "../..");
 const PACKAGE_FILE = path.join(PROJECT_ROOT, "package.json");
 
-const SCRIPTS = {
-  "prompt:check": "node docs/workflows/tools/check.mjs",
-  "prompt:req": "node docs/workflows/tools/prompt.mjs req",
-  "prompt:flow": "node docs/workflows/tools/prompt.mjs flow",
-  "prompt:issue": "node docs/workflows/tools/prompt.mjs issue",
-  "prompt:process": "node docs/workflows/tools/prompt.mjs process",
-  "prompt:c4": "node docs/workflows/tools/prompt.mjs c4",
-  "prompt:api": "node docs/workflows/tools/prompt.mjs api",
-  "prompt:database": "node docs/workflows/tools/prompt.mjs database",
-  "prompt:backend": "node docs/workflows/tools/prompt.mjs backend",
-  "prompt:permission": "node docs/workflows/tools/prompt.mjs permission",
-  "prompt:frontend": "node docs/workflows/tools/prompt.mjs frontend",
-  "prompt:test": "node docs/workflows/tools/prompt.mjs test",
-  "prompt:deployment": "node docs/workflows/tools/prompt.mjs deployment",
-};
+const SCRIPTS = Object.fromEntries([
+  ["work:check", "node docs/workflows/tools/check.mjs"],
+  ["work:req", "node docs/workflows/tools/work.mjs req"],
+  ["work:status", "node docs/workflows/tools/work.mjs status"],
+  ["work:next", "node docs/workflows/tools/work.mjs next"],
+  ...STAGE_NAMES.map((stage) => [`work:${stage}`, `node docs/workflows/tools/work.mjs ${stage}`]),
+]);
+const LEGACY_SCRIPTS = new Set([
+  "prompt:check", "prompt:req", "prompt:flow", "prompt:issue", "prompt:process", "prompt:c4",
+  "prompt:api", "prompt:database", "prompt:backend", "prompt:permission", "prompt:frontend",
+  "prompt:test", "prompt:deployment",
+  "work:frontend",
+]);
 
 const DEFAULT_TARGETS = {
   architecture: path.join(PROJECT_ROOT, "docs/architecture"),
@@ -128,7 +127,7 @@ function updatePackageJson() {
     throw new Error(`host package.json scripts must be an object: ${PACKAGE_FILE}`);
   }
   for (const name of Object.keys(data.scripts)) {
-    if (name.startsWith("docs:workflows:")) delete data.scripts[name];
+    if (name.startsWith("docs:workflows:") || LEGACY_SCRIPTS.has(name)) delete data.scripts[name];
   }
   Object.assign(data.scripts, SCRIPTS);
   const temporary = `${PACKAGE_FILE}.tmp`;

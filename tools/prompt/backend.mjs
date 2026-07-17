@@ -1,5 +1,5 @@
 export default {
-  command: "backend", stageId: "06-backend", stageName: "后端编码提示词",
+  command: "backend", stageName: "后端编码提示词",
   template: "backend.prompt.md",
   roles: [
     "系统架构师：确认服务边界、依赖方向、可靠性和全局架构影响。",
@@ -8,5 +8,4 @@ export default {
     "测试与运维专家：检查可测试性、日志、指标、故障恢复和运行风险。",
   ],
   globals: ["docs/architecture/product.md", "docs/architecture/c4.puml", "docs/architecture/process", "docs/contracts/openapi.json", "docs/contracts/asyncapi.json", "docs/contracts/schema.dbml"],
-  maxRequirementPrefix: 6,
 };

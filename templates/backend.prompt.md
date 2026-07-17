@@ -1,10 +1,10 @@
 # 本阶段要做什么
 
-根据 PRD、流程、C4 架构、接口和数据库，与使用者确认后端实现需求，并整理成一份可直接交给具备本地文件操作能力的 AI 编码的提示词。本阶段只整理提示词，不执行其中的编码任务。
+根据 `issue/issue.md`、流程、C4 架构、接口和数据库，与使用者确认后端实现需求，并整理成一份可直接交给具备本地文件操作能力的 AI 编码的提示词。本阶段只整理提示词，不执行其中的编码任务。
 
-当前任务与后续编码任务是两个严格分离的阶段。下面列出的源码修改、迁移、测试和命令执行要求，只能作为外层 `*_prompt.NN.git.patch` 新增或修改 `06-backend.prompt.md` 的内容，不得在当前阶段执行。即使已经具备足够上下文，也只能生成外层 Git Patch 并停止；由人工应用该 Patch 后，`06-backend.prompt.md` 才会被新增或修改。
+当前任务与后续编码任务是两个严格分离的阶段。下面列出的源码修改、迁移、测试和命令执行要求，只能作为外层 `prompt.NN.git.patch` 新增或修改 `backend/backend.prompt.md` 的内容，不得在当前阶段执行。即使已经具备足够上下文，也只能生成外层 Git Patch 并停止；由人工应用该 Patch 后，`backend/backend.prompt.md` 才会被新增或修改。
 
-# `06-backend.prompt.md` 要求
+# `backend/backend.prompt.md` 要求
 
 以下条目是目标文件的内容要求，不是当前阶段的执行指令。该文件必须脱离本次对话也能独立执行，并明确要求后续执行它的 AI：
 
@@ -17,7 +17,7 @@
 - Infrastructure 层集中 Prisma、数据库事务、消息、缓存和外部服务实现；Interfaces 层的 Route Handler/Controller 只负责协议解析、信任边界校验、调用用例和响应映射，不得直接访问 ORM 或承载业务规则。
 - 依赖方向必须是 Interfaces → Application → Domain，Infrastructure 通过组合根注入 Port 实现。Domain 和 Application 禁止导入 Next.js、React、Prisma Client、数据库客户端或 Infrastructure 模块；不得使用全局数据库单例绕过依赖注入。
 - 每个聚合的不变量必须有不连接数据库的 Domain 单元测试，每个用例必须通过替身 Port 测试成功与失败路径，Infrastructure 使用真实数据库做集成测试；增加可执行的依赖边界检查，防止禁用导入重新出现。
-- 在 `06-backend.prompt.md` 中列出限界上下文、聚合、值对象、用例、Port、适配器、事务边界、目标目录和依赖方向，编码完成后逐项核对；只有目录名称符合但依赖方向或职责不符合时，视为未完成 DDD。
+- 在 `backend/backend.prompt.md` 中列出限界上下文、聚合、值对象、用例、Port、适配器、事务边界、目标目录和依赖方向，编码完成后逐项核对；只有目录名称符合但依赖方向或职责不符合时，视为未完成 DDD。
 - 遵守 Monorepo 的 workspace 与依赖边界，复用已有包，不得使用跨 workspace 的源码相对路径，不得擅自增加依赖。
 - 必须提供可在浏览器访问的 Swagger UI/API 文档页面，并以 `docs/contracts/openapi.json` 为唯一契约来源；不得根据实现另行生成一套不一致的 OpenAPI。发现实现与契约冲突时停止并返回 API 阶段。
 - 实现前逐条确认文档页面路径、OpenAPI JSON 路径、启用环境以及匿名访问或鉴权策略。优先使用现有框架能力；确需新增 Swagger/OpenAPI 依赖时，说明原因并获得使用者确认。
@@ -28,8 +28,8 @@
 
 # 允许修改
 
-- `{{REQUIREMENT_DIR}}/06-backend.prompt.md`
+- `{{REQUIREMENT_DIR}}/backend/backend.prompt.md`
 
 本阶段生成的外层 Git Patch 只能创建或更新上述文件，不得修改任何源码、迁移、测试或全局文件。
 
-生成外层 Git Patch 和分析文件后立即停止。当前阶段不得绕过外层 Git Patch 直接新增或修改 `06-backend.prompt.md`，不得执行该文件中的编码任务，也不得以验证提示词为由修改源码。
+生成外层 Git Patch 和分析文件后立即停止。当前阶段不得绕过外层 Git Patch 直接新增或修改 `backend/backend.prompt.md`，不得执行该文件中的编码任务，也不得以验证提示词为由修改源码。

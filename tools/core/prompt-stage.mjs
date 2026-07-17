@@ -1,8 +1,8 @@
-import { execFileSync } from "node:child_process";
 import { existsSync, mkdirSync, readFileSync, readdirSync, statSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import { referencedFiles, walkTextFiles } from "./files.mjs";
-import { PROJECT_ROOT, WORKFLOW_ROOT, fromProject, projectRelative } from "./paths.mjs";
+import { WORKFLOW_ROOT, fromProject, projectRelative } from "./paths.mjs";
+import { STAGE_BY_NAME } from "./stages.mjs";
 
 const MAX_CONTEXT_BYTES = 1_500_000;
 
@@ -15,67 +15,39 @@ function timestamp() {
   ].join("");
 }
 
-function issueNumberFromRequirement(requirementDir) {
-  const match = path.basename(requirementDir).match(/^REQ-(\d+)-/);
-  return match ? Number(match[1]) : null;
-}
-
-function githubIssues() {
-  let output;
-  try {
-    output = execFileSync("gh", [
-      "issue", "list", "--state", "all", "--limit", "10000",
-      "--json", "number,title,body,state,labels,milestone,url,createdAt,updatedAt",
-    ], {
-      cwd: PROJECT_ROOT,
-      encoding: "utf8",
-      maxBuffer: 50_000_000,
-      stdio: ["ignore", "pipe", "pipe"],
-    });
-  } catch (error) {
-    const detail = error?.stderr?.toString().trim();
-    throw new Error([
-      "Unable to read GitHub Issues.",
-      "Install GitHub CLI and run: gh auth login",
-      detail,
-    ].filter(Boolean).join("\n"));
-  }
-  return JSON.parse(output)
-    .sort((a, b) => a.number - b.number)
-    .map((issue) => ({
-      number: issue.number,
-      title: issue.title,
-      body: issue.body,
-      state: issue.state,
-      labels: (issue.labels ?? []).map((label) => label.name),
-      milestone: issue.milestone?.title ?? null,
-      url: issue.url,
-      createdAt: issue.createdAt,
-      updatedAt: issue.updatedAt,
-    }));
-}
-
 function language(file) {
   const extension = path.extname(file).slice(1).toLowerCase();
   return extension === "puml" ? "plantuml" : extension;
 }
 
-function requirementStageFiles(requirementDir, maxPrefix) {
-  return readdirSync(requirementDir)
-    .filter((name) => {
-      const match = name.match(/^(\d{2})-/);
-      return match && Number(match[1]) <= maxPrefix;
-    })
-    .flatMap((name) => walkTextFiles(path.join(requirementDir, name)));
+function requirementStageFiles(requirementDir, config, dependencies) {
+  const directories = new Set([
+    STAGE_BY_NAME.issue.directory,
+    config.directory,
+    ...dependencies.map((name) => STAGE_BY_NAME[name].directory),
+  ]);
+  return [...directories].flatMap((relative) => {
+    const directory = path.join(requirementDir, relative);
+    if (!existsSync(directory)) return [];
+    return readdirSync(directory, { withFileTypes: true })
+      .filter((entry) => entry.isFile())
+      .flatMap((entry) => walkTextFiles(path.join(directory, entry.name)));
+  });
 }
 
-function collectContext(config, requirementDir, prdFile, includes) {
+function collectContext(config, requirementDir, requirementFile, includes, issue, dependencies) {
   const selected = new Set();
   for (const relative of config.globals) {
     for (const file of walkTextFiles(fromProject(relative))) selected.add(file);
   }
-  if (existsSync(prdFile)) selected.add(prdFile);
-  for (const file of requirementStageFiles(requirementDir, config.maxRequirementPrefix)) selected.add(file);
+  if (existsSync(requirementFile)) selected.add(requirementFile);
+  if (config.command === "issues") {
+    for (const name of ["00-issue.md", "01-prd.md"]) {
+      const legacy = path.join(requirementDir, name);
+      if (existsSync(legacy)) selected.add(legacy);
+    }
+  }
+  for (const file of requirementStageFiles(requirementDir, config, dependencies)) selected.add(file);
 
   const initialText = [...selected].map((file) => readFileSync(file, "utf8")).join("\n");
   for (const file of referencedFiles(initialText)) selected.add(file);
@@ -95,51 +67,47 @@ function collectContext(config, requirementDir, prdFile, includes) {
     blocks.push(`## 文件：${projectRelative(file)}\n\n\`\`\`${language(file)}\n${content.trimEnd()}\n\`\`\``);
   }
 
-  const assetsDir = path.join(requirementDir, "change", "assets");
+  const assetsDir = path.join(requirementDir, "assets");
   if (existsSync(assetsDir)) {
     const assets = readdirSync(assetsDir).sort();
     if (assets.length) blocks.push(`## 资源\n\n${assets.map((name) => `- ${projectRelative(path.join(assetsDir, name))}`).join("\n")}`);
   }
 
   if (config.githubIssues) {
-    const issues = githubIssues();
-    const mainNumber = issueNumberFromRequirement(requirementDir);
-    const mainIssue = issues.find((issue) => issue.number === mainNumber);
+    if (!issue) throw new Error("Current requirement has no Issue information. Run pnpm -s work:req --issue <number> again.");
     blocks.unshift([
-      "## GitHub Issues",
+      "## GitHub Issue",
       "",
-      `- 主 Issue：${mainNumber ? `#${mainNumber}` : "无法从需求目录判断"}`,
-      `- 主 Issue 标题：${mainIssue?.title ?? "未找到"}`,
-      `- Issues 数量：${issues.length}`,
-      `- 已有 PRD 数量：${existsSync(prdFile) ? 1 : 0}`,
+      `- 主 Issue：#${issue.number}`,
+      `- 标题：${issue.title}`,
+      `- URL：${issue.url}`,
       "",
-      "```json",
-      JSON.stringify(issues, null, 2),
-      "```",
+      `通过以上 URL 或 \`gh issue view ${issue.number}\` 阅读完整内容。需要判断关联 Issue 时，使用 GitHub 页面或 \`gh issue list\`、\`gh issue view\` 主动查看，不要仅根据标题推断。`,
     ].join("\n"));
   }
   return blocks.join("\n\n");
 }
 
-export async function runPromptStage(config, { target, includes = [] }) {
+export async function runPromptStage(config, { target, includes = [], issue = null, dependencies = [] }) {
   const requirementDir = fromProject(target);
   if (!existsSync(requirementDir) || !statSync(requirementDir).isDirectory()) {
     throw new Error(`Requirement directory not found: ${target}`);
   }
-  const prdFile = path.join(requirementDir, "01-prd.md");
-  if (config.command !== "issues" && (!existsSync(prdFile) || !statSync(prdFile).isFile())) {
-    throw new Error(`01-prd.md not found in requirement directory: ${target}`);
+  const requirementFile = path.join(requirementDir, "issue", "issue.md");
+  if (config.command !== "issues" && (!existsSync(requirementFile) || !statSync(requirementFile).isFile())) {
+    throw new Error(`issue/issue.md not found in requirement directory: ${target}`);
   }
   if (!/^REQ-\d{4}-[A-Za-z0-9][A-Za-z0-9_-]*$/.test(path.basename(requirementDir))) {
     throw new Error("Requirement directory must look like REQ-0010-feature.");
   }
 
   const createdAt = timestamp();
-  const outputDir = path.join(requirementDir, "change", config.stageId);
+  const outputDir = path.join(requirementDir, config.directory, createdAt);
   mkdirSync(outputDir, { recursive: true });
-  const promptName = `${createdAt}_prompt.md`;
-  const patchName = `${createdAt}_prompt.01.git.patch`;
+  const promptName = "prompt.md";
+  const patchName = "prompt.01.git.patch";
   const analysisName = `${patchName}.md`;
+  const globalPatchName = config.globalPatch ? `prompt.01.${config.globalPatch}.git.patch` : "";
   const promptFile = path.join(outputDir, promptName);
   if (existsSync(promptFile)) throw new Error(`Prompt already exists: ${projectRelative(promptFile)}`);
 
@@ -147,16 +115,25 @@ export async function runPromptStage(config, { target, includes = [] }) {
   const stage = readFileSync(path.join(WORKFLOW_ROOT, "templates", config.template), "utf8");
   const replacements = {
     "{{STAGE}}": config.command,
-    "{{STAGE_ID}}": config.stageId,
     "{{STAGE_NAME}}": config.stageName,
     "{{REQUIREMENT}}": path.basename(requirementDir),
     "{{REQUIREMENT_DIR}}": projectRelative(requirementDir),
-    "{{PRD_PATH}}": projectRelative(prdFile),
+    "{{REQUIREMENT_PATH}}": projectRelative(requirementFile),
     "{{PROMPT_FILE}}": projectRelative(promptFile),
+    "{{RUN_DIR}}": projectRelative(outputDir),
     "{{PATCH_NAME}}": patchName,
     "{{PATCH_FILE}}": projectRelative(path.join(outputDir, patchName)),
     "{{ANALYSIS_FILE}}": projectRelative(path.join(outputDir, analysisName)),
     "{{CREATED_AT}}": createdAt,
+    "{{ISSUE_NUMBER}}": issue?.number ?? "",
+    "{{ISSUE_URL}}": issue?.url ?? "",
+    "{{PLATFORM}}": config.platform ?? "",
+    "{{PLATFORM_NAME}}": config.platformName ?? "",
+    "{{GLOBAL_PATCH_FILE}}": globalPatchName ? projectRelative(path.join(outputDir, globalPatchName)) : "",
+    "{{PLATFORM_REFERENCES}}": (config.references ?? []).map((relative) => {
+      const file = path.join(WORKFLOW_ROOT, relative);
+      return `## ${relative}\n\n${readFileSync(file, "utf8").trim()}`;
+    }).join("\n\n"),
     "{{PROFESSIONAL_DISCUSSION}}": [
       "# 多专业共同讨论",
       "",
@@ -172,15 +149,17 @@ export async function runPromptStage(config, { target, includes = [] }) {
     "{{GLOBAL_PATCH_INSTRUCTIONS}}": config.globalPatch ? [
       "# 全局文件 Patch",
       "",
-      `本阶段需要改变全局项目事实时，不要在外层 Git Patch 中直接修改全局文件。改为创建或更新 \`${projectRelative(path.join(requirementDir, config.globalPatch))}\`，其内容必须是从 \`diff --git\` 开始、使用项目相对路径的完整 Git Patch。`,
+      `本阶段需要改变全局项目事实时，不要写入外层 Git Patch。直接生成 \`${projectRelative(path.join(outputDir, globalPatchName))}\`，其内容必须是从 \`diff --git\` 开始、使用项目相对路径的完整 Git Patch。`,
       "",
-      "需求级全局 Patch 只修改全局架构、契约或配置文档，不包含业务源码和需求目录文件。没有全局变化时不要创建空 Patch。人工应用外层 Git Patch 后，再单独检查并应用它。",
+      "全局 Patch 只修改全局架构、契约或配置文档，不包含业务源码和需求目录文件。没有全局变化时不要创建空 Patch。它与外层 Patch 分别检查和应用。",
     ].join("\n") : "",
-    "{{CONTEXT}}": collectContext(config, requirementDir, prdFile, includes),
+    "{{CONTEXT}}": collectContext(config, requirementDir, requirementFile, includes, issue, dependencies),
   };
   let prompt = base;
   for (const [key, value] of Object.entries(replacements)) prompt = prompt.replaceAll(key, value);
   for (const [key, value] of Object.entries(replacements)) prompt = prompt.replaceAll(key, value);
   writeFileSync(promptFile, `${prompt.trimEnd()}\n`, "utf8");
-  console.log(projectRelative(promptFile));
+  const output = projectRelative(promptFile);
+  console.log(output);
+  return output;
 }

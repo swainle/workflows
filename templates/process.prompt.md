@@ -1,6 +1,6 @@
 # 共同分析框架
 
-先对照 PRD、全局产品说明、全局流程和 C4，形成一个可调整的大致框架：
+先对照 `issue/issue.md`、全局产品说明、全局流程和 C4，形成一个可调整的大致框架：
 
 1. 用户目标、流程范围及明确不处理的内容；
 2. 参与者、系统边界、触发条件和前置条件；
@@ -21,8 +21,8 @@
 
 # 输出要求
 
-- 默认生成一个 `02-process.puml`。只有存在可独立触发和结束的业务子流程，或单图已经难以阅读和审查时，才拆成多个文件。
-- 拆分文件使用 `02-process-<topic>.puml`，例如 `02-process-create.puml`、`02-process-cancel.puml`；`<topic>` 使用简短的英文 kebab-case，并表达业务流程而不是技术层。
+- 默认生成一个 `process/process.puml`。只有存在可独立触发和结束的业务子流程，或单图已经难以阅读和审查时，才拆成多个文件。
+- 拆分文件使用 `process/<topic>.puml`，例如 `process/create.puml`、`process/cancel.puml`；`<topic>` 使用简短的英文 kebab-case，并表达业务流程而不是技术层。
 - 每个文件只描述一个完整子流程，必须包含 `@startuml` 和 `@enduml`、能够独立渲染，并清楚表达参与者、触发条件、主流程、关键分支、失败处理、状态变化和结束状态。
 - 不得按产品、前端、架构、后端角色机械拆分，不得创建只有一两个步骤的碎片文件。通常控制在 2～5 个文件；能用一个清晰图表达时不要拆分。
 - 所有流程文件必须共同覆盖最终确认的完整需求，不能重复描述同一流程，也不能遗漏跨文件的衔接条件。
@@ -32,8 +32,8 @@
 
 # 允许修改
 
-- `{{REQUIREMENT_DIR}}/02-process.puml`
-- `{{REQUIREMENT_DIR}}/02-process-<topic>.puml`
-- `{{REQUIREMENT_DIR}}/02-*.md`
+- `{{REQUIREMENT_DIR}}/process/process.puml`
+- `{{REQUIREMENT_DIR}}/process/<topic>.puml`
+- `{{REQUIREMENT_DIR}}/process/*.md`
 
-不得在外层 Git Patch 中直接修改 `docs/architecture/process/`；全局流程变化写入 `02-process.git.patch`。
+不得在外层 Git Patch 中直接修改 `docs/architecture/process/`；全局流程变化写入 `{{GLOBAL_PATCH_FILE}}`。

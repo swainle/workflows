@@ -4,8 +4,8 @@
 
 # 允许修改
 
-- `{{REQUIREMENT_DIR}}/09-*.feature`
-- `{{REQUIREMENT_DIR}}/09-*.md`
+- `{{REQUIREMENT_DIR}}/test/*.feature`
+- `{{REQUIREMENT_DIR}}/test/*.md`
 - 项目现有测试目录、测试夹具和必要测试配置
 
 不得修改业务实现来绕过失败测试。

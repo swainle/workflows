@@ -1,5 +1,5 @@
 export default {
-  command: "issues", stageId: "00-issues", stageName: "GitHub Issues 整理",
+  command: "issues", stageName: "GitHub Issues 整理",
   template: "issues.prompt.md",
   roles: [
     "专业产品经理：确认用户目标、业务价值、范围和优先级。",
@@ -7,6 +7,6 @@ export default {
     "用户体验研究员：检查目标用户、使用情境和真实痛点。",
     "测试专家：检查验收标准是否明确、完整且可验证。",
   ],
-  globalPatch: "01-product.git.patch",
-  globals: ["docs/architecture/product.md"], maxRequirementPrefix: 1, githubIssues: true,
+  globalPatch: "product",
+  globals: ["docs/architecture/product.md"], githubIssues: true,
 };

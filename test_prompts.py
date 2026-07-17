@@ -21,11 +21,20 @@ class IssuesPromptTest(unittest.TestCase):
             "根据本次产品分析结果组织",
             "根据本次 Git Patch 的实际文件和内容生成检查步骤",
             "表格只列与主 Issue",
+            "附 URL",
+            "Issue 评论建议",
             "每次只问一个最关键的问题",
             "至少有 95% 的把握",
-            "01-product.git.patch",
+            "{{GLOBAL_PATCH_FILE}}",
             "产品目标、用户角色、产品范围或全局业务规则",
             "没有全局产品变化时不得创建",
+            "<!-- WORKFLOW:START -->",
+            '"dependsOn"',
+            "必须逐项分析以下全部候选阶段",
+            "`design`",
+            "`frontend:web`",
+            "逐个平台判断",
+            "issue/issue.md",
         ):
             self.assertIn(required, prompt)
 
@@ -43,8 +52,8 @@ class IssuesPromptTest(unittest.TestCase):
             "共同分析框架",
             "每次只问一个",
             "至少有 95% 的把握",
-            "02-process-<topic>.puml",
-            "02-process.git.patch",
+            "process/<topic>.puml",
+            "{{GLOBAL_PATCH_FILE}}",
             "通常控制在 2～5 个文件",
             "不得按产品、前端、架构、后端角色机械拆分",
         ):
@@ -69,29 +78,30 @@ class IssuesPromptTest(unittest.TestCase):
             self.assertIsNotNone(roles, config.name)
             self.assertGreaterEqual(len(re.findall(r'^\s*"', roles.group(1), re.M)), 3, config.name)
 
-    def test_stages_follow_contract_first_order(self):
+    def test_stages_use_semantic_directories(self):
         root = Path(__file__).parent / "tools" / "prompt"
-        expected = {
-            "process.mjs": "02-process",
-            "c4.mjs": "03-c4",
-            "api.mjs": "04-api",
-            "database.mjs": "05-database",
-            "backend.mjs": "06-backend",
-            "permission.mjs": "07-permission",
-            "frontend.mjs": "08-frontend",
-            "test.mjs": "09-test",
-            "deployment.mjs": "10-deployment",
-        }
-        for filename, stage_id in expected.items():
-            config = (root / filename).read_text(encoding="utf-8")
-            self.assertIn(f'stageId: "{stage_id}"', config)
+        for config_file in root.glob("*.mjs"):
+            self.assertNotIn("stageId:", config_file.read_text(encoding="utf-8"))
 
         frontend = (root / "frontend.mjs").read_text(encoding="utf-8")
         self.assertIn("docs/contracts/openapi.json", frontend)
         self.assertIn("docs/contracts/authorization.fga", frontend)
+        self.assertNotIn('command: "frontend"', frontend)
+
+        stages = (root.parent / "core" / "stages.mjs").read_text(encoding="utf-8")
+        for stage in (
+            'name: "design"',
+            'name: "frontend:web"',
+            'name: "frontend:mobile"',
+            'name: "frontend:mini-program"',
+            'name: "frontend:desktop"',
+            'directory: "frontend/web"',
+            'directory: "frontend/mobile"',
+        ):
+            self.assertIn(stage, stages)
 
         c4 = (root / "c4.mjs").read_text(encoding="utf-8")
-        self.assertIn('globalPatch: "03-c4.git.patch"', c4)
+        self.assertIn('globalPatch: "c4"', c4)
         self.assertIn("docs/architecture/c4.puml", c4)
 
         backend = (root / "backend.mjs").read_text(encoding="utf-8")
@@ -114,8 +124,8 @@ class IssuesPromptTest(unittest.TestCase):
             "后端编码提示词",
             "本阶段只整理提示词，不执行其中的编码任务",
             "当前任务与后续编码任务是两个严格分离的阶段",
-            "只能作为外层 `*_prompt.NN.git.patch` 新增或修改 `06-backend.prompt.md` 的内容",
-            "06-backend.prompt.md",
+            "只能作为外层 `prompt.NN.git.patch` 新增或修改 `backend/backend.prompt.md` 的内容",
+            "backend/backend.prompt.md",
             "识别实际框架",
             "严格的 DDD 分层和面向对象实现",
             "modules/<bounded-context>/{domain,application,infrastructure,interfaces}",
@@ -141,7 +151,7 @@ class IssuesPromptTest(unittest.TestCase):
             "不生成 Git Patch",
             "只能创建或更新上述文件",
             "生成外层 Git Patch 和分析文件后立即停止",
-            "不得绕过外层 Git Patch 直接新增或修改 `06-backend.prompt.md`",
+            "不得绕过外层 Git Patch 直接新增或修改 `backend/backend.prompt.md`",
         ):
             self.assertIn(required, f"{config}\n{template}")
         self.assertNotIn("完成需求必须修改的后端源码、迁移和后端单元测试", template)
@@ -175,8 +185,9 @@ class IssuesPromptTest(unittest.TestCase):
             encoding="utf-8"
         )
 
-        self.assertIn("`${createdAt}_prompt.md`", engine)
-        self.assertIn("_prompt.01.git.patch", engine)
+        self.assertIn('const promptName = "prompt.md"', engine)
+        self.assertIn('const patchName = "prompt.01.git.patch"', engine)
+        self.assertIn("globalPatchName", engine)
         self.assertIn("不得覆盖", base)
         self.assertIn("下一个两位序号", base)
 
@@ -188,35 +199,38 @@ class IssuesPromptTest(unittest.TestCase):
         self.assertFalse((root / "tools" / "core" / "patch-stage.mjs").exists())
         self.assertFalse((root / "tools" / "core" / "merge-json.mjs").exists())
 
-    def test_flow_command_orchestrates_existing_stages(self):
+    def test_work_commands_use_the_selected_workflow(self):
         root = Path(__file__).parent
         installer = (root / "install.mjs").read_text(encoding="utf-8")
-        template = (root / "templates" / "flow.prompt.md").read_text(
-            encoding="utf-8"
-        )
+        workflow = (root / "tools" / "core" / "workflow.mjs").read_text(encoding="utf-8")
+        cli = (root / "tools" / "work.mjs").read_text(encoding="utf-8")
 
-        self.assertIn('"prompt:flow"', installer)
-        for required in (
-            "不得预先生成后续阶段 Prompt",
-            "每次只询问使用者一个最关键的问题",
-            "理解达到至少 95%",
-            "等待明确批准",
-            "06-backend.prompt.md",
-            "不替使用者批准 Patch",
-        ):
-            self.assertIn(required, template)
+        self.assertIn('"work:status"', installer)
+        self.assertIn('"work:next"', installer)
+        self.assertIn("LEGACY_SCRIPTS", installer)
+        self.assertFalse((root / "tools" / "flow.mjs").exists())
+        self.assertFalse((root / "templates" / "flow.prompt.md").exists())
+        self.assertIn("readWorkflowPlan", workflow)
+        self.assertIn("assertStageReady", workflow)
+        self.assertIn("findActiveResult", workflow)
+        self.assertIn('["apply", "--check", patchFile]', cli)
+        self.assertIn('["apply", "--stat", patchFile]', cli)
+        self.assertIn('["apply", patchFile]', cli)
 
-    def test_prompt_commands_use_the_selected_requirement(self):
+    def test_work_commands_use_the_selected_requirement(self):
         root = Path(__file__).parent
         engine = (root / "tools" / "core" / "prompt-stage.mjs").read_text(
             encoding="utf-8"
         )
-        cli = (root / "tools" / "prompt.mjs").read_text(encoding="utf-8")
+        cli = (root / "tools" / "work.mjs").read_text(encoding="utf-8")
+        stages = (root / "tools" / "core" / "stages.mjs").read_text(encoding="utf-8")
 
-        self.assertIn('path.join(requirementDir, "01-prd.md")', engine)
+        self.assertIn('path.join(requirementDir, "issue", "issue.md")', engine)
         self.assertIn("currentRequirement()", cli)
         self.assertIn("parseArgs", cli)
-        self.assertIn('issue: "issues"', cli)
+        self.assertIn('issue: { type: "string" }', cli)
+        self.assertIn('name: "issue", module: "issues"', stages)
+        self.assertNotIn("maxRequirementPrefix", engine)
         self.assertNotIn("targetKind", engine)
         for config in (root / "tools" / "prompt").glob("*.mjs"):
             self.assertNotIn("targetKind", config.read_text(encoding="utf-8"))

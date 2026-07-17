@@ -18,7 +18,7 @@
 
 # 允许修改
 
-- `{{REQUIREMENT_DIR}}/05-schema.dbml`
-- `{{REQUIREMENT_DIR}}/05-*.md`
+- `{{REQUIREMENT_DIR}}/database/schema.dbml`
+- `{{REQUIREMENT_DIR}}/database/*.md`
 
-不得直接修改全局 schema 或业务源码；全局 schema 变化写入 `05-database.git.patch`。
+不得直接修改全局 schema 或业务源码；全局 schema 变化写入 `{{GLOBAL_PATCH_FILE}}`。
