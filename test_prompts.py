@@ -46,7 +46,6 @@ class PromptTest(unittest.TestCase):
         expected = {
             "backend.prompt.md": "backend/backend.prompt.md",
             "frontend.prompt.md": "frontend/{{PLATFORM}}/frontend.prompt.md",
-            "permission.prompt.md": "permission/permission.prompt.md",
             "deployment.prompt.md": "deployment/deployment.prompt.md",
         }
         for template, output in expected.items():
@@ -55,6 +54,10 @@ class PromptTest(unittest.TestCase):
             self.assertIn("{{RUN_DIR}}", text)
             self.assertIn("prompt.NN.git.patch", text)
             self.assertIn("外层 Git Patch 只能修改", text)
+
+        permission = (ROOT / "templates/permission.prompt.md").read_text(encoding="utf-8")
+        self.assertNotIn("permission/permission.prompt.md", permission)
+        self.assertIn("backend、frontend", permission)
 
     def test_final_patch_is_installed_and_global_only(self):
         installer = (ROOT / "install.mjs").read_text(encoding="utf-8")

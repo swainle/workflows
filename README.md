@@ -42,7 +42,6 @@ pnpm -s work:next frontend:web --require "复用现有组件库"
 ```text
 backend/backend.prompt.md
 frontend/web/frontend.prompt.md
-permission/permission.prompt.md
 deployment/deployment.prompt.md
 ```
 
