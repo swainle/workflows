@@ -6,8 +6,7 @@ import { STAGE_BY_NAME } from "./stages.mjs";
 
 const MAX_CONTEXT_BYTES = 1_500_000;
 
-function timestamp() {
-  const now = new Date();
+function timestamp(now = new Date()) {
   const part = (value) => String(value).padStart(2, "0");
   return [
     now.getFullYear(), part(now.getMonth() + 1), part(now.getDate()),
@@ -105,8 +104,14 @@ export async function runPromptStage(config, { target, requirement = "", issue =
     throw new Error("Requirement directory must look like REQ-0010-feature.");
   }
 
-  const createdAt = timestamp();
-  const outputDir = path.join(requirementDir, config.directory, createdAt);
+  const now = Date.now();
+  let createdAt;
+  let outputDir;
+  let seconds = 0;
+  do {
+    createdAt = timestamp(new Date(now + seconds++ * 1000));
+    outputDir = path.join(requirementDir, config.directory, createdAt);
+  } while (existsSync(outputDir));
   mkdirSync(outputDir, { recursive: true });
   const promptName = "prompt.md";
   const patchName = "prompt.01.git.patch";

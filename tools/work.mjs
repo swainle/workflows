@@ -128,12 +128,12 @@ function printStatus(current) {
 
 async function generateStage(current, stage, requirement = "") {
   const state = readWorkState(current);
-  if (state.active) throw new Error(`Stage ${state.active.stage} still has an unapplied result.`);
+  if (state.active && state.active.stage !== stage) throw new Error(`Stage ${state.active.stage} still has an unapplied result.`);
   let dependencies = [];
   let plan = null;
   if (stage !== "issue") {
     plan = readWorkflowPlan(current.requirementDir);
-    assertStageReady(plan, state, stage, state.completed, true);
+    assertStageReady(plan, state, stage, state.completed, true, true);
     dependencies = dependencyStages(plan, stage);
   }
   const registered = STAGE_BY_NAME[stage];

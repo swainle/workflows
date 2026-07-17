@@ -66,6 +66,8 @@ pnpm -s work:backend --require "调整实现约束"
 
 该阶段切换为 `active`，自身及所有传递依赖它的后续阶段从 `completed` 移除；无关并行阶段保持完成。旧产物和已应用 Patch 保留。`work:status` 显示新的 `active`、`ready` 和 `blocked` 状态。
 
+当前已经是 `active` 的阶段也可以再次执行同一命令；工作流生成新的时间戳 Prompt，并把 active 指向最新记录。存在其他 active 阶段时仍会拒绝切换。
+
 ## 同步全局数据
 
 全部选定阶段完成后执行：

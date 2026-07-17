@@ -7,7 +7,7 @@ import { currentRequirement, normalizeShortName, readGithubIssue, selectRequirem
 import { assertAllowedCodePatchPaths, assertAllowedPatchPaths, latestUnappliedPatch, parseWorkArguments } from "./tools/work.mjs";
 import { STAGES } from "./tools/core/stages.mjs";
 import { PROJECT_ROOT } from "./tools/core/paths.mjs";
-import { completeActiveStage, dependencyStages, findActiveResult, readWorkflowPlan, readWorkState, stageStatuses, startStage, validateWorkflowPlan } from "./tools/core/workflow.mjs";
+import { assertStageReady, completeActiveStage, dependencyStages, findActiveResult, readWorkflowPlan, readWorkState, stageStatuses, startStage, validateWorkflowPlan } from "./tools/core/workflow.mjs";
 
 test("parses requirement, status, next, and stage commands", () => {
   assert.deepEqual(parseWorkArguments(["req", "--issue", "4"]), {
@@ -173,6 +173,11 @@ test("reads a selected workflow and calculates executable stages", () => {
       { name: "process", status: "active" },
       { name: "api", status: "blocked" },
     ]);
+    assert.doesNotThrow(() => assertStageReady(plan, rerun, "process", rerun.completed, true, true));
+    const replacementPrompt = "docs/requirements/REQ-0004-build/process/20260717020202/prompt.md";
+    startStage(current, "process", replacementPrompt, { projectRoot, runner, plan });
+    assert.equal(readWorkState(current, { projectRoot, runner }).active.promptFile, replacementPrompt);
+    assert.throws(() => startStage(current, "api", replacementPrompt, { projectRoot, runner, plan }), /process still has/);
   } finally {
     rmSync(projectRoot, { recursive: true, force: true });
   }
