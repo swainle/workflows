@@ -86,11 +86,26 @@ function writeWorkState(current, state, runner = execFileSync, projectRoot = PRO
   return state;
 }
 
-export function startStage(current, stage, promptFile, { runner = execFileSync, projectRoot = PROJECT_ROOT } = {}) {
-  if (!STAGE_BY_NAME[stage]) throw new Error(`Unknown stage: ${stage}.`);
+export function startStage(current, stage, promptFile, { runner = execFileSync, projectRoot = PROJECT_ROOT, plan = null } = {}) {
+  if (!STAGE_BY_NAME[stage] && stage !== "patch") throw new Error(`Unknown stage: ${stage}.`);
   const state = readWorkState(current, { runner, projectRoot });
   if (state.active) throw new Error(`Stage ${state.active.stage} still has an unapplied result.`);
   if (stage === "issue") state.completed = [];
+  else if (stage === "patch") state.completed = state.completed.filter((name) => name !== stage);
+  else if (plan && state.completed.includes(stage)) {
+    const stale = new Set([stage]);
+    let changed = true;
+    while (changed) {
+      changed = false;
+      for (const item of plan.stages) {
+        if (!stale.has(item.name) && item.dependsOn.some((dependency) => stale.has(dependency))) {
+          stale.add(item.name);
+          changed = true;
+        }
+      }
+    }
+    state.completed = state.completed.filter((name) => !stale.has(name));
+  }
   state.active = { stage, promptFile };
   return writeWorkState(current, state, runner, projectRoot);
 }
@@ -99,6 +114,7 @@ export function completeActiveStage(current, result, { runner = execFileSync, pr
   const state = readWorkState(current, { runner, projectRoot });
   if (!state.active) throw new Error("No active stage result to apply.");
   if (!state.completed.includes(state.active.stage)) state.completed.push(state.active.stage);
+  state.appliedPatches ??= [];
   for (const file of [result.patchFile, ...(result.globalPatchFiles ?? [])].filter(Boolean)) state.appliedPatches.push(file);
   state.active = null;
   return writeWorkState(current, state, runner, projectRoot);
@@ -119,10 +135,10 @@ export function stageStatuses(plan, state, completed = state.completed) {
   });
 }
 
-export function assertStageReady(plan, state, stage, completed = state.completed) {
+export function assertStageReady(plan, state, stage, completed = state.completed, allowCompleted = false) {
   const selected = stageStatuses(plan, state, completed).find((item) => item.name === stage);
   if (!selected) throw new Error(`Stage ${stage} is not selected in issue/issue.md.`);
-  if (selected.status !== "ready") {
+  if (selected.status !== "ready" && !(allowCompleted && selected.status === "completed" && !selected.missing.length)) {
     throw new Error(`Stage ${stage} is ${selected.status}${selected.missing.length ? `; waiting for ${selected.missing.join(", ")}` : ""}.`);
   }
 }
@@ -183,7 +199,7 @@ export function findActiveResult(current, state, { projectRoot = PROJECT_ROOT } 
   }
   if (names.includes(analysis)) {
     const content = readFileSync(path.join(directory, analysis), "utf8");
-    if (/result:\s*no-changes\b/.test(content) && /patch_file:\s*null\b/.test(content) && /global_patch_file:\s*null\b/.test(content)) {
+    if (/result:\s*no-changes\b/.test(content) && /patch_file:\s*null\b/.test(content)) {
       return { stage: state.active.stage, patchFile: null, analysisFile: relative(path.join(directory, analysis)), globalPatchFiles: [], noChanges: true };
     }
   }

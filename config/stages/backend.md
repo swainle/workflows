@@ -1,0 +1,3 @@
+- 识别项目现有语言、框架、ORM、workspace 和测试命令，不自行更换。
+- 默认使用 DDD 分层和面向对象领域模型；本次 `--require` 可覆盖该设计模式。
+- 生成 `backend/backend.prompt.md`，由后续编码 AI 修改源码并运行验证。

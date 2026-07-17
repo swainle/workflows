@@ -4,8 +4,9 @@ import { tmpdir } from "node:os";
 import path from "node:path";
 import test from "node:test";
 import { currentRequirement, normalizeShortName, readGithubIssue, selectRequirement } from "./tools/core/current-requirement.mjs";
-import { parseWorkArguments } from "./tools/work.mjs";
+import { assertAllowedPatchPaths, parseWorkArguments } from "./tools/work.mjs";
 import { STAGES } from "./tools/core/stages.mjs";
+import { PROJECT_ROOT } from "./tools/core/paths.mjs";
 import { completeActiveStage, dependencyStages, findActiveResult, readWorkflowPlan, readWorkState, stageStatuses, startStage, validateWorkflowPlan } from "./tools/core/workflow.mjs";
 
 test("parses requirement, status, next, and stage commands", () => {
@@ -15,13 +16,31 @@ test("parses requirement, status, next, and stage commands", () => {
   });
   assert.deepEqual(parseWorkArguments(["req"]), { command: "req", issue: undefined });
   assert.deepEqual(parseWorkArguments(["status"]), { command: "status" });
-  assert.deepEqual(parseWorkArguments(["next", "api"]), { command: "next", nextStage: "api" });
-  assert.deepEqual(parseWorkArguments(["next", "frontend:mobile"]), { command: "next", nextStage: "frontend:mobile" });
-  assert.deepEqual(parseWorkArguments(["frontend:web"]), { command: "frontend:web", includes: [] });
-  assert.deepEqual(parseWorkArguments(["api", "--include", "packages/api", "--include", "docs/example.md"]), {
-    command: "api",
-    includes: ["packages/api", "docs/example.md"],
+  assert.deepEqual(parseWorkArguments(["next", "api"]), { command: "next", nextStage: "api", requirement: "" });
+  assert.deepEqual(parseWorkArguments(["next", "frontend:mobile", "--require", "reuse UI"]), {
+    command: "next", nextStage: "frontend:mobile", requirement: "reuse UI",
   });
+  assert.deepEqual(parseWorkArguments(["frontend:web"]), { command: "frontend:web", requirement: "", list: false });
+  assert.deepEqual(parseWorkArguments(["api", "--require", "use v2"]), {
+    command: "api",
+    requirement: "use v2",
+    list: false,
+  });
+  assert.deepEqual(parseWorkArguments(["backend", "--list"]), { command: "backend", requirement: "", list: true });
+  assert.deepEqual(parseWorkArguments(["patch"]), { command: "patch", requirement: "", list: false });
+  assert.throws(() => parseWorkArguments(["api", "--include", "packages/api"]));
+});
+
+test("limits stage and final patches to their path scopes", () => {
+  const current = { requirementDir: path.join(PROJECT_ROOT, "docs/requirements/REQ-0004-build") };
+  assert.doesNotThrow(() => assertAllowedPatchPaths(current, "backend", [
+    "docs/requirements/REQ-0004-build/backend/backend.prompt.md",
+  ]));
+  assert.throws(() => assertAllowedPatchPaths(current, "backend", ["apps/api/src/index.ts"]), /cannot modify/);
+  assert.doesNotThrow(() => assertAllowedPatchPaths(current, "patch", [
+    "docs/architecture/product.md", "package.json",
+  ]));
+  assert.throws(() => assertAllowedPatchPaths(current, "patch", ["apps/api/src/index.ts"]), /cannot modify/);
 });
 
 test("normalizes an English requirement short name", () => {
@@ -113,12 +132,25 @@ test("reads a selected workflow and calculates executable stages", () => {
     const result = findActiveResult(current, active, { projectRoot });
     assert.equal(result.patchFile, "docs/requirements/REQ-0004-build/process/20260717010101/prompt.01.git.patch");
     assert.deepEqual(result.globalPatchFiles, ["docs/requirements/REQ-0004-build/process/20260717010101/prompt.01.process.git.patch"]);
-    writeFileSync(path.join(outputDir, "prompt.02.git.patch.md"), "patch_file: null\nglobal_patch_file: null\nresult: no-changes\n");
+    writeFileSync(path.join(outputDir, "prompt.02.git.patch.md"), "patch_file: null\nresult: no-changes\n");
     const latest = findActiveResult(current, active, { projectRoot });
     assert.equal(latest.noChanges, true);
     assert.equal(latest.patchFile, null);
     completeActiveStage(current, latest, { projectRoot, runner });
     assert.deepEqual(readWorkState(current, { projectRoot, runner }).completed, ["issue", "process"]);
+    writeFileSync(path.join(projectRoot, ".git/workflows/state/REQ-0004-build.json"), `${JSON.stringify({
+      active: null,
+      completed: ["issue", "process", "api"],
+      appliedPatches: [],
+    })}\n`);
+    startStage(current, "process", promptFile, { projectRoot, runner, plan });
+    const rerun = readWorkState(current, { projectRoot, runner });
+    assert.deepEqual(rerun.completed, ["issue"]);
+    assert.deepEqual(stageStatuses(plan, rerun).map(({ name, status }) => ({ name, status })), [
+      { name: "issue", status: "completed" },
+      { name: "process", status: "active" },
+      { name: "api", status: "blocked" },
+    ]);
   } finally {
     rmSync(projectRoot, { recursive: true, force: true });
   }

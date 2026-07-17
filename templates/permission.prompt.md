@@ -1,11 +1,13 @@
-# 本阶段要做什么
+# 阶段目标
 
-检查谁能访问什么、服务端如何判断权限、页面显示与后端授权是否一致。默认只给必要权限。
+根据需求产物说明主体、资源、动作、关系、允许和拒绝条件。需要代码实现时，同时生成一份可交给编码 AI 执行的 `permission/permission.prompt.md`。
+
+执行提示词必须要求编码 AI 阅读当前需求产物和现有源码，在明确边界内直接修改授权实现与测试，并运行项目已有验证命令；遇到文档冲突时停止并询问。
 
 # 允许修改
 
 - `{{REQUIREMENT_DIR}}/permission/authorization.fga`
 - `{{REQUIREMENT_DIR}}/permission/*.md`
-- 完成需求必须修改的授权实现和权限测试
+- `{{REQUIREMENT_DIR}}/permission/permission.prompt.md`
 
-不得直接修改全局权限模型；全局权限变化写入 `{{GLOBAL_PATCH_FILE}}`。
+当前阶段不得直接修改源码或全局权限模型。

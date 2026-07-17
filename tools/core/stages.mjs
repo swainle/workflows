@@ -10,22 +10,22 @@ export const STAGES = [
   {
     name: "frontend:web", module: "frontend", directory: "frontend/web",
     stageName: "Web 前端实现", platform: "web", platformName: "Web",
-    reference: "reference/web.md", globalPatch: "design-tokens",
+    reference: "reference/web.md",
   },
   {
     name: "frontend:mobile", module: "frontend", directory: "frontend/mobile",
     stageName: "移动端实现", platform: "mobile", platformName: "移动端",
-    reference: "reference/mobile.md", globalPatch: "design-tokens",
+    reference: "reference/mobile.md",
   },
   {
     name: "frontend:mini-program", module: "frontend", directory: "frontend/mini-program",
     stageName: "小程序实现", platform: "mini-program", platformName: "小程序",
-    reference: "reference/mini-program.md", globalPatch: "design-tokens",
+    reference: "reference/mini-program.md",
   },
   {
     name: "frontend:desktop", module: "frontend", directory: "frontend/desktop",
     stageName: "桌面端实现", platform: "desktop", platformName: "桌面端",
-    reference: "reference/desktop.md", globalPatch: "design-tokens",
+    reference: "reference/desktop.md",
   },
   { name: "test", module: "test", directory: "test" },
   { name: "deployment", module: "deployment", directory: "deployment" },

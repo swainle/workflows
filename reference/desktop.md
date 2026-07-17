@@ -1,9 +1,20 @@
-# 桌面端项目
+# 桌面端
 
-适用于 Electron、Tauri 和带本地壳层的桌面应用。
+## 快速开发
 
-在 `issue/issue.md` 中区分主进程、渲染进程、本地能力和服务端能力。前端阶段分析窗口与页面，Backend 阶段分析本地服务或服务端实现，Permission 阶段检查文件系统、剪贴板、通知和系统权限。
+先完成 `design`，再生成桌面端编码提示词。
 
-使用 `pnpm -s work:frontend:desktop` 生成桌面端实现 Prompt。
+## 命令
 
-Deployment 阶段说明打包、自动更新、代码签名变量名称和回滚方法，不记录真实证书。
+- `pnpm -s work:frontend:desktop`：生成桌面端阶段 Prompt。
+- `pnpm -s work:frontend:desktop --list`：查看默认配置。
+
+## 作用
+
+生成需求目录内的 `frontend/desktop/frontend.prompt.md`，交给编码 AI 实现桌面端代码和测试。
+
+## 例子
+
+```bash
+pnpm -s work:frontend:desktop --require "沿用现有 Tauri 壳层"
+```

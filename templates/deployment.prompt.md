@@ -1,11 +1,13 @@
-# 本阶段要做什么
+# 阶段目标
 
-检查构建、环境变量名称、服务、迁移、发布、监控、备份和回滚。不得记录真实密钥。
+根据需求产物记录构建、发布、迁移、监控、回滚和非敏感配置。需要修改部署代码或配置时，生成 `deployment/deployment.prompt.md`。
+
+执行提示词必须要求执行 AI 阅读当前需求产物和现有项目配置，直接完成必要修改并运行已有验证命令；不得写入真实凭据。
 
 # 允许修改
 
 - `{{REQUIREMENT_DIR}}/deployment/deployment.md`
+- `{{REQUIREMENT_DIR}}/deployment/deployment.prompt.md`
 - `{{REQUIREMENT_DIR}}/deployment/*.md`
-- 完成需求必须修改的部署、CI/CD、监控和非敏感环境变量模板
 
-不得直接修改全局部署文档；全局部署变化写入 `{{GLOBAL_PATCH_FILE}}`。
+当前阶段不得直接修改部署代码、配置或全局文件。

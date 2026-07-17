@@ -29,6 +29,7 @@ const SCRIPTS = Object.fromEntries([
   ["work:req", "node docs/workflows/tools/work.mjs req"],
   ["work:status", "node docs/workflows/tools/work.mjs status"],
   ["work:next", "node docs/workflows/tools/work.mjs next"],
+  ["work:patch", "node docs/workflows/tools/work.mjs patch"],
   ...STAGE_NAMES.map((stage) => [`work:${stage}`, `node docs/workflows/tools/work.mjs ${stage}`]),
 ]);
 const LEGACY_SCRIPTS = new Set([

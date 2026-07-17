@@ -1,9 +1,20 @@
-# 移动端项目
+# 移动端
 
-适用于原生 iOS、原生 Android、React Native、Flutter 等项目。
+## 快速开发
 
-在 `issue/issue.md` 中写出页面、导航、平台配置和共享模块路径。通过 `--include` 加入 iOS、Android 或跨端源码。前端阶段要分别检查权限请求、弱网、离线、前后台切换和不同屏幕尺寸。
+先完成 `design`，再生成移动端编码提示词。
 
-使用 `pnpm -s work:frontend:mobile` 生成移动端实现 Prompt。
+## 命令
 
-平台构建、签名变量名称和发布说明放在 Deployment 阶段。文档不得记录真实证书和密钥。
+- `pnpm -s work:frontend:mobile`：生成移动端阶段 Prompt。
+- `pnpm -s work:frontend:mobile --list`：查看默认配置。
+
+## 作用
+
+生成需求目录内的 `frontend/mobile/frontend.prompt.md`，交给编码 AI 实现移动端代码和测试。
+
+## 例子
+
+```bash
+pnpm -s work:frontend:mobile --require "使用项目现有 Flutter 框架"
+```

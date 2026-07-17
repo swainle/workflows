@@ -1,11 +1,6 @@
-# 本阶段要做什么
+# 阶段目标
 
-对照全局 OpenAPI 和 AsyncAPI，描述当前需求新增、修改或删除的接口与事件。
-
-- `api/openapi.json` 必须是可单独查看的合法 OpenAPI 片段。
-- `api/asyncapi.json` 必须是可单独查看的合法 AsyncAPI 片段。
-- operation 和 component 必须写完整，不依赖不明确的深度合并。
-- 已有 `api/*.json` 可能被人工修改，必须在现有内容上优化。
+根据需求产物描述本需求新增、修改或删除的接口与事件。覆盖输入、输出、错误、认证、授权和兼容性；没有依据时先询问。
 
 # 允许修改
 
@@ -13,4 +8,4 @@
 - `{{REQUIREMENT_DIR}}/api/asyncapi.json`
 - `{{REQUIREMENT_DIR}}/api/*.md`
 
-不得直接修改全局契约或业务源码；全局契约变化写入 `{{GLOBAL_PATCH_FILE}}`。
+不得修改源码或全局契约。
