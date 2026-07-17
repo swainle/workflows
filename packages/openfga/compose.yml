@@ -1,10 +1,55 @@
-services:
+
+networks:
   openfga:
-    image: openfga/openfga:v1.16.0
-    command: run
-    environment:
-      OPENFGA_PLAYGROUND_ENABLED: "true"
-      OPENFGA_PLAYGROUND_ADDR: "0.0.0.0:3000"
+
+services:
+  mysql:
+    image: mysql:8
+    container_name: mysql
+    networks:
+      - openfga
     ports:
+      - "3306:3306"
+    environment:
+      - MYSQL_ROOT_PASSWORD=secret
+      - MYSQL_DATABASE=openfga
+    healthcheck:
+      test: ["CMD", 'mysqladmin', 'ping', '-h', 'localhost', '-u', 'root', '-p$$MYSQL_ROOT_PASSWORD' ]
+      timeout: 20s
+      retries: 5
+
+  migrate:
+    depends_on:
+        mysql:
+            condition: service_healthy
+    image: openfga/openfga:latest
+    container_name: migrate
+    command: migrate
+    environment:
+      - OPENFGA_DATASTORE_ENGINE=mysql
+      - OPENFGA_DATASTORE_URI=root:secret@tcp(mysql:3306)/openfga?parseTime=true
+    networks:
+      - openfga
+
+  openfga:
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+    image: openfga/openfga:latest
+    container_name: openfga
+    environment:
+      - OPENFGA_DATASTORE_ENGINE=mysql
+      - OPENFGA_DATASTORE_URI=root:secret@tcp(mysql:3306)/openfga?parseTime=true
+      - OPENFGA_LOG_FORMAT=json
+      - OPENFGA_PLAYGROUND_ENABLED=true
+      - OPENFGA_PLAYGROUND_ADDR=0.0.0.0:3000
+    command: run
+    networks:
+      - openfga
+    ports:
+      # Needed for the http server
       - "8080:8080"
+      # Needed for the grpc server (if used)
+      - "8081:8081"
+      # Needed for the playground (Do not enable in prod!)
       - "3000:3000"
