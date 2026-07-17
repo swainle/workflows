@@ -115,7 +115,9 @@ export function completeActiveStage(current, result, { runner = execFileSync, pr
   if (!state.active) throw new Error("No active stage result to apply.");
   if (!state.completed.includes(state.active.stage)) state.completed.push(state.active.stage);
   state.appliedPatches ??= [];
-  for (const file of [result.patchFile, ...(result.globalPatchFiles ?? [])].filter(Boolean)) state.appliedPatches.push(file);
+  for (const file of [result.patchFile, ...(result.globalPatchFiles ?? [])].filter(Boolean)) {
+    if (!state.appliedPatches.includes(file)) state.appliedPatches.push(file);
+  }
   state.active = null;
   return writeWorkState(current, state, runner, projectRoot);
 }

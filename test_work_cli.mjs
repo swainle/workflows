@@ -4,7 +4,7 @@ import { tmpdir } from "node:os";
 import path from "node:path";
 import test from "node:test";
 import { currentRequirement, normalizeShortName, readGithubIssue, selectRequirement } from "./tools/core/current-requirement.mjs";
-import { assertAllowedCodePatchPaths, assertAllowedPatchPaths, latestUnappliedPatch, parseWorkArguments } from "./tools/work.mjs";
+import { assertAllowedCodePatchPaths, assertAllowedPatchPaths, latestUnappliedPatch, parseWorkArguments, unappliedPatches } from "./tools/work.mjs";
 import { STAGES } from "./tools/core/stages.mjs";
 import { PROJECT_ROOT } from "./tools/core/paths.mjs";
 import { assertStageReady, completeActiveStage, dependencyStages, findActiveResult, readWorkflowPlan, readWorkState, stageStatuses, startStage, validateWorkflowPlan } from "./tools/core/workflow.mjs";
@@ -63,6 +63,7 @@ test("limits stage and final patches to their path scopes", () => {
   assert.equal(latestUnappliedPatch([
     "run/prompt.01.git.patch", "run/prompt.02.git.patch",
   ], ["run/prompt.02.git.patch"]), null);
+  assert.deepEqual(unappliedPatches(["a.patch", "b.patch"], ["a.patch"]), ["b.patch"]);
 });
 
 test("normalizes an English requirement short name", () => {

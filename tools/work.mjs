@@ -236,14 +236,21 @@ async function applyStageCodePatch(current, stage) {
   const state = readWorkState(current);
   const plan = readWorkflowPlan(current.requirementDir);
   if (!plan.stages.some(({ name }) => name === stage)) throw new Error(`Stage ${stage} is not selected in issue/issue.md.`);
-  if (!state.completed.includes(stage)) throw new Error(`Stage ${stage} is not completed.`);
-  const patchFile = stageMergePatch(current, stage, state);
-  checkPatch(current, "code", patchFile);
+  const active = state.active?.stage === stage;
+  if (!active && !state.completed.includes(stage)) throw new Error(`Stage ${stage} is neither active nor completed.`);
+  const patchFile = active ? findActiveResult(current, state).patchFile : stageMergePatch(current, stage, state);
+  if (!patchFile) throw new Error(`Stage ${stage} has no Patch to merge.`);
+  if (state.appliedPatches?.includes(patchFile)) throw new Error(`Patch already merged: ${patchFile}`);
+  checkPatch(current, active ? stage : "code", patchFile);
   const answer = (await ask(`Apply ${patchFile}? [y/N] `)).trim().toLowerCase();
   if (!["y", "yes"].includes(answer)) throw new Error("Cancelled.");
   execFileSync("git", ["apply", patchFile], { cwd: PROJECT_ROOT, stdio: "inherit" });
   recordAppliedPatch(current, patchFile);
   console.log(`Applied: ${patchFile}`);
+}
+
+export function unappliedPatches(patches, applied = []) {
+  return patches.filter((patchFile) => !applied.includes(patchFile));
 }
 
 async function generatePatch(current, requirement = "") {
@@ -265,7 +272,8 @@ async function applyAndContinue(current, nextStage, requirement = "") {
   const state = readWorkState(current);
   const result = findActiveResult(current, state);
   const patches = [result.patchFile, ...result.globalPatchFiles].filter(Boolean);
-  for (const patchFile of patches) checkPatch(current, patchFile === result.patchFile ? state.active.stage : "patch", patchFile);
+  const pendingPatches = unappliedPatches(patches, state.appliedPatches);
+  for (const patchFile of pendingPatches) checkPatch(current, patchFile === result.patchFile ? state.active.stage : "patch", patchFile);
   if (state.active.stage === "patch" && nextStage) throw new Error("work:patch is final; run work:next without a stage.");
   if (nextStage && state.active.stage !== "issue") {
     const plan = readWorkflowPlan(current.requirementDir);
@@ -274,9 +282,9 @@ async function applyAndContinue(current, nextStage, requirement = "") {
   console.log(`Current stage: ${state.active.stage}`);
   console.log(result.noChanges ? `Result: no changes (${result.analysisFile})` : `Patches: ${patches.join(", ")}\nAnalysis: ${result.analysisFile}`);
   console.log(`Next: ${nextStage ?? "finish"}`);
-  const answer = (await ask("Apply this result and continue? [y/N] ")).trim().toLowerCase();
+  const answer = (await ask(`${pendingPatches.length ? "Apply" : "Complete"} this result and continue? [y/N] `)).trim().toLowerCase();
   if (!['y', 'yes'].includes(answer)) throw new Error("Cancelled.");
-  for (const patchFile of patches) execFileSync("git", ["apply", patchFile], { cwd: PROJECT_ROOT, stdio: "inherit" });
+  for (const patchFile of pendingPatches) execFileSync("git", ["apply", patchFile], { cwd: PROJECT_ROOT, stdio: "inherit" });
   completeActiveStage(current, result);
   console.log(`Completed: ${result.stage}`);
   if (!nextStage) return;

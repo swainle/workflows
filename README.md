@@ -56,6 +56,8 @@ pnpm -s work:backend --merge
 
 命令只选择最新时间戳目录中最新且尚未应用的 `prompt.NN.git.patch`，然后检查路径、执行 `git apply --check`、展示统计，并在确认后合并代码。`work:next` 已应用的 Patch 会被跳过，因此不会重复合并。代码 Patch 不得修改需求目录、工作流工具或全局架构与契约产物。
 
+也可以在阶段仍为 `active` 时先执行 `work:<阶段> --merge`。它只应用并记录当前阶段结果，不完成阶段；随后执行 `work:next` 时会跳过已应用的 Patch，只完成状态更新并继续。
+
 ## 重做阶段
 
 已完成阶段可以直接重新执行：
