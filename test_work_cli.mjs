@@ -4,7 +4,7 @@ import { tmpdir } from "node:os";
 import path from "node:path";
 import test from "node:test";
 import { currentRequirement, normalizeShortName, readGithubIssue, selectRequirement } from "./tools/core/current-requirement.mjs";
-import { assertAllowedCodePatchPaths, assertAllowedPatchPaths, parseWorkArguments, stageCodePatchFile } from "./tools/work.mjs";
+import { assertAllowedCodePatchPaths, assertAllowedPatchPaths, latestUnappliedPatch, parseWorkArguments } from "./tools/work.mjs";
 import { STAGES } from "./tools/core/stages.mjs";
 import { PROJECT_ROOT } from "./tools/core/paths.mjs";
 import { completeActiveStage, dependencyStages, findActiveResult, readWorkflowPlan, readWorkState, stageStatuses, startStage, validateWorkflowPlan } from "./tools/core/workflow.mjs";
@@ -53,10 +53,16 @@ test("limits stage and final patches to their path scopes", () => {
   assert.throws(() => assertAllowedCodePatchPaths([".git/config"]), /cannot modify/);
   assert.throws(() => assertAllowedCodePatchPaths(["docs/contracts/openapi.json"]), /cannot modify/);
   assert.throws(() => assertAllowedCodePatchPaths(["docs/requirements/REQ-0004-build/issue/issue.md"]), /cannot modify/);
-  assert.equal(
-    stageCodePatchFile(current, "frontend:web"),
-    "docs/requirements/REQ-0004-build/frontend/web/frontend-web.git.patch",
-  );
+  assert.equal(latestUnappliedPatch([
+    "run/prompt.01.git.patch",
+    "run/prompt.02.git.patch",
+    "run/prompt.03.git.patch",
+    "run/prompt.02.git.patch.md",
+  ], ["run/prompt.02.git.patch"]), "run/prompt.03.git.patch");
+  assert.equal(latestUnappliedPatch(["run/prompt.01.git.patch"], ["run/prompt.01.git.patch"]), null);
+  assert.equal(latestUnappliedPatch([
+    "run/prompt.01.git.patch", "run/prompt.02.git.patch",
+  ], ["run/prompt.02.git.patch"]), null);
 });
 
 test("normalizes an English requirement short name", () => {

@@ -44,7 +44,8 @@ class PromptTest(unittest.TestCase):
         for template, output in expected.items():
             text = (ROOT / "templates" / template).read_text(encoding="utf-8")
             self.assertIn(output, text)
-            self.assertIn("{{CODE_PATCH_FILE}}", text)
+            self.assertIn("{{RUN_DIR}}", text)
+            self.assertIn("prompt.NN.git.patch", text)
             self.assertIn("外层 Git Patch 只能修改", text)
 
     def test_final_patch_is_installed_and_global_only(self):

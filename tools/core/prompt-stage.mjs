@@ -111,7 +111,6 @@ export async function runPromptStage(config, { target, requirement = "", issue =
   const promptName = "prompt.md";
   const patchName = "prompt.01.git.patch";
   const analysisName = `${patchName}.md`;
-  const codePatchName = `${config.command.replace(/[^A-Za-z0-9_-]+/g, "-")}.git.patch`;
   const promptFile = path.join(outputDir, promptName);
   if (existsSync(promptFile)) throw new Error(`Prompt already exists: ${projectRelative(promptFile)}`);
 
@@ -128,7 +127,6 @@ export async function runPromptStage(config, { target, requirement = "", issue =
     "{{PATCH_NAME}}": patchName,
     "{{PATCH_FILE}}": projectRelative(path.join(outputDir, patchName)),
     "{{ANALYSIS_FILE}}": projectRelative(path.join(outputDir, analysisName)),
-    "{{CODE_PATCH_FILE}}": projectRelative(path.join(requirementDir, config.directory, codePatchName)),
     "{{CREATED_AT}}": createdAt,
     "{{ISSUE_NUMBER}}": issue?.number ?? "",
     "{{ISSUE_URL}}": issue?.url ?? "",

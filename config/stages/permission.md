@@ -1,3 +1,3 @@
 - 使用最小权限原则。
 - 授权判断以服务端为准，客户端可见性不能替代授权。
-- 需要修改代码时生成 `permission/permission.prompt.md`，由后续编码 AI 创建 `permission/permission.git.patch`。
+- 需要修改代码时生成 `permission/permission.prompt.md`，由后续编码 AI 在最新执行目录创建下一份 `prompt.NN.git.patch`。

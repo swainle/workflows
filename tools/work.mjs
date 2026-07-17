@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 import { execFileSync } from "node:child_process";
-import { existsSync } from "node:fs";
+import { existsSync, readdirSync } from "node:fs";
 import path from "node:path";
 import { createInterface } from "node:readline/promises";
 import { parseArgs } from "node:util";
@@ -208,11 +208,28 @@ function checkPatch(current, stage, patchFile) {
   execFileSync("git", ["apply", "--stat", patchFile], { cwd: PROJECT_ROOT, stdio: "inherit" });
 }
 
-export function stageCodePatchFile(current, stage) {
+export function latestUnappliedPatch(files, applied = []) {
+  const latest = files
+    .filter((file) => /^prompt\.\d{2}\.git\.patch$/.test(path.basename(file)))
+    .sort()
+    .at(-1);
+  return latest && !applied.includes(latest) ? latest : null;
+}
+
+function stageMergePatch(current, stage, state) {
   const registered = STAGE_BY_NAME[stage];
-  if (!registered) throw new Error(`Unknown stage: ${stage}.`);
-  const name = `${stage.replace(/[^A-Za-z0-9_-]+/g, "-")}.git.patch`;
-  return projectRelative(path.join(current.requirementDir, registered.directory, name));
+  const stageDir = path.join(current.requirementDir, registered.directory);
+  const run = readdirSync(stageDir, { withFileTypes: true })
+    .filter((entry) => entry.isDirectory() && /^\d{14}$/.test(entry.name))
+    .map(({ name }) => name)
+    .sort()
+    .at(-1);
+  if (!run) throw new Error(`No execution found for stage ${stage}.`);
+  const runDir = path.join(stageDir, run);
+  const files = readdirSync(runDir).map((name) => projectRelative(path.join(runDir, name)));
+  const patchFile = latestUnappliedPatch(files, state.appliedPatches);
+  if (!patchFile) throw new Error(`No unapplied prompt.NN.git.patch found in ${projectRelative(runDir)}.`);
+  return patchFile;
 }
 
 async function applyStageCodePatch(current, stage) {
@@ -220,8 +237,7 @@ async function applyStageCodePatch(current, stage) {
   const plan = readWorkflowPlan(current.requirementDir);
   if (!plan.stages.some(({ name }) => name === stage)) throw new Error(`Stage ${stage} is not selected in issue/issue.md.`);
   if (!state.completed.includes(stage)) throw new Error(`Stage ${stage} is not completed.`);
-  const patchFile = stageCodePatchFile(current, stage);
-  if (!existsSync(path.join(PROJECT_ROOT, patchFile))) throw new Error(`Stage Code Patch not found: ${patchFile}`);
+  const patchFile = stageMergePatch(current, stage, state);
   checkPatch(current, "code", patchFile);
   const answer = (await ask(`Apply ${patchFile}? [y/N] `)).trim().toLowerCase();
   if (!["y", "yes"].includes(answer)) throw new Error("Cancelled.");

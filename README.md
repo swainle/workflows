@@ -46,7 +46,7 @@ permission/permission.prompt.md
 deployment/deployment.prompt.md
 ```
 
-把这些文件交给具备本地文件能力的编码 AI，由它阅读需求产物和现有源码，生成对应的 `<阶段>.git.patch`，例如 `backend/backend.git.patch`。工作流阶段本身不直接修改源码。
+把这些文件交给具备本地文件能力的编码 AI，由它阅读需求产物和现有源码，在该阶段最新时间戳目录生成下一个未占用的 `prompt.NN.git.patch`。工作流阶段本身不直接修改源码。
 
 人工检查代码 Patch 后执行：
 
@@ -54,7 +54,7 @@ deployment/deployment.prompt.md
 pnpm -s work:backend --merge
 ```
 
-命令会检查 Patch 路径、执行 `git apply --check`、展示统计，并在确认后合并代码。代码 Patch 不得修改需求目录、工作流工具或全局架构与契约产物。
+命令只选择最新时间戳目录中最新且尚未应用的 `prompt.NN.git.patch`，然后检查路径、执行 `git apply --check`、展示统计，并在确认后合并代码。`work:next` 已应用的 Patch 会被跳过，因此不会重复合并。代码 Patch 不得修改需求目录、工作流工具或全局架构与契约产物。
 
 ## 重做阶段
 
