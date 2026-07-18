@@ -17,7 +17,8 @@ class PromptTest(unittest.TestCase):
         self.assertIn("置信度低于 95%", base)
         self.assertIn("# 待确认问题", base)
         self.assertIn("不在对话中暂停或提问", base)
-        self.assertIn("建议重跑阶段", base)
+        self.assertIn("参考：<推荐答案>", base)
+        self.assertIn("needs-confirmation", base)
         self.assertIn("# 专家协作", base)
         self.assertIn("支持子代理", base)
         self.assertIn("{{ROLES}}", base)
@@ -38,6 +39,12 @@ class PromptTest(unittest.TestCase):
         issues = (ROOT / "tools/prompt/issues.mjs").read_text(encoding="utf-8")
         for path in ("product.md", "technology.md", "git-workflow.md", "openapi.json", "asyncapi.json", "schema.dbml", "authorization.fga"):
             self.assertIn(path, issues)
+
+        design = (ROOT / "tools/prompt/design.mjs").read_text(encoding="utf-8")
+        api_prompt = (ROOT / "templates/api.prompt.md").read_text(encoding="utf-8")
+        self.assertIn("design/mock.json", design)
+        self.assertIn("design/mock.json", api_prompt)
+        self.assertIn("operationId", api_prompt)
 
     def test_stage_defaults_cover_delivery_requirements(self):
         expected = {

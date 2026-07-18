@@ -21,6 +21,8 @@
 
 可选阶段：`issue`、`process`、`permission`、`design`、`c4`、`api`、`database`、`backend`、`frontend:web`、`frontend:mobile`、`frontend:mini-program`、`frontend:desktop`、`test`、`deployment`。只选择实际需要的阶段，并准确填写 `dependsOn`；工作流可以分支和汇合。
 
+正式接口尚未定义且设计需要先用 `design/mock.json` 表达界面数据需求时，把 `design` 放在 `api` 前，并让 `api.dependsOn` 包含 `design`。
+
 # 允许修改
 
 - `{{REQUIREMENT_DIR}}/issue/issue.md`

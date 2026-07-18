@@ -253,7 +253,7 @@ function stageMergePatch(current, stage, state) {
 async function applyStageCodePatch(current, stage) {
   const state = readWorkState(current);
   const plan = readWorkflowPlan(current.requirementDir);
-  if (!plan.stages.some(({ name }) => name === stage)) throw new Error(`Stage ${stage} is not selected in issue/issue.md.`);
+  if (stage !== "patch" && !plan.stages.some(({ name }) => name === stage)) throw new Error(`Stage ${stage} is not selected in issue/issue.md.`);
   const active = state.active?.stage === stage;
   if (!active && !state.completed.includes(stage)) throw new Error(`Stage ${stage} is neither active nor completed.`);
   const patchFile = active ? findActiveResult(current, state).patchFile : stageMergePatch(current, stage, state);
@@ -271,9 +271,15 @@ export function unappliedPatches(patches, applied = []) {
   return patches.filter((patchFile) => !applied.includes(patchFile));
 }
 
+export function assertResultReady(result) {
+  if (result.needsConfirmation) {
+    throw new Error(`Stage ${result.stage} still has pending questions. Run pnpm -s work:${result.stage} --merge, fill the answers, then rerun work:${result.stage}.`);
+  }
+}
+
 async function generatePatch(current, requirement = "") {
   const state = readWorkState(current);
-  if (state.active) throw new Error(`Stage ${state.active.stage} still has an unapplied result.`);
+  if (state.active && state.active.stage !== "patch") throw new Error(`Stage ${state.active.stage} still has an unapplied result.`);
   const plan = readWorkflowPlan(current.requirementDir);
   const pending = stageStatuses(plan, state).filter(({ status }) => status !== "completed");
   if (pending.length) throw new Error(`Requirement is not complete: ${pending.map(({ name }) => name).join(", ")}.`);
@@ -289,6 +295,7 @@ async function generatePatch(current, requirement = "") {
 async function applyAndContinue(current, nextStage, requirement = "") {
   const state = readWorkState(current);
   const result = findActiveResult(current, state);
+  assertResultReady(result);
   if (state.active.stage === "patch" && !result.patchFile) {
     throw new Error(`Final Patch must create or update ${projectRelative(path.join(current.requirementDir, "completion.md"))}.`);
   }
