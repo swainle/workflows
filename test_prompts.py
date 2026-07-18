@@ -58,7 +58,7 @@ class PromptTest(unittest.TestCase):
         expected = {
             "process.md": ("flowchart", "sequenceDiagram", "stateDiagram-v2", "可验证规则"),
             "permission.md": ("OpenFGA", "Tuple", "迁移", "回滚"),
-            "design.md": ("加载与等待", "异常", "无权限", "可访问性"),
+            "design.md": ("优先用 Mermaid", "文字只简要补充", "加载与等待", "异常", "无权限", "可访问性"),
             "c4.md": ("C4Context", "C4Container", "C4Component", "C4Deployment"),
             "api.md": ("Mock", "examples", "幂等", "契约校验"),
             "database.md": ("EXPLAIN", "联合", "索引", "性能"),
