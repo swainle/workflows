@@ -15,6 +15,6 @@ export default {
   module: "patch",
   directory: "patch",
   template: "patch.prompt.md",
-  artifacts: ["completion.md", "patch/questions.md"],
+  artifacts: ["completion.md"],
   globals: GLOBAL_PATHS,
 };

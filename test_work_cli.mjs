@@ -4,7 +4,7 @@ import { tmpdir } from "node:os";
 import path from "node:path";
 import test from "node:test";
 import { currentRequirement, normalizeShortName, readGithubIssue, selectRequirement } from "./tools/core/current-requirement.mjs";
-import { assertAllowedCodePatchPaths, assertAllowedPatchPaths, assertResultReady, latestUnappliedPatch, parseWorkArguments, unappliedPatches } from "./tools/work.mjs";
+import { assertAllowedCodePatchPaths, assertAllowedPatchPaths, latestUnappliedPatch, parseWorkArguments, unappliedPatches } from "./tools/work.mjs";
 import { STAGES } from "./tools/core/stages.mjs";
 import { PROJECT_ROOT } from "./tools/core/paths.mjs";
 import { assertStageReady, clearMissingActiveStage, completeActiveStage, dependencyStages, findActiveResult, readWorkflowPlan, readWorkState, stageStatuses, startStage, validateWorkflowPlan } from "./tools/core/workflow.mjs";
@@ -39,14 +39,14 @@ test("parses requirement, status, next, and stage commands", () => {
 test("limits stage and final patches to their path scopes", () => {
   const current = { requirementDir: path.join(PROJECT_ROOT, "docs/requirements/REQ-0004-build") };
   assert.doesNotThrow(() => assertAllowedPatchPaths(current, "backend", [
-    "docs/requirements/REQ-0004-build/backend/backend.prompt.md",
+    "docs/requirements/REQ-0004-build/backend/backend.prompt.md", "docs/requirements/REQ-0004-build/questions.md",
   ]));
   assert.throws(() => assertAllowedPatchPaths(current, "backend", [
     "docs/requirements/REQ-0004-build/api/openapi.json",
   ]), /cannot modify/);
   assert.throws(() => assertAllowedPatchPaths(current, "backend", ["apps/api/src/index.ts"]), /cannot modify/);
   assert.doesNotThrow(() => assertAllowedPatchPaths(current, "patch", [
-    "docs/architecture/product.md", "docs/development/git-workflow.md", "package.json", "docs/requirements/REQ-0004-build/completion.md", "docs/requirements/REQ-0004-build/patch/questions.md",
+    "docs/architecture/product.md", "docs/development/git-workflow.md", "package.json", "docs/requirements/REQ-0004-build/completion.md", "docs/requirements/REQ-0004-build/questions.md",
   ]));
   assert.throws(() => assertAllowedPatchPaths(current, "patch", [
     "docs/requirements/REQ-0004-build/issue/issue.md",
@@ -72,11 +72,6 @@ test("limits stage and final patches to their path scopes", () => {
     "run/prompt.01.git.patch", "run/prompt.02.git.patch",
   ], ["run/prompt.02.git.patch"]), null);
   assert.deepEqual(unappliedPatches(["a.patch", "b.patch"], ["a.patch"]), ["b.patch"]);
-  assert.doesNotThrow(() => assertResultReady({ stage: "design", needsConfirmation: false }));
-  assert.throws(
-    () => assertResultReady({ stage: "design", needsConfirmation: true, questionsFile: "requirements/design/questions.md" }),
-    /requirements\/design\/questions.md/,
-  );
 });
 
 test("normalizes an English requirement short name", () => {
@@ -188,19 +183,17 @@ test("reads a selected workflow and calculates executable stages", () => {
     writeFileSync(path.join(projectRoot, promptFile), "prompt\n");
     writeFileSync(path.join(outputDir, "prompt.01.git.patch"), "diff --git a/a b/a\n");
     writeFileSync(path.join(outputDir, "prompt.01.process.git.patch"), "diff --git a/b b/b\n");
-    writeFileSync(path.join(outputDir, "prompt.01.git.patch.md"), "result: needs-confirmation\n");
+    writeFileSync(path.join(outputDir, "prompt.01.git.patch.md"), "result: proposed\n");
     startStage(current, "process", promptFile, { projectRoot, runner });
     const active = readWorkState(current, { projectRoot, runner });
     assert.equal(active.active.stage, "process");
     const result = findActiveResult(current, active, { projectRoot });
     assert.equal(result.patchFile, "docs/requirements/REQ-0004-build/process/20260717010101/prompt.01.git.patch");
     assert.deepEqual(result.globalPatchFiles, ["docs/requirements/REQ-0004-build/process/20260717010101/prompt.01.process.git.patch"]);
-    assert.equal(result.needsConfirmation, true);
     writeFileSync(path.join(outputDir, "prompt.02.git.patch.md"), "patch_file: null\nresult: no-changes\n");
     const latest = findActiveResult(current, active, { projectRoot });
     assert.equal(latest.noChanges, true);
     assert.equal(latest.patchFile, null);
-    assert.equal(latest.needsConfirmation, false);
     completeActiveStage(current, latest, { projectRoot, runner });
     assert.deepEqual(readWorkState(current, { projectRoot, runner }).completed, ["issue", "process"]);
     writeFileSync(path.join(projectRoot, ".git/workflows/state/REQ-0004-build.json"), `${JSON.stringify({

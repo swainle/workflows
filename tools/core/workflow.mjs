@@ -204,10 +204,7 @@ export function findActiveResult(current, state, { projectRoot = PROJECT_ROOT } 
   if (globalPatchFiles.length > 1) throw new Error(`Multiple global Patches found for attempt ${attempt}.`);
   if (!names.includes(analysis)) throw new Error(`Analysis file not found for ${relative(path.join(directory, patch))}.`);
   const analysisFile = relative(path.join(directory, analysis));
-  const questionsFile = relative(path.join(path.dirname(directory), "questions.md"));
   const analysisContent = readFileSync(path.join(directory, analysis), "utf8");
-  const resultStatus = analysisContent.match(/^result:\s*([a-z-]+)\s*$/m)?.[1] ?? null;
-  const needsConfirmation = resultStatus === "needs-confirmation";
   if (names.includes(patch)) {
     return {
       stage: state.active.stage,
@@ -215,16 +212,14 @@ export function findActiveResult(current, state, { projectRoot = PROJECT_ROOT } 
       analysisFile,
       globalPatchFiles,
       noChanges: false,
-      needsConfirmation,
-      questionsFile,
     };
   }
   if (globalPatchFiles.length) {
-    return { stage: state.active.stage, patchFile: null, analysisFile, globalPatchFiles, noChanges: false, needsConfirmation, questionsFile };
+    return { stage: state.active.stage, patchFile: null, analysisFile, globalPatchFiles, noChanges: false };
   }
   if (names.includes(analysis)) {
     if (/result:\s*no-changes\b/.test(analysisContent) && /patch_file:\s*null\b/.test(analysisContent)) {
-      return { stage: state.active.stage, patchFile: null, analysisFile, globalPatchFiles: [], noChanges: true, needsConfirmation: false, questionsFile };
+      return { stage: state.active.stage, patchFile: null, analysisFile, globalPatchFiles: [], noChanges: true };
     }
   }
   throw new Error(`No AI result found for ${state.active.promptFile}.`);
