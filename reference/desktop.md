@@ -2,18 +2,17 @@
 
 ## 快速开始
 
-先完成 `design`，再生成桌面端编码提示词。
+先在 `design` 中选择 Desktop，再通过 Dev 对话确认开发范围。
 
 ```bash
-pnpm -s work:frontend:desktop --require "沿用现有 Tauri 壳层"
-pnpm -s work:frontend:desktop --merge
+pnpm -s work:dev --require "实现 Desktop，沿用现有 Tauri 壳层"
 ```
 
 ## 命令
 
-- `pnpm -s work:frontend:desktop`：生成桌面端阶段 Prompt。
-- `pnpm -s work:frontend:desktop --list`：查看默认配置。
+- `pnpm -s work:dev`：生成统一开发阶段 Prompt并在对话中选择 Desktop。
+- `pnpm -s work:dev --list`：查看 Dev 默认配置。
 
 ## 作用
 
-生成需求目录内的 `frontend/desktop/frontend.prompt.md`，交给编码 AI 创建桌面端代码 Patch。
+让开发 AI 读取桌面设计、UI YAML、公共和桌面 Token，直接修改源码并验证。

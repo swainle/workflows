@@ -3,4 +3,6 @@
 - 不在 `completion.md` 中重复 GitHub 已提供的文件清单、代码 Diff、Commit 或完整测试日志。
 - 测试结果和关联记录必须有依据；未执行、未确认或不存在时明确标注，不得编造。
 - 不把单次验收条件、待确认问题或实现过程写入全局文件。
+- 把 `design/design.token.json` 的长期变化合并到全局 `packages/design-tokens/tokens/token.json`。
+- 把 `design/design.<platform>.token.json` 的长期变化合并到对应全局 `<platform>.token.json`；平台文件只保存平台差异，不复制公共 Token。
 - 不修改业务源码和其他需求目录。

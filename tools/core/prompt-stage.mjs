@@ -1,8 +1,10 @@
+import { execFileSync } from "node:child_process";
 import { existsSync, mkdirSync, readFileSync, readdirSync, statSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import { walkTextFiles } from "./files.mjs";
 import { WORKFLOW_ROOT, fromProject, projectRelative } from "./paths.mjs";
 import { STAGE_BY_NAME } from "./stages.mjs";
+import { requirementsForIssue } from "./current-requirement.mjs";
 
 const MAX_CONTEXT_BYTES = 1_500_000;
 
@@ -18,9 +20,15 @@ function language(file) {
   return path.extname(file).slice(1).toLowerCase();
 }
 
+function sourceBaseline(config) {
+  if (!config.directSourceChanges) return "不适用。";
+  const commit = execFileSync("git", ["rev-parse", "HEAD"], { cwd: PROJECT_ROOT, encoding: "utf8" }).trim();
+  const changes = execFileSync("git", ["status", "--short"], { cwd: PROJECT_ROOT, encoding: "utf8" }).trim();
+  return [`- 开始 Commit：\`${commit}\``, "- 开始前已有工作树变化：", changes ? `\n\`\`\`text\n${changes}\n\`\`\`` : "  无。"].join("\n");
+}
+
 function requirementStageFiles(requirementDir, config, dependencies) {
   const directories = new Set([
-    STAGE_BY_NAME.issue.directory,
     config.directory,
     ...dependencies.map((name) => STAGE_BY_NAME[name].directory),
   ]);
@@ -33,21 +41,41 @@ function requirementStageFiles(requirementDir, config, dependencies) {
   });
 }
 
+function referencedIssueNumbers(issue) {
+  if (!issue) return [];
+  const text = [issue.body ?? "", ...(issue.comments ?? []).map((comment) => comment?.body ?? "")].join("\n");
+  const numbers = [...text.matchAll(/(?:#|\/issues\/)(\d{1,4})\b/g)].map((match) => Number(match[1]));
+  return [...new Set(numbers)].filter((number) => number !== issue.number);
+}
+
+function relatedStageFiles(config, issue) {
+  if (!config.relatedStages?.length) return [];
+  return referencedIssueNumbers(issue).flatMap((number) => {
+    const requirements = requirementsForIssue(number);
+    if (requirements.length > 1) {
+      throw new Error(`Multiple requirements found for related Issue #${number}:\n${requirements.join("\n")}`);
+    }
+    if (!requirements.length) return [];
+    return config.relatedStages.flatMap((stage) => {
+      const directory = path.join(requirements[0], STAGE_BY_NAME[stage]?.directory ?? stage);
+      if (!existsSync(directory)) return [];
+      return readdirSync(directory, { withFileTypes: true })
+        .filter((entry) => entry.isFile())
+        .flatMap((entry) => walkTextFiles(path.join(directory, entry.name)));
+    });
+  });
+}
+
 function collectContext(config, requirementDir, requirementFile, issue, dependencies) {
   const selected = new Set();
   for (const relative of config.globals ?? []) {
     for (const file of walkTextFiles(fromProject(relative))) selected.add(file);
   }
   if (existsSync(requirementFile)) selected.add(requirementFile);
-  const questionsFile = path.join(requirementDir, "issue", "questions.md");
+  const questionsFile = path.join(requirementDir, config.directory, "questions.md");
   if (existsSync(questionsFile)) selected.add(questionsFile);
-  if (config.command === "issues") {
-    for (const name of ["00-issue.md", "01-prd.md"]) {
-      const legacy = path.join(requirementDir, name);
-      if (existsSync(legacy)) selected.add(legacy);
-    }
-  }
   for (const file of requirementStageFiles(requirementDir, config, dependencies)) selected.add(file);
+  for (const file of relatedStageFiles(config, issue)) selected.add(file);
 
   const blocks = [];
   const included = [];
@@ -75,6 +103,7 @@ function collectContext(config, requirementDir, requirementFile, issue, dependen
 
   if (config.githubIssues) {
     if (!issue) throw new Error("Current requirement has no Issue information. Run pnpm -s work:req --issue <number> again.");
+    const comments = (issue.comments ?? []).map((comment, index) => `### 评论 ${index + 1}\n\n${comment.body ?? ""}`).join("\n\n");
     blocks.unshift([
       "## GitHub Issue",
       "",
@@ -82,7 +111,12 @@ function collectContext(config, requirementDir, requirementFile, issue, dependen
       `- 标题：${issue.title}`,
       `- URL：${issue.url}`,
       "",
-      `通过以上 URL 或 \`gh issue view ${issue.number}\` 阅读主 Issue 完整内容。不要读取无关 Issue。`,
+      "### 正文",
+      "",
+      issue.body?.trim() || "无。",
+      comments ? `\n\n${comments}` : "",
+      "",
+      "只把当前 Issue 明确引用的关联 Issue 对应稳定阶段产物作为参考，不得读取其时间戳执行记录。",
     ].join("\n"));
   }
   return { text: blocks.join("\n\n"), files: included };
@@ -100,7 +134,7 @@ export function readStageConfig(name) {
 
 export function formatStageConfig(config) {
   const list = (items) => items.map((file) => `- ${file.replaceAll("{{PLATFORM}}", config.platform || "<platform>")}`).join("\n") || "- 无";
-  const artifacts = [...new Set([...(config.artifacts ?? []), "issue/questions.md"])];
+  const artifacts = [...new Set([...(config.artifacts ?? []), `${config.directory}/questions.md`])];
   return [
     readStageConfig(config.module),
     "# 执行角色",
@@ -117,10 +151,7 @@ export async function runPromptStage(config, { target, requirement = "", issue =
   if (!existsSync(requirementDir) || !statSync(requirementDir).isDirectory()) {
     throw new Error(`Requirement directory not found: ${target}`);
   }
-  const requirementFile = path.join(requirementDir, "issue", "issue.md");
-  if (config.command !== "issues" && (!existsSync(requirementFile) || !statSync(requirementFile).isFile())) {
-    throw new Error(`issue/issue.md not found in requirement directory: ${target}`);
-  }
+  const requirementFile = path.join(requirementDir, "design", "requirement.md");
   if (!/^REQ-\d{4}-[A-Za-z0-9][A-Za-z0-9_-]*$/.test(path.basename(requirementDir))) {
     throw new Error("Requirement directory must look like REQ-0010-feature.");
   }
@@ -158,7 +189,7 @@ export async function runPromptStage(config, { target, requirement = "", issue =
     "{{PATCH_NAME}}": patchName,
     "{{PATCH_FILE}}": projectRelative(path.join(outputDir, patchName)),
     "{{ANALYSIS_FILE}}": projectRelative(path.join(outputDir, analysisName)),
-    "{{QUESTIONS_FILE}}": projectRelative(path.join(requirementDir, "issue", "questions.md")),
+    "{{QUESTIONS_FILE}}": projectRelative(path.join(requirementDir, config.directory, "questions.md")),
     "{{CREATED_AT}}": createdAt,
     "{{ISSUE_NUMBER}}": issue?.number ?? "",
     "{{ISSUE_URL}}": issue?.url ?? "",
@@ -170,6 +201,16 @@ export async function runPromptStage(config, { target, requirement = "", issue =
       const file = path.join(WORKFLOW_ROOT, relative);
       return `## ${relative}\n\n${readFileSync(file, "utf8").trim()}`;
     }).join("\n\n"),
+    "{{WORKTREE_RULES}}": config.directSourceChanges
+      ? `允许直接创建、修改或删除完成本次开发所需的源码、迁移、测试和非敏感项目配置。不得直接修改阶段产物、全局产物、其他需求目录或 \`${projectRelative(outputDir)}\` 中的 \`prompt.md\`；阶段产物只能通过本次 Git Patch 提出。保留开始前已有的用户修改，不得重置、覆盖或清理无关工作树内容。`
+      : `严禁直接创建、修改或删除任何阶段产物、源码或全局产物；只能在 \`${projectRelative(outputDir)}\` 创建本次 Git Patch 和分析文件。检查 Patch 时也不得通过临时修改目标文件来生成或修复 Patch。`,
+    "{{READ_RULES}}": config.directSourceChanges
+      ? "- 输入上下文已经包含需求、依赖阶段产物、关联需求参考和全局产物，不得再读取其他需求目录或历史时间戳目录。\n- 可以读取当前项目源码、配置和脚本以识别实际实现与验证命令；不得读取密钥、令牌或与本次开发无关的外部文件。"
+      : "- 只能参考输入上下文中的全局产物、当前阶段产物、依赖阶段产物和已注入的关联需求参考，不得读取其他需求目录或未提供的项目文件。\n- 输入上下文已经包含本阶段所需的文件内容，不得再按引用路径打开这些文件或读取其他外部文件。",
+    "{{IMPACT_RULES}}": config.directSourceChanges
+      ? "“影响文件”列出本次直接修改的源码、迁移、测试和配置，以及阶段 Patch 修改的稳定产物，并在影响说明中标注修改方式。"
+      : "“影响文件”只列阶段 Patch 实际修改的路径。",
+    "{{SOURCE_BASELINE}}": sourceBaseline(config),
     "{{STAGE_INSTRUCTIONS}}": stage.trim(),
     "{{CONTEXT}}": context.text,
   };

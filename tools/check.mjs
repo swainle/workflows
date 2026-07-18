@@ -8,7 +8,9 @@ const required = [
   "docs/development/git-workflow.md",
   "docs/contracts/openapi.json", "docs/contracts/asyncapi.json", "docs/contracts/schema.dbml",
   "docs/contracts/authorization.fga", "docs/architecture/deployment.md",
-  "packages/design-tokens/tokens/index.tokens.json",
+  "packages/design-tokens/tokens/token.json", "packages/design-tokens/tokens/web.token.json",
+  "packages/design-tokens/tokens/mini-program.token.json", "packages/design-tokens/tokens/desktop.token.json",
+  "packages/design-tokens/tokens/mobile.token.json",
 ];
 const failures = [];
 if (Number(process.versions.node.split(".")[0]) < 20) failures.push(`Node.js 20+ required; current ${process.versions.node}`);

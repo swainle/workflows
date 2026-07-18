@@ -1,7 +1,0 @@
-- 识别项目现有语言、框架、ORM、workspace 和测试命令，不自行更换。
-- 宿主项目没有既定选型时，默认使用 Next.js Route Handlers 和 Middleware、Prisma、PostgreSQL、Redis、BullMQ、按需 RabbitMQ、OpenFGA，以及 Docker Compose 管理的开发依赖。
-- Redis 用于缓存、分布式锁、限流和临时状态；BullMQ 用于后台任务、延迟任务、重试和 Worker；RabbitMQ 只在跨服务消息路由、可靠投递或复杂消费拓扑确有需要时使用，不重复承担同一种任务。
-- OpenFGA 负责细粒度授权，不替代身份认证；后端只声明运行依赖，Compose、升级、备份和回滚由 deployment 阶段负责。
-- 默认使用 DDD 分层和面向对象领域模型；本次 `--require` 可覆盖该设计模式。
-- 编码提示词必须要求运行项目已有的语法检查、类型检查、单元测试、集成测试和构建命令；不得虚构不存在的脚本。
-- 生成 `backend/backend.prompt.md`，由后续编码 AI 在最新执行目录创建下一份 `prompt.NN.git.patch`。

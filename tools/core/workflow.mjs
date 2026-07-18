@@ -5,26 +5,22 @@ import { gitMetadataFile } from "./current-requirement.mjs";
 import { PROJECT_ROOT, projectRelative } from "./paths.mjs";
 import { STAGE_BY_NAME, STAGE_NAMES } from "./stages.mjs";
 
-const START = "<!-- WORKFLOW:START -->";
-const END = "<!-- WORKFLOW:END -->";
+export const DEFAULT_WORKFLOW_PLAN = {
+  version: 1,
+  stages: [
+    { name: "design", dependsOn: [], reason: "形成完整且一致的需求设计" },
+    { name: "dev", dependsOn: ["design"], reason: "按确认的平台直接实现源码" },
+    { name: "test", dependsOn: ["dev"], reason: "验证需求、实现和回归风险" },
+    { name: "deployment", dependsOn: ["test"], reason: "确认发布、迁移、监控和回滚" },
+  ],
+};
 
 export function workflowFile(requirementDir) {
-  return path.join(requirementDir, "issue", "issue.md");
+  return path.join(requirementDir, "design", "requirement.md");
 }
 
-export function readWorkflowPlan(requirementDir) {
-  const file = workflowFile(requirementDir);
-  if (!existsSync(file)) throw new Error(`Workflow not found: ${projectRelative(file)}\nRun pnpm -s work:issue and apply its Patch first.`);
-  const text = readFileSync(file, "utf8");
-  const start = text.indexOf(START);
-  const end = text.indexOf(END, start + START.length);
-  if (start < 0 || end < 0) throw new Error(`Workflow markers not found in ${projectRelative(file)}.`);
-  if (text.indexOf(START, start + START.length) >= 0 || text.indexOf(END, end + END.length) >= 0) {
-    throw new Error(`Multiple workflows found in ${projectRelative(file)}.`);
-  }
-  const block = text.slice(start + START.length, end).match(/```json\s*([\s\S]*?)\s*```/);
-  if (!block) throw new Error(`Workflow JSON block not found in ${projectRelative(file)}.`);
-  return validateWorkflowPlan(JSON.parse(block[1]));
+export function readWorkflowPlan() {
+  return validateWorkflowPlan(structuredClone(DEFAULT_WORKFLOW_PLAN));
 }
 
 export function validateWorkflowPlan(plan) {
@@ -38,9 +34,9 @@ export function validateWorkflowPlan(plan) {
     }
     names.add(stage.name);
   }
-  if (!names.has("issue")) throw new Error("Workflow must include the issue stage.");
-  if (plan.stages.find((stage) => stage.name === "issue").dependsOn.length) {
-    throw new Error("The issue stage cannot have dependencies.");
+  if (!names.has("design")) throw new Error("Workflow must include the design stage.");
+  if (plan.stages.find((stage) => stage.name === "design").dependsOn.length) {
+    throw new Error("The design stage cannot have dependencies.");
   }
   for (const stage of plan.stages) {
     for (const dependency of stage.dependsOn) {
@@ -72,7 +68,7 @@ export function readWorkState(current, { runner = execFileSync, projectRoot = PR
   if (!existsSync(file)) {
     return {
       active: null,
-      completed: existsSync(workflowFile(current.requirementDir)) ? ["issue"] : [],
+      completed: [],
       appliedPatches: [],
     };
   }
@@ -104,8 +100,7 @@ export function startStage(current, stage, promptFile, { runner = execFileSync, 
   if (!STAGE_BY_NAME[stage] && stage !== "patch") throw new Error(`Unknown stage: ${stage}.`);
   const state = readWorkState(current, { runner, projectRoot });
   if (state.active && state.active.stage !== stage && !rewind) throw new Error(`Stage ${state.active.stage} still has an unapplied result.`);
-  if (stage === "issue") state.completed = [];
-  else if (stage === "patch") state.completed = state.completed.filter((name) => name !== stage);
+  if (stage === "patch") state.completed = state.completed.filter((name) => name !== stage);
   else if (plan && state.completed.includes(stage)) {
     const index = plan.stages.findIndex(({ name }) => name === stage);
     const stale = new Set(plan.stages.slice(index).map(({ name }) => name));
@@ -151,7 +146,7 @@ export function stageStatuses(plan, state, completed = state.completed) {
 
 export function assertStageReady(plan, state, stage, completed = state.completed, allowCompleted = false, allowActive = false) {
   const selected = stageStatuses(plan, state, completed).find((item) => item.name === stage);
-  if (!selected) throw new Error(`Stage ${stage} is not selected in issue/issue.md.`);
+  if (!selected) throw new Error(`Stage ${stage} is not part of the workflow.`);
   const reusable = !selected.missing.length && (
     (allowCompleted && selected.status === "completed") ||
     (allowActive && selected.status === "active")
@@ -163,7 +158,7 @@ export function assertStageReady(plan, state, stage, completed = state.completed
 
 export function dependencyStages(plan, stage) {
   const selected = plan.stages.find((item) => item.name === stage);
-  if (!selected) throw new Error(`Stage ${stage} is not selected in issue/issue.md.`);
+  if (!selected) throw new Error(`Stage ${stage} is not part of the workflow.`);
   const dependencies = new Set();
   const collect = (name) => {
     for (const dependency of plan.stages.find((item) => item.name === name).dependsOn) {

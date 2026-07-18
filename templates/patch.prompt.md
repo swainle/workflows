@@ -4,6 +4,8 @@
 
 输出一个中间 Git Patch，同时包含全局产物变化和 `{{REQUIREMENT_DIR}}/completion.md`；本阶段发生对话确认时也可以更新 `{{QUESTIONS_FILE}}`。不得修改业务源码、当前需求的其他文件、其他需求、工作流工具或未在输入上下文中出现的全局文件。即使没有需要同步的全局变化，也必须创建或更新 `completion.md`，不得输出 `no-changes`。
 
+Design Tokens 只在本阶段同步：把 `design/design.token.json` 中确认且长期有效的变化增量合并到 `packages/design-tokens/tokens/token.json`；把 `design/design.<platform>.token.json` 合并到对应 `<platform>.token.json`。平台文件只保留平台新增或覆盖项，不复制公共 Token，不用当前需求文件整体覆盖全局文件。
+
 # 完成摘要
 
 `completion.md` 只包含以下结构：

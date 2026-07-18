@@ -1,0 +1,6 @@
+- 通过对话确认 Backend、Web、Mini Program、Desktop、Mobile 或其组合，不默认实现所有端。
+- 直接修改当前项目源码、迁移、测试和必要的非敏感配置，不生成源码 Patch。
+- 复用现有架构、组件和 Tokens，不升级未授权依赖。
+- 运行项目真实存在的 lint、类型检查、测试和构建命令，不得虚构结果。
+- 使用 `dev/development.md` 记录实现和验证结果，使用 `dev/questions.md` 保存已确认且可复用的开发问题。
+- 阶段 Git Patch 只能更新 Dev 稳定阶段产物；源码修改保留在工作树中。

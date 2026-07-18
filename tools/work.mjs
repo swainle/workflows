@@ -1,7 +1,6 @@
 #!/usr/bin/env node
 
 import { execFileSync } from "node:child_process";
-import { existsSync, readdirSync } from "node:fs";
 import path from "node:path";
 import { createInterface } from "node:readline/promises";
 import { parseArgs } from "node:util";
@@ -24,12 +23,10 @@ import {
   completeActiveStage,
   dependencyStages,
   findActiveResult,
-  recordAppliedPatch,
   readWorkflowPlan,
   readWorkState,
   stageStatuses,
   startStage,
-  workflowFile,
 } from "./core/workflow.mjs";
 
 const usage = `Usage:
@@ -37,7 +34,7 @@ const usage = `Usage:
   pnpm -s work:status
   pnpm -s work:next [stage] [--require <text>]
   pnpm -s work:patch [--require <text>] [--list]
-  pnpm -s work:<stage> [--require <text>] [--list] [--merge]`;
+  pnpm -s work:<stage> [--require <text>] [--list]`;
 
 export function parseWorkArguments(args = process.argv.slice(2)) {
   args = [...args];
@@ -69,10 +66,10 @@ export function parseWorkArguments(args = process.argv.slice(2)) {
       args,
       allowPositionals: true,
       strict: true,
-      options: { require: { type: "string" }, list: { type: "boolean" }, merge: { type: "boolean" } },
+      options: { require: { type: "string" }, list: { type: "boolean" } },
     });
-    if (positionals.length || (values.list && values.require) || (values.merge && (command === "patch" || values.list || values.require))) throw new Error(usage);
-    return { command, requirement: values.require ?? "", list: values.list ?? false, ...(values.merge ? { merge: true } : {}) };
+    if (positionals.length || (values.list && values.require)) throw new Error(usage);
+    return { command, requirement: values.require ?? "", list: values.list ?? false };
   }
   throw new Error(usage);
 }
@@ -99,18 +96,12 @@ async function selectIssueRequirement(issueNumber) {
   }
   const selected = selectRequirement(issue, shortName);
   console.log(`${selected.existed ? "Selected" : "Created"} requirement:\n${formatRequirement(selected)}`);
-  console.log("Next: pnpm -s work:issue");
+  console.log("Next: pnpm -s work:design");
 }
 
 function printStatus(current) {
   console.log(formatRequirement(current));
   const state = readWorkState(current);
-  if (!existsSync(workflowFile(current.requirementDir))) {
-    console.log("\nWorkflow: waiting for work:issue Patch");
-    if (state.active) console.log(`Active: ${state.active.stage}\nPrompt: ${state.active.promptFile}\nContinue: pnpm -s work:next [stage]`);
-    else console.log("Executable:\n- pnpm -s work:issue");
-    return;
-  }
   const plan = readWorkflowPlan(current.requirementDir);
   const statuses = stageStatuses(plan, state);
   console.log("\nStages:");
@@ -134,19 +125,15 @@ async function generateStage(current, stage, requirement = "") {
     console.log(`Cleared missing active Prompt: ${reconciled.cleared.stage} (${reconciled.cleared.promptFile})`);
   }
   let dependencies = [];
-  const plan = stage !== "issue" || existsSync(workflowFile(current.requirementDir))
-    ? readWorkflowPlan(current.requirementDir)
-    : null;
+  const plan = readWorkflowPlan(current.requirementDir);
   const rewind = Boolean(state.active && state.active.stage !== stage && plan && (
     state.active.stage === "patch"
       ? plan.stages.some(({ name }) => name === stage)
       : dependencyStages(plan, state.active.stage).includes(stage)
   ));
   if (state.active && state.active.stage !== stage && !rewind) throw new Error(`Stage ${state.active.stage} still has an unapplied result.`);
-  if (stage !== "issue") {
-    assertStageReady(plan, state, stage, state.completed, true, true);
-    dependencies = dependencyStages(plan, stage);
-  }
+  assertStageReady(plan, state, stage, state.completed, true, true);
+  dependencies = dependencyStages(plan, stage);
   const registered = STAGE_BY_NAME[stage];
   const baseConfig = (await import(`./prompt/${registered.module}.mjs`)).default;
   const references = registered.reference
@@ -164,10 +151,13 @@ async function generateStage(current, stage, requirement = "") {
     platformName: registered.platformName ?? "",
     references: [...new Set(references)],
   };
+  const issue = (config.githubIssues || config.relatedStages?.length) && current.issue?.number
+    ? readGithubIssue(current.issue.number)
+    : current.issue;
   const promptFile = await runPromptStage(config, {
     target: projectRelative(current.requirementDir),
     requirement,
-    issue: current.issue,
+    issue,
     dependencies,
   });
   startStage(current, stage, promptFile, { plan, rewind });
@@ -180,25 +170,20 @@ function within(file, target) {
 
 export function assertAllowedPatchPaths(current, stage, files) {
   const registered = STAGE_BY_NAME[stage];
+  const stageRoot = registered ? projectRelative(path.join(current.requirementDir, registered.directory)) : null;
   const allowed = stage === "patch"
-    ? [...GLOBAL_PATHS, projectRelative(path.join(current.requirementDir, "completion.md")), projectRelative(path.join(current.requirementDir, "issue", "questions.md"))]
+    ? [...GLOBAL_PATHS, projectRelative(path.join(current.requirementDir, "completion.md")), projectRelative(path.join(current.requirementDir, "patch", "questions.md"))]
     : stage === "global"
       ? GLOBAL_PATHS
-    : [projectRelative(path.join(current.requirementDir, registered.directory)), projectRelative(path.join(current.requirementDir, "issue", "questions.md"))];
+      : [projectRelative(path.join(current.requirementDir, registered.directory))];
   for (const input of files) {
     const file = input.replaceAll("\\", "/");
     if (!file || path.isAbsolute(file) || file.split("/").includes("..") || !allowed.some((target) => within(file, target))) {
       throw new Error(`Patch for ${stage} cannot modify: ${input}`);
     }
-  }
-}
-
-export function assertAllowedCodePatchPaths(files) {
-  const blocked = [".git", "docs/workflows", "docs/requirements", "docs/architecture", "docs/contracts", "docs/development", "packages/design-tokens/tokens"];
-  for (const input of files) {
-    const file = input.replaceAll("\\", "/");
-    if (!file || path.isAbsolute(file) || file.split("/").includes("..") || blocked.some((target) => within(file, target))) {
-      throw new Error(`Code Patch cannot modify: ${input}`);
+    if (stageRoot && within(file, stageRoot)) {
+      const relative = file.slice(stageRoot.length).replace(/^\//, "");
+      if (/^\d{14}(?:\/|$)/.test(relative)) throw new Error(`Patch for ${stage} cannot modify execution history: ${input}`);
     }
   }
 }
@@ -216,55 +201,13 @@ function patchPaths(patchFile) {
 
 function checkPatch(current, stage, patchFile, { requireCompletion = false } = {}) {
   const files = patchPaths(patchFile);
-  if (stage === "code") assertAllowedCodePatchPaths(files);
-  else assertAllowedPatchPaths(current, stage, files);
+  assertAllowedPatchPaths(current, stage, files);
   if (requireCompletion) {
     const completion = projectRelative(path.join(current.requirementDir, "completion.md"));
     if (!files.includes(completion)) throw new Error(`Final Patch must modify: ${completion}`);
   }
   execFileSync("git", ["apply", "--check", patchFile], { cwd: PROJECT_ROOT, stdio: "inherit" });
   execFileSync("git", ["apply", "--stat", patchFile], { cwd: PROJECT_ROOT, stdio: "inherit" });
-}
-
-export function latestUnappliedPatch(files, applied = []) {
-  const latest = files
-    .filter((file) => /^prompt\.\d{2}\.git\.patch$/.test(path.basename(file)))
-    .sort()
-    .at(-1);
-  return latest && !applied.includes(latest) ? latest : null;
-}
-
-function stageMergePatch(current, stage, state) {
-  const registered = STAGE_BY_NAME[stage];
-  const stageDir = path.join(current.requirementDir, registered.directory);
-  const run = readdirSync(stageDir, { withFileTypes: true })
-    .filter((entry) => entry.isDirectory() && /^\d{14}$/.test(entry.name))
-    .map(({ name }) => name)
-    .sort()
-    .at(-1);
-  if (!run) throw new Error(`No execution found for stage ${stage}.`);
-  const runDir = path.join(stageDir, run);
-  const files = readdirSync(runDir).map((name) => projectRelative(path.join(runDir, name)));
-  const patchFile = latestUnappliedPatch(files, state.appliedPatches);
-  if (!patchFile) throw new Error(`No unapplied prompt.NN.git.patch found in ${projectRelative(runDir)}.`);
-  return patchFile;
-}
-
-async function applyStageCodePatch(current, stage) {
-  const state = readWorkState(current);
-  const plan = readWorkflowPlan(current.requirementDir);
-  if (!plan.stages.some(({ name }) => name === stage)) throw new Error(`Stage ${stage} is not selected in issue/issue.md.`);
-  const active = state.active?.stage === stage;
-  if (!active && !state.completed.includes(stage)) throw new Error(`Stage ${stage} is neither active nor completed.`);
-  const patchFile = active ? findActiveResult(current, state).patchFile : stageMergePatch(current, stage, state);
-  if (!patchFile) throw new Error(`Stage ${stage} has no Patch to merge.`);
-  if (state.appliedPatches?.includes(patchFile)) throw new Error(`Patch already merged: ${patchFile}`);
-  checkPatch(current, active ? stage : "code", patchFile);
-  const answer = (await ask(`Apply ${patchFile}? [y/N] `)).trim().toLowerCase();
-  if (!["y", "yes"].includes(answer)) throw new Error("Cancelled.");
-  execFileSync("git", ["apply", patchFile], { cwd: PROJECT_ROOT, stdio: "inherit" });
-  recordAppliedPatch(current, patchFile);
-  console.log(`Applied: ${patchFile}`);
 }
 
 export function unappliedPatches(patches, applied = []) {
@@ -340,7 +283,6 @@ export async function main(args = process.argv.slice(2)) {
   if (parsed.command === "status") return printStatus(current);
   if (parsed.command === "next") return applyAndContinue(current, parsed.nextStage, parsed.requirement);
   if (parsed.command === "patch") return generatePatch(current, parsed.requirement);
-  if (parsed.merge) return applyStageCodePatch(current, parsed.command);
   await generateStage(current, parsed.command, parsed.requirement);
 }
 

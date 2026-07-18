@@ -60,6 +60,15 @@ test("ships technology and Git workflow defaults", () => {
   assert.match(gitWorkflow, /Closes #36/);
 });
 
+test("ships common and platform token defaults", () => {
+  const directory = path.join(WORKFLOW_ROOT, "defaults/design-tokens");
+  for (const name of ["token.json", "web.token.json", "mini-program.token.json", "desktop.token.json", "mobile.token.json"]) {
+    assert.equal(existsSync(path.join(directory, name)), true, name);
+    assert.doesNotThrow(() => JSON.parse(readFileSync(path.join(directory, name), "utf8")), name);
+  }
+  assert.equal(existsSync(path.join(directory, "index.tokens.json")), false);
+});
+
 test("moves the existing deployment document into architecture", () => {
   const projectRoot = mkdtempSync(path.join(tmpdir(), "workflows-install-"));
   const source = path.join(projectRoot, "docs/operations/deployment.md");

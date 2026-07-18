@@ -6,179 +6,87 @@ ROOT = Path(__file__).parent
 
 
 class PromptTest(unittest.TestCase):
-    def test_optional_requirement_and_independent_stage_configs(self):
+    def test_base_enforces_incremental_patch_delivery(self):
         base = (ROOT / "templates/base.prompt.md").read_text(encoding="utf-8")
         engine = (ROOT / "tools/core/prompt-stage.mjs").read_text(encoding="utf-8")
-        cli = (ROOT / "tools/work.mjs").read_text(encoding="utf-8")
-
-        self.assertIn("{{DEFAULT_REQUIREMENTS}}", base)
-        self.assertIn("{{USER_REQUIREMENT}}", base)
-        self.assertIn("# 对话确认", base)
-        self.assertIn("置信度低于 95%", base)
-        self.assertIn("每次只问一个", base)
-        self.assertIn("不得要求使用者重新执行阶段命令", base)
-        self.assertIn("作为同一个阶段 Git Patch 的一部分", base)
-        self.assertIn("参考：<推荐答案>", base)
-        self.assertIn("最终确认", base)
-        self.assertIn("# 专家协作", base)
-        self.assertIn("支持子代理", base)
-        self.assertIn("{{ROLES}}", base)
-        self.assertIn("{{REFERENCE_FILES}}", base)
-        self.assertIn("{{QUESTIONS_FILE}}", base)
-        self.assertIn('"{{QUESTIONS_FILE}}"', engine)
-        self.assertIn('path.join(requirementDir, "issue", "questions.md")', engine)
-        self.assertIn("不得再按引用路径打开这些文件", base)
-        self.assertIn('git apply --check "{{PATCH_FILE}}"', base)
-        self.assertIn("严禁直接创建、修改或删除任何阶段产物", base)
-        for template in (ROOT / "templates").glob("*.prompt.md"):
-            if template.name != "base.prompt.md":
-                self.assertNotIn("# 允许修改", template.read_text(encoding="utf-8"), template.name)
-        self.assertIn('require: { type: "string" }', cli)
-        self.assertIn('list: { type: "boolean" }', cli)
-        self.assertIn("formatStageConfig", cli)
-        self.assertIn("# 阶段产物", engine)
-        self.assertIn('"config", "stages"', engine)
-        for name in (
-            "issues", "process", "permission", "design", "c4", "api",
-            "database", "backend", "frontend", "test", "deployment", "patch",
+        for text in (
+            "# 信息优先级", "# 对话确认", "每次只问一个", "# 专家协作",
+            "# 执行顺序", "{{WORKTREE_RULES}}", "{{READ_RULES}}", "{{IMPACT_RULES}}",
+            'git apply --check "{{PATCH_FILE}}"', "结束前必须确认",
         ):
-            self.assertTrue((ROOT / f"config/stages/{name}.md").is_file(), name)
+            self.assertIn(text, base)
+        self.assertIn("config.directSourceChanges", engine)
+        self.assertIn("relatedStageFiles", engine)
+        self.assertIn("不得再读取其他需求目录或历史时间戳目录", engine)
 
-        issues = (ROOT / "tools/prompt/issues.mjs").read_text(encoding="utf-8")
-        for path in ("product.md", "technology.md", "git-workflow.md", "openapi.json", "asyncapi.json", "schema.dbml", "authorization.fga"):
-            self.assertIn(path, issues)
+    def test_design_is_complete_and_conversational(self):
+        prompt = (ROOT / "templates/design.prompt.md").read_text(encoding="utf-8")
+        config = (ROOT / "tools/prompt/design.mjs").read_text(encoding="utf-8")
+        defaults = (ROOT / "config/stages/design.md").read_text(encoding="utf-8")
+        for text in (
+            "对话式需求发现", "需求可设计门禁", "需求确认摘要", "多专家 Agent 协作",
+            "requirement.md", "process.md", "architecture.md", "authorization.fga",
+            "openapi.json", "asyncapi.json", "schema.dbml", "verification.md",
+            "design.token.json", "design.web.token.json", "web.ui.yaml",
+        ):
+            self.assertIn(text, prompt)
+        self.assertIn("githubIssues: true", config)
+        self.assertIn('relatedStages: ["design"]', config)
+        self.assertIn("关联需求 Design 根层稳定产物", defaults)
 
-        design = (ROOT / "tools/prompt/design.mjs").read_text(encoding="utf-8")
-        api_prompt = (ROOT / "templates/api.prompt.md").read_text(encoding="utf-8")
-        self.assertIn("design/mock.json", design)
-        self.assertIn("design/mock.json", api_prompt)
-        self.assertIn("operationId", api_prompt)
+    def test_dev_directly_modifies_source_and_records_decisions(self):
+        prompt = (ROOT / "templates/dev.prompt.md").read_text(encoding="utf-8")
+        config = (ROOT / "tools/prompt/dev.mjs").read_text(encoding="utf-8")
+        defaults = (ROOT / "config/stages/dev.md").read_text(encoding="utf-8")
+        for text in (
+            "Backend", "Web", "Mini Program", "Desktop", "Mobile",
+            "直接修改", "dev/development.md", "dev/questions.md", "DEV-Q-xxx",
+            "不得把源码修改包装进阶段 Patch", "实际运行的验证命令", "{{SOURCE_BASELINE}}",
+        ):
+            self.assertIn(text, prompt)
+        self.assertIn("directSourceChanges: true", config)
+        self.assertIn('relatedStages: ["design", "dev"]', config)
+        self.assertIn("不生成源码 Patch", defaults)
 
-    def test_stage_defaults_cover_delivery_requirements(self):
-        expected = {
-            "process.md": ("flowchart", "sequenceDiagram", "stateDiagram-v2", "可验证规则"),
-            "permission.md": ("OpenFGA", "Tuple", "迁移", "回滚"),
-            "design.md": ("优先用 Mermaid", "文字只简要补充", "加载与等待", "异常", "无权限", "可访问性"),
-            "c4.md": ("C4Context", "C4Container", "C4Component", "C4Deployment"),
-            "api.md": ("Mock", "examples", "幂等", "契约校验"),
-            "database.md": ("EXPLAIN", "联合", "索引", "性能"),
-            "backend.md": ("Next.js", "Prisma", "PostgreSQL", "Redis", "BullMQ", "RabbitMQ", "OpenFGA"),
-            "test.md": ("覆盖矩阵", "Gherkin", "权限测试", "迁移测试"),
-            "deployment.md": ("Docker Compose", "动态升级", "expand-contract", "备份", "回滚"),
-        }
-        for name, terms in expected.items():
-            text = (ROOT / "config/stages" / name).read_text(encoding="utf-8")
-            for term in terms:
-                self.assertIn(term, text, f"{name}: {term}")
+    def test_only_new_stages_are_registered(self):
+        stages = (ROOT / "tools/core/stages.mjs").read_text(encoding="utf-8")
+        for name in ("design", "dev", "test", "deployment"):
+            self.assertIn(f'name: "{name}"', stages)
+            self.assertTrue((ROOT / f"config/stages/{name}.md").is_file())
+        for name in ("issue", "process", "permission", "c4", "api", "database", "backend", "frontend"):
+            self.assertFalse((ROOT / f"tools/prompt/{name}.mjs").exists(), name)
 
-    def test_regular_stages_collect_global_and_requirement_artifacts(self):
-        engine = (ROOT / "tools/core/prompt-stage.mjs").read_text(encoding="utf-8")
-        self.assertNotIn("referencedFiles", engine)
-        self.assertNotIn("includes =", engine)
-        for config in (ROOT / "tools/prompt").glob("*.mjs"):
-            text = config.read_text(encoding="utf-8")
-            self.assertIn("artifacts:", text, config.name)
-            self.assertIn("roles:", text, config.name)
-            if config.name == "patch.mjs":
-                continue
-            self.assertIn("globals:", text, config.name)
-            self.assertNotIn("globalPatch:", text, config.name)
-
-    def test_code_stages_create_execution_prompts(self):
-        expected = {
-            "backend.prompt.md": "backend/backend.prompt.md",
-            "frontend.prompt.md": "frontend/{{PLATFORM}}/frontend.prompt.md",
-            "deployment.prompt.md": "deployment/deployment.prompt.md",
-        }
-        for template, output in expected.items():
-            text = (ROOT / "templates" / template).read_text(encoding="utf-8")
-            self.assertIn(output, text)
-            self.assertIn("{{RUN_DIR}}", text)
-            self.assertIn("prompt.NN.git.patch", text)
-            self.assertIn("外层 Git Patch 只能修改", text)
-            self.assertNotIn("阅读当前需求产物", text)
-
-        permission = (ROOT / "templates/permission.prompt.md").read_text(encoding="utf-8")
-        self.assertNotIn("permission/permission.prompt.md", permission)
-        self.assertIn("backend、frontend", permission)
-
-    def test_all_stage_patch_analyses_are_minimal(self):
-        prompt = (ROOT / "templates/base.prompt.md").read_text(encoding="utf-8")
-        for heading in ("# 引用文件", "# 引用 Issue", "# 影响文件", "# 角色", "# 时间"):
-            self.assertIn(heading, prompt)
-        self.assertLess(prompt.index("# 引用 Issue"), prompt.index("# 引用文件"))
-        self.assertIn("{{ROLES}}", prompt)
-        self.assertIn("{{REFERENCE_FILES}}", prompt)
-
-        issue_prompt = (ROOT / "templates/issues.prompt.md").read_text(encoding="utf-8")
-        self.assertNotIn("# 阶段补丁分析", issue_prompt)
-
-        issue_config = (ROOT / "tools/prompt/issues.mjs").read_text(encoding="utf-8")
-        backend_config = (ROOT / "tools/prompt/backend.mjs").read_text(encoding="utf-8")
-        test_config = (ROOT / "tools/prompt/test.mjs").read_text(encoding="utf-8")
-        self.assertIn('roles: ["互联网产品经理", "业务分析师", "测试工程师"]', issue_config)
-        self.assertIn('roles: ["后端架构师", "权限与安全架构师", "测试工程师"]', backend_config)
-        self.assertIn('roles: ["测试工程师", "互联网产品经理", "业务分析师"]', test_config)
-
-    def test_final_patch_creates_completion_and_updates_global_files(self):
-        installer = (ROOT / "install.mjs").read_text(encoding="utf-8")
+    def test_patch_owns_global_token_sync(self):
         prompt = (ROOT / "templates/patch.prompt.md").read_text(encoding="utf-8")
-        cli = (ROOT / "tools/work.mjs").read_text(encoding="utf-8")
-        self.assertIn('"work:patch"', installer)
-        self.assertIn("需求的选定阶段已经全部完成", prompt)
-        self.assertIn("{{REQUIREMENT_DIR}}/completion.md", prompt)
-        self.assertIn("status: completed", prompt)
-        for heading in ("# 完成", "# 修改", "# 迁移", "# 测试", "# 关联记录"):
-            self.assertIn(heading, prompt)
-        self.assertNotIn("# 关键", prompt)
-        self.assertIn("Pull Request 描述", prompt)
-        self.assertIn("Closes #{{ISSUE_NUMBER}}", prompt)
-        self.assertIn("不得输出 `no-changes`", prompt)
-        self.assertIn("Final Patch must modify", cli)
-        self.assertIn("assertAllowedPatchPaths", cli)
-        self.assertIn("assertAllowedCodePatchPaths", cli)
-        self.assertIn('"docs/development"', (ROOT / "tools/prompt/patch.mjs").read_text(encoding="utf-8"))
-        self.assertIn("`docs/development/**`", prompt)
-        self.assertIn('["apply", "--check", patchFile]', cli)
+        defaults = (ROOT / "config/stages/patch.md").read_text(encoding="utf-8")
+        config = (ROOT / "tools/prompt/patch.mjs").read_text(encoding="utf-8")
+        for text in ("design/design.token.json", "token.json", "<platform>.token.json"):
+            self.assertIn(text, prompt)
+            self.assertIn(text, defaults)
+        self.assertIn('"packages/design-tokens/tokens"', config)
+        for name in ("token.json", "web.token.json", "mini-program.token.json", "desktop.token.json", "mobile.token.json"):
+            self.assertTrue((ROOT / f"defaults/design-tokens/{name}").is_file(), name)
 
-    def test_references_are_short_operational_guides(self):
-        for file in (ROOT / "reference").glob("*.md"):
-            text = file.read_text(encoding="utf-8")
-            for heading in ("## 快速开始", "## 命令", "## 作用"):
-                self.assertIn(heading, text, file.name)
-            self.assertNotIn("## 例子", text, file.name)
-            self.assertNotIn("## 最佳实践", text, file.name)
-
-    def test_diagrams_use_mermaid_markdown(self):
+    def test_diagrams_and_references_use_current_commands(self):
         base = (ROOT / "templates/base.prompt.md").read_text(encoding="utf-8")
         for diagram in (
             "architecture-beta", "flowchart", "sequenceDiagram", "stateDiagram-v2",
             "classDiagram", "erDiagram", "gitGraph", "journey", "C4Context",
         ):
             self.assertIn(diagram, base)
-
-        tracked_text = [
-            *ROOT.glob("templates/*.md"),
-            *ROOT.glob("config/stages/*.md"),
-            *ROOT.glob("tools/**/*.mjs"),
-            *ROOT.glob("defaults/**/*"),
-            *ROOT.glob("examples/**/*"),
-        ]
-        for file in tracked_text:
-            if not file.is_file() or file == ROOT / "templates/base.prompt.md":
-                continue
+        for file in (ROOT / "reference").glob("*.md"):
             text = file.read_text(encoding="utf-8")
-            self.assertNotIn(".puml", text, file)
-            self.assertNotIn("PlantUML", text, file)
+            for heading in ("## 快速开始", "## 命令", "## 作用"):
+                self.assertIn(heading, text, file.name)
+            self.assertNotIn("work:frontend:", text, file.name)
 
-        self.assertFalse(any(ROOT.glob("defaults/**/*.puml")))
-        self.assertFalse(any(ROOT.glob("examples/**/*.puml")))
-
-    def test_readme_defines_artifact_categories(self):
+    def test_readme_defines_new_flow_and_artifacts(self):
         readme = (ROOT / "README.md").read_text(encoding="utf-8")
-        for category in ("阶段产物", "阶段提示词", "阶段补丁", "阶段补丁分析", "全局产物"):
+        for command in ("work:req", "work:design", "work:dev", "work:test", "work:deployment", "work:patch"):
+            self.assertIn(command, readme)
+        for category in ("全局产物", "阶段产物", "阶段提示词", "阶段补丁", "阶段补丁分析"):
             self.assertIn(f"| {category} |", readme)
-        self.assertIn("`completion.md` 归类为 `patch` 阶段产物", readme)
+        self.assertIn("Dev 是唯一可以直接修改业务源码的阶段", readme)
 
 
 if __name__ == "__main__":

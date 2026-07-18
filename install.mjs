@@ -35,6 +35,8 @@ const LEGACY_SCRIPTS = new Set([
   "prompt:api", "prompt:database", "prompt:backend", "prompt:permission", "prompt:frontend",
   "prompt:test", "prompt:deployment",
   "work:frontend",
+  "work:issue", "work:process", "work:permission", "work:c4", "work:api", "work:database", "work:backend",
+  "work:frontend:web", "work:frontend:mobile", "work:frontend:mini-program", "work:frontend:desktop",
 ]);
 
 const DEFAULT_TARGETS = {

@@ -2,18 +2,17 @@
 
 ## 快速开始
 
-先完成 `design`，再生成小程序编码提示词。
+先在 `design` 中选择小程序，再通过 Dev 对话确认开发范围。
 
 ```bash
-pnpm -s work:frontend:mini-program --require "目标平台为微信小程序"
-pnpm -s work:frontend:mini-program --merge
+pnpm -s work:dev --require "实现 Backend 和微信小程序"
 ```
 
 ## 命令
 
-- `pnpm -s work:frontend:mini-program`：生成小程序阶段 Prompt。
-- `pnpm -s work:frontend:mini-program --list`：查看默认配置。
+- `pnpm -s work:dev`：生成统一开发阶段 Prompt并在对话中选择 Mini Program。
+- `pnpm -s work:dev --list`：查看 Dev 默认配置。
 
 ## 作用
 
-生成需求目录内的 `frontend/mini-program/frontend.prompt.md`，交给编码 AI 创建小程序代码 Patch。
+让开发 AI 读取小程序设计、UI YAML、公共和小程序 Token，直接修改源码并验证。

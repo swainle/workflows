@@ -65,7 +65,7 @@ export function readGithubIssue(input, { projectRoot = PROJECT_ROOT, runner = ex
   const number = parseIssueNumber(input);
   let output;
   try {
-    output = runner("gh", ["issue", "view", String(number), "--json", "number,title,url"], {
+    output = runner("gh", ["issue", "view", String(number), "--json", "number,title,url,body,comments"], {
       cwd: projectRoot,
       encoding: "utf8",
       stdio: ["ignore", "pipe", "pipe"],
@@ -87,7 +87,7 @@ export function selectRequirement(issue, shortName, { projectRoot = PROJECT_ROOT
   const state = {
     requirement,
     requirementDir: path.relative(projectRoot, requirementDir).split(path.sep).join("/"),
-    issue: { number, title: issue.title, url: issue.url },
+    issue: { ...issue, number, title: issue.title, url: issue.url },
   };
   const currentFile = stateFile(projectRoot, runner);
   mkdirSync(path.dirname(currentFile), { recursive: true });

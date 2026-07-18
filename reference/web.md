@@ -2,18 +2,17 @@
 
 ## 快速开始
 
-先完成 `design`，再生成 Web 编码提示词。
+先在 `design` 中选择 Web，再通过 Dev 对话确认实现 Backend、Web 或两者。
 
 ```bash
-pnpm -s work:frontend:web --require "使用现有组件库"
-pnpm -s work:frontend:web --merge
+pnpm -s work:dev --require "实现 Backend 和 Web，使用现有组件库"
 ```
 
 ## 命令
 
-- `pnpm -s work:frontend:web`：生成 Web 阶段 Prompt。
-- `pnpm -s work:frontend:web --list`：查看默认配置。
+- `pnpm -s work:dev`：生成统一开发阶段 Prompt并在对话中选择 Web。
+- `pnpm -s work:dev --list`：查看 Dev 默认配置。
 
 ## 作用
 
-生成需求目录内的 `frontend/web/frontend.prompt.md`，交给编码 AI 创建 Web 代码 Patch。
+让开发 AI 读取 `design/web.md`、`design/web.ui.yaml`、公共和 Web Token，直接修改源码并验证。

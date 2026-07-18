@@ -1,13 +1,23 @@
 # 阶段目标
 
-根据需求产物记录构建、发布、迁移、监控、回滚和非敏感配置。需要修改部署代码或配置时，生成 `deployment/deployment.prompt.md`。
+根据 Design 契约、Dev 实际实现和 Test 结论，记录当前需求的构建、发布、迁移、监控、恢复和回滚方案。复用项目现有工具，不重新定义业务行为，不直接修改部署源码或全局产物。
 
-执行提示词必须要求执行 AI 以其中整理的需求信息为准，只读取现有项目配置，把必要修改生成到 `{{RUN_DIR}}` 中下一个未占用的 `prompt.NN.git.patch`，不得直接应用或写入真实凭据。
+覆盖：
+
+- 需要构建和发布的服务与平台；
+- 非敏感配置、依赖、网络、Volume、健康检查和启动顺序；
+- 新旧版本兼容窗口与流量切换；
+- 数据库和权限数据的 expand-contract 迁移；
+- 备份、恢复、保留策略和恢复演练；
+- 日志、指标、告警和发布后验证；
+- 失败条件、回滚步骤和不可逆风险；
+- Dev 或 Test 尚未完成、尚未确认的阻塞项。
+
+需要后续修改部署代码或配置时，只在阶段产物中列出明确的目标、约束和验证方式，不在当前阶段直接执行。
 
 # Patch 允许包含的文件
 
 - `{{REQUIREMENT_DIR}}/deployment/deployment.md`
-- `{{REQUIREMENT_DIR}}/deployment/deployment.prompt.md`
-- `{{REQUIREMENT_DIR}}/deployment/*.md`
+- `{{REQUIREMENT_DIR}}/deployment/questions.md`
 
-当前阶段的外层 Git Patch 只能修改上述部署阶段产物。
+当前阶段 Git Patch 只能修改上述部署稳定阶段产物。
