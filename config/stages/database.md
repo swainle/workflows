@@ -1,3 +1,4 @@
 - DBML 表名以 `t_` 开头。
 - 时间字段使用 `create_at` 和 `update_at`，由数据库维护。
+- 需要表达数据表关系时，在 Markdown 中使用 Mermaid `erDiagram`。
 - 数据库和 ORM 未明确时，每次只确认一个选型，不自行指定框架。

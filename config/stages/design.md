@@ -1,3 +1,4 @@
 - 优先复用现有设计语言和 Design Tokens。
 - 先表达共同体验，再记录各平台必要差异。
+- 需要表达用户体验步骤时，在 Markdown 中使用 Mermaid `journey`。
 - 不在设计阶段修改源码。

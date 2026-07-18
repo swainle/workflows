@@ -9,3 +9,5 @@
 - `{{REQUIREMENT_DIR}}/api/*.md`
 
 不得修改源码或全局契约。
+
+需要说明参与者和接口调用顺序时，在 Markdown 中使用 `sequenceDiagram`；需要说明资源状态变化时使用 `stateDiagram-v2`。

@@ -62,12 +62,21 @@ class PromptTest(unittest.TestCase):
         self.assertNotIn("permission/permission.prompt.md", permission)
         self.assertIn("backend、frontend", permission)
 
-    def test_final_patch_is_installed_and_global_only(self):
+    def test_final_patch_creates_completion_and_updates_global_files(self):
         installer = (ROOT / "install.mjs").read_text(encoding="utf-8")
         prompt = (ROOT / "templates/patch.prompt.md").read_text(encoding="utf-8")
         cli = (ROOT / "tools/work.mjs").read_text(encoding="utf-8")
         self.assertIn('"work:patch"', installer)
         self.assertIn("需求的选定阶段已经全部完成", prompt)
+        self.assertIn("{{REQUIREMENT_DIR}}/completion.md", prompt)
+        self.assertIn("status: completed", prompt)
+        for heading in ("# 完成", "# 修改", "# 迁移", "# 测试", "# 关联记录"):
+            self.assertIn(heading, prompt)
+        self.assertNotIn("# 关键", prompt)
+        self.assertIn("Pull Request 描述", prompt)
+        self.assertIn("Closes #{{ISSUE_NUMBER}}", prompt)
+        self.assertIn("不得输出 `no-changes`", prompt)
+        self.assertIn("Final Patch must modify", cli)
         self.assertIn("assertAllowedPatchPaths", cli)
         self.assertIn("assertAllowedCodePatchPaths", cli)
         self.assertIn('["apply", "--check", patchFile]', cli)
@@ -78,6 +87,31 @@ class PromptTest(unittest.TestCase):
             for heading in ("## 快速开发", "## 命令", "## 作用", "## 例子"):
                 self.assertIn(heading, text, file.name)
             self.assertNotIn("## 最佳实践", text, file.name)
+
+    def test_diagrams_use_mermaid_markdown(self):
+        base = (ROOT / "templates/base.prompt.md").read_text(encoding="utf-8")
+        for diagram in (
+            "architecture-beta", "flowchart", "sequenceDiagram", "stateDiagram-v2",
+            "classDiagram", "erDiagram", "gitGraph", "journey", "C4Context",
+        ):
+            self.assertIn(diagram, base)
+
+        tracked_text = [
+            *ROOT.glob("templates/*.md"),
+            *ROOT.glob("config/stages/*.md"),
+            *ROOT.glob("tools/**/*.mjs"),
+            *ROOT.glob("defaults/**/*"),
+            *ROOT.glob("examples/**/*"),
+        ]
+        for file in tracked_text:
+            if not file.is_file() or file == ROOT / "templates/base.prompt.md":
+                continue
+            text = file.read_text(encoding="utf-8")
+            self.assertNotIn(".puml", text, file)
+            self.assertNotIn("PlantUML", text, file)
+
+        self.assertFalse(any(ROOT.glob("defaults/**/*.puml")))
+        self.assertFalse(any(ROOT.glob("examples/**/*.puml")))
 
 
 if __name__ == "__main__":

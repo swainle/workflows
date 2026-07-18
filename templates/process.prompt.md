@@ -4,8 +4,7 @@
 
 # 允许修改
 
-- `{{REQUIREMENT_DIR}}/process/process.puml`
-- `{{REQUIREMENT_DIR}}/process/<topic>.puml`
-- `{{REQUIREMENT_DIR}}/process/*.md`
+- `{{REQUIREMENT_DIR}}/process/process.md`
+- `{{REQUIREMENT_DIR}}/process/<topic>.md`
 
 不得修改页面、接口、数据库、源码或全局流程。

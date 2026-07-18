@@ -6,7 +6,6 @@
 
 - `{{REQUIREMENT_DIR}}/design/design.md`
 - `{{REQUIREMENT_DIR}}/design/<platform>.md`
-- `{{REQUIREMENT_DIR}}/design/*.puml`
 - `{{REQUIREMENT_DIR}}/design/*.json`
 
 不得修改源码、接口、数据库、权限或全局文件。能用一个文件说清楚时不要拆分。

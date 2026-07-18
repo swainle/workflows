@@ -15,8 +15,7 @@ function timestamp(now = new Date()) {
 }
 
 function language(file) {
-  const extension = path.extname(file).slice(1).toLowerCase();
-  return extension === "puml" ? "plantuml" : extension;
+  return path.extname(file).slice(1).toLowerCase();
 }
 
 function requirementStageFiles(requirementDir, config, dependencies) {

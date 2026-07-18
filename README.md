@@ -9,7 +9,7 @@ git submodule add -b main https://github.com/swainle/workflows.git docs/workflow
 node docs/workflows/install.mjs
 ```
 
-安装器会写入 `work:*` scripts、下载 PlantUML，并创建缺失的全局示例文件，不覆盖已有文档。平台说明见 [`reference/`](reference/)，详细安装说明见 [`install.md`](install.md)。
+安装器会写入 `work:*` scripts，并创建缺失的全局示例文件，不覆盖已有文档。架构和流程图使用 Markdown 中的 Mermaid 代码块。平台说明见 [`reference/`](reference/)，详细安装说明见 [`install.md`](install.md)。
 
 ## 开始需求
 
@@ -79,6 +79,8 @@ pnpm -s work:next
 ```
 
 `work:patch` 读取本需求当前产物和允许的全局文件，在 `patch/<时间戳>/` 生成一个中间 Git Patch。`work:next` 检查 Patch 路径、执行 `git apply --check`、展示统计，并在人工确认后应用。
+
+最终 Patch 还必须创建或更新需求根目录的 `completion.md`。该文件只保留元信息、完成结果、语义修改、迁移要求、测试结论和关联记录，可以直接作为 Pull Request 描述；不重复 GitHub 已有的文件清单、Commit、代码 Diff 或完整测试日志。即使没有全局文件需要同步，也必须生成完成摘要。
 
 全局 Patch 只允许修改：
 

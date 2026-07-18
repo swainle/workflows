@@ -8,3 +8,5 @@
 - `{{REQUIREMENT_DIR}}/database/*.md`
 
 不得修改源码、迁移或全局数据库契约。
+
+需要直观说明表关系时，在 Markdown 中使用 `erDiagram`；DBML 仍是字段、索引和约束的结构化契约。

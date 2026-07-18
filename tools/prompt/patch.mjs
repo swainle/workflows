@@ -13,6 +13,6 @@ export default {
   module: "patch",
   directory: "patch",
   template: "patch.prompt.md",
-  artifacts: [],
+  artifacts: ["completion.md"],
   globals: GLOBAL_PATHS,
 };

@@ -46,8 +46,15 @@ test("limits stage and final patches to their path scopes", () => {
   ]), /cannot modify/);
   assert.throws(() => assertAllowedPatchPaths(current, "backend", ["apps/api/src/index.ts"]), /cannot modify/);
   assert.doesNotThrow(() => assertAllowedPatchPaths(current, "patch", [
-    "docs/architecture/product.md", "package.json",
+    "docs/architecture/product.md", "package.json", "docs/requirements/REQ-0004-build/completion.md",
   ]));
+  assert.throws(() => assertAllowedPatchPaths(current, "patch", [
+    "docs/requirements/REQ-0004-build/issue/issue.md",
+  ]), /cannot modify/);
+  assert.doesNotThrow(() => assertAllowedPatchPaths(current, "global", ["docs/contracts/openapi.json"]));
+  assert.throws(() => assertAllowedPatchPaths(current, "global", [
+    "docs/requirements/REQ-0004-build/completion.md",
+  ]), /cannot modify/);
   assert.throws(() => assertAllowedPatchPaths(current, "patch", ["apps/api/src/index.ts"]), /cannot modify/);
   assert.doesNotThrow(() => assertAllowedCodePatchPaths(["apps/api/src/index.ts", "package.json"]));
   assert.throws(() => assertAllowedCodePatchPaths([".git/config"]), /cannot modify/);

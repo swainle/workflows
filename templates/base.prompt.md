@@ -37,6 +37,24 @@ created_at: {{CREATED_AT}}
 
 {{PLATFORM_REFERENCES}}
 
+# Mermaid 图表规范
+
+需要图表时，只能在 `.md` 文件中使用 fenced `mermaid` 代码块，不得创建 `.puml` 文件或输出 PlantUML 语法。根据要回答的问题选择最小且最合适的图：
+
+| 目的 | Mermaid 声明 | 适用阶段 | 回答的问题 |
+|---|---|---|---|
+| 架构图 | `architecture-beta`，渲染器不支持时用 `flowchart` | 系统设计 | 系统由哪些模块组成？ |
+| 流程图 | `flowchart` | 需求分析、业务设计 | 业务流程是什么？ |
+| 时序图 | `sequenceDiagram` | 接口设计、详细设计 | 谁先调用谁？ |
+| 状态图 | `stateDiagram-v2` | 状态机设计 | 对象有哪些状态？ |
+| 类图 | `classDiagram` | OO 设计 | 类之间如何组织？ |
+| ER 图 | `erDiagram` | 数据库设计 | 数据表关系是什么？ |
+| Git 图 | `gitGraph` | Git 流程说明 | 分支如何演进？ |
+| Journey 图 | `journey` | 用户体验设计 | 用户经历了哪些步骤？ |
+| C4 图 | `C4Context`、`C4Container`、`C4Component` 或 `C4Deployment` | 软件架构 | 系统边界和不同层级的职责是什么？ |
+
+一个图只回答一个主要问题。优先使用当前文档渲染环境已经支持的 Mermaid 稳定语法；图前用一句话说明目的，图后补充图中无法表达的约束。
+
 # 输出文件
 
 需要修改时，直接创建：

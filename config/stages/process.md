@@ -1,3 +1,3 @@
-- 使用 PlantUML 表达流程。
-- 默认一个 `process.puml`；只有独立子流程确实更清楚时才拆分。
+- 使用 Markdown 中的 Mermaid 表达流程；业务步骤优先用 `flowchart`，调用顺序用 `sequenceDiagram`，对象状态变化用 `stateDiagram-v2`。
+- 默认一个 `process.md`；只有独立子流程确实更清楚时才拆分。
 - 不提前决定页面、接口、表结构或实现代码。
