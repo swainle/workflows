@@ -2,7 +2,6 @@
 /** Install AI project workflow commands and default documents into a host repo. */
 
 import { spawnSync } from "node:child_process";
-import { createHash } from "node:crypto";
 import {
   chmodSync,
   copyFileSync,
@@ -11,7 +10,6 @@ import {
   readFileSync,
   readdirSync,
   renameSync,
-  rmSync,
   statSync,
   utimesSync,
   writeFileSync,
@@ -42,14 +40,11 @@ const LEGACY_SCRIPTS = new Set([
 const DEFAULT_TARGETS = {
   architecture: path.join(PROJECT_ROOT, "docs/architecture"),
   contracts: path.join(PROJECT_ROOT, "docs/contracts"),
+  development: path.join(PROJECT_ROOT, "docs/development"),
   "design-tokens": path.join(PROJECT_ROOT, "packages/design-tokens/tokens"),
 };
 const UPDATED_FLAG = "--workflows-updated";
 const DEFAULT_BRANCH = "main";
-const PLANTUML_VERSION = "1.2026.6";
-const PLANTUML_URL = `https://github.com/plantuml/plantuml/releases/download/v${PLANTUML_VERSION}/plantuml-${PLANTUML_VERSION}.jar`;
-const PLANTUML_SHA256 = "89948f14c93756c7a3fb7b69078ff37e8489fd79dd430c582b931e2f65358690";
-const PLANTUML_FILE = path.join(WORKFLOW_ROOT, "packages/plantuml.jar");
 
 function run(command, args, options = {}, runner = spawnSync) {
   return runner(command, args, { stdio: "inherit", ...options });
@@ -90,31 +85,6 @@ export function installBranch(branch, runner = spawnSync) {
   const result = run(process.execPath, [path.join(WORKFLOW_ROOT, "install.mjs"), UPDATED_FLAG, "--branch", branch], { cwd: PROJECT_ROOT }, runner);
   if (result.error) throw result.error;
   return result.status ?? 1;
-}
-
-export async function installPlantUml({
-  target = PLANTUML_FILE,
-  url = PLANTUML_URL,
-  expectedSha256 = PLANTUML_SHA256,
-  fetcher = fetch,
-} = {}) {
-  const sha256 = (data) => createHash("sha256").update(data).digest("hex");
-  if (existsSync(target) && sha256(readFileSync(target)) === expectedSha256) return false;
-
-  const response = await fetcher(url);
-  if (!response.ok) throw new Error(`Unable to download PlantUML: HTTP ${response.status}`);
-  const data = Buffer.from(await response.arrayBuffer());
-  const actualSha256 = sha256(data);
-  if (actualSha256 !== expectedSha256) {
-    throw new Error(`PlantUML checksum mismatch: expected ${expectedSha256}, received ${actualSha256}`);
-  }
-
-  mkdirSync(path.dirname(target), { recursive: true });
-  const temporary = `${target}.tmp`;
-  writeFileSync(temporary, data);
-  rmSync(target, { force: true });
-  renameSync(temporary, target);
-  return true;
 }
 
 function updatePackageJson() {
@@ -180,24 +150,16 @@ export function migrateDeploymentDocument(projectRoot = PROJECT_ROOT) {
   return migrateFile(projectRoot, "docs/operations/deployment.md", "docs/architecture/deployment.md");
 }
 
-export function migrateProcessDocument(projectRoot = PROJECT_ROOT) {
-  return migrateFile(projectRoot, "docs/architecture/process.puml", "docs/architecture/process/overview.puml");
-}
-
 export async function main() {
   try {
     const branch = parseBranch();
     requireMountLocation();
     if (!process.argv.includes(UPDATED_FLAG)) return installBranch(branch);
-    const downloadedPlantUml = await installPlantUml();
     updatePackageJson();
     const migratedDeployment = migrateDeploymentDocument();
-    const migratedProcess = migrateProcessDocument();
     const created = copyDefaults();
     console.log(`Installed ${Object.keys(SCRIPTS).length} pnpm commands.`);
-    console.log(downloadedPlantUml ? `Downloaded PlantUML ${PLANTUML_VERSION}.` : "PlantUML is ready.");
     if (migratedDeployment) console.log("Moved docs/operations/deployment.md to docs/architecture/deployment.md.");
-    if (migratedProcess) console.log("Moved docs/architecture/process.puml to docs/architecture/process/overview.puml.");
     console.log(`Created ${created.length} missing default files.`);
     console.log("Existing project documents were not overwritten.");
     return 0;

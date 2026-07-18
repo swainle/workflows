@@ -4,15 +4,15 @@ import path from "node:path";
 import { PROJECT_ROOT } from "./core/paths.mjs";
 
 const required = [
-  "docs/architecture/product.md", "docs/architecture/process", "docs/architecture/c4.puml",
+  "docs/architecture/product.md", "docs/architecture/technology.md", "docs/architecture/process", "docs/architecture/c4.md",
+  "docs/development/git-workflow.md",
   "docs/contracts/openapi.json", "docs/contracts/asyncapi.json", "docs/contracts/schema.dbml",
   "docs/contracts/authorization.fga", "docs/architecture/deployment.md",
-  "docs/workflows/packages/plantuml.jar",
   "packages/design-tokens/tokens/index.tokens.json",
 ];
 const failures = [];
 if (Number(process.versions.node.split(".")[0]) < 20) failures.push(`Node.js 20+ required; current ${process.versions.node}`);
-for (const [command, args] of [["git", ["--version"]], ["gh", ["--version"]], ["java", ["-version"]]]) {
+for (const [command, args] of [["git", ["--version"]], ["gh", ["--version"]]]) {
   try { execFileSync(command, args, { stdio: "ignore" }); }
   catch { failures.push(`Command not found: ${command}`); }
 }

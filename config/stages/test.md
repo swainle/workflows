@@ -1,3 +1,5 @@
 - 测试必须对应需求验收条件和受影响路径。
+- 汇总 issue、process、permission、design、c4、api、database、backend、frontend 和 deployment 阶段定义的可验证规则，形成覆盖矩阵。
+- 根据风险生成测试方案、Gherkin 验收场景、契约测试、权限测试、迁移测试、性能检查或必要的自动化用例，并标明不适用项。
 - 优先补充最小必要回归，不追求无关覆盖率。
 - 不修改业务实现来绕过失败测试。

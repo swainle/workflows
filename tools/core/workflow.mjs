@@ -86,6 +86,20 @@ function writeWorkState(current, state, runner = execFileSync, projectRoot = PRO
   return state;
 }
 
+export function clearMissingActiveStage(current, { runner = execFileSync, projectRoot = PROJECT_ROOT } = {}) {
+  const state = readWorkState(current, { runner, projectRoot });
+  if (!state.active) return { state, cleared: null };
+  const promptFile = path.resolve(projectRoot, state.active.promptFile);
+  if (promptFile !== projectRoot && !promptFile.startsWith(`${projectRoot}${path.sep}`)) {
+    throw new Error(`Active Prompt is outside project root: ${state.active.promptFile}.`);
+  }
+  if (existsSync(promptFile)) return { state, cleared: null };
+  const cleared = state.active;
+  state.active = null;
+  writeWorkState(current, state, runner, projectRoot);
+  return { state, cleared };
+}
+
 export function startStage(current, stage, promptFile, { runner = execFileSync, projectRoot = PROJECT_ROOT, plan = null } = {}) {
   if (!STAGE_BY_NAME[stage] && stage !== "patch") throw new Error(`Unknown stage: ${stage}.`);
   const state = readWorkState(current, { runner, projectRoot });

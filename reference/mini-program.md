@@ -1,8 +1,13 @@
 # 小程序
 
-## 快速开发
+## 快速开始
 
 先完成 `design`，再生成小程序编码提示词。
+
+```bash
+pnpm -s work:frontend:mini-program --require "目标平台为微信小程序"
+pnpm -s work:frontend:mini-program --merge
+```
 
 ## 命令
 
@@ -12,10 +17,3 @@
 ## 作用
 
 生成需求目录内的 `frontend/mini-program/frontend.prompt.md`，交给编码 AI 创建小程序代码 Patch。
-
-## 例子
-
-```bash
-pnpm -s work:frontend:mini-program --require "目标平台为微信小程序"
-pnpm -s work:frontend:mini-program --merge
-```

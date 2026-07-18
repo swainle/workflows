@@ -1,10 +1,9 @@
 import assert from "node:assert/strict";
-import { createHash } from "node:crypto";
 import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import test from "node:test";
 import { tmpdir } from "node:os";
 import path from "node:path";
-import { installBranch, installPlantUml, migrateDeploymentDocument, migrateProcessDocument, parseBranch, PROJECT_ROOT, WORKFLOW_ROOT } from "./install.mjs";
+import { installBranch, migrateDeploymentDocument, parseBranch, PROJECT_ROOT, WORKFLOW_ROOT } from "./install.mjs";
 
 test("installs with selected branch", () => {
   const calls = [];
@@ -41,25 +40,24 @@ test("ships an OpenFGA playground compose file", () => {
   assert.match(compose, /"3000:3000"/);
 });
 
-test("downloads PlantUML once and reuses the verified file", async () => {
-  const directory = mkdtempSync(path.join(tmpdir(), "workflows-install-"));
-  const target = path.join(directory, "packages/plantuml.jar");
-  const data = Buffer.from("plantuml test jar");
-  const expectedSha256 = createHash("sha256").update(data).digest("hex");
-  let downloads = 0;
-  const fetcher = async () => {
-    downloads += 1;
-    return { ok: true, arrayBuffer: async () => Uint8Array.from(data).buffer };
-  };
+test("ships Mermaid Markdown architecture defaults", () => {
+  const c4 = readFileSync(path.join(WORKFLOW_ROOT, "defaults/architecture/c4.md"), "utf8");
+  const process = readFileSync(path.join(WORKFLOW_ROOT, "defaults/architecture/process/overview.md"), "utf8");
+  assert.match(c4, /```mermaid\s+C4Container/);
+  assert.match(process, /```mermaid\s+flowchart/);
+  assert.equal(existsSync(path.join(WORKFLOW_ROOT, "defaults/architecture/c4.puml")), false);
+  assert.equal(existsSync(path.join(WORKFLOW_ROOT, "defaults/architecture/process/overview.puml")), false);
+});
 
-  try {
-    assert.equal(await installPlantUml({ target, expectedSha256, fetcher }), true);
-    assert.equal(await installPlantUml({ target, expectedSha256, fetcher }), false);
-    assert.deepEqual(readFileSync(target), data);
-    assert.equal(downloads, 1);
-  } finally {
-    rmSync(directory, { recursive: true, force: true });
+test("ships technology and Git workflow defaults", () => {
+  const technology = readFileSync(path.join(WORKFLOW_ROOT, "defaults/architecture/technology.md"), "utf8");
+  const gitWorkflow = readFileSync(path.join(WORKFLOW_ROOT, "defaults/development/git-workflow.md"), "utf8");
+  for (const name of ["Next.js", "Prisma", "PostgreSQL", "Redis", "BullMQ", "RabbitMQ", "OpenFGA", "Docker Compose"]) {
+    assert.match(technology, new RegExp(name.replace(".", "\\.")));
   }
+  assert.match(gitWorkflow, /```mermaid\s+gitGraph/);
+  assert.match(gitWorkflow, /completion\.md/);
+  assert.match(gitWorkflow, /Closes #36/);
 });
 
 test("moves the existing deployment document into architecture", () => {
@@ -73,22 +71,6 @@ test("moves the existing deployment document into architecture", () => {
     assert.equal(migrateDeploymentDocument(projectRoot), true);
     assert.equal(existsSync(source), false);
     assert.equal(readFileSync(target, "utf8"), "deployment\n");
-  } finally {
-    rmSync(projectRoot, { recursive: true, force: true });
-  }
-});
-
-test("moves the existing process document into the process directory", () => {
-  const projectRoot = mkdtempSync(path.join(tmpdir(), "workflows-install-"));
-  const source = path.join(projectRoot, "docs/architecture/process.puml");
-  const target = path.join(projectRoot, "docs/architecture/process/overview.puml");
-  mkdirSync(path.dirname(source), { recursive: true });
-  writeFileSync(source, "@startuml\n@enduml\n");
-
-  try {
-    assert.equal(migrateProcessDocument(projectRoot), true);
-    assert.equal(existsSync(source), false);
-    assert.equal(readFileSync(target, "utf8"), "@startuml\n@enduml\n");
   } finally {
     rmSync(projectRoot, { recursive: true, force: true });
   }

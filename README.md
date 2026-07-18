@@ -9,7 +9,9 @@ git submodule add -b main https://github.com/swainle/workflows.git docs/workflow
 node docs/workflows/install.mjs
 ```
 
-安装器会写入 `work:*` scripts、下载 PlantUML，并创建缺失的全局示例文件，不覆盖已有文档。平台说明见 [`reference/`](reference/)，详细安装说明见 [`install.md`](install.md)。
+安装器会写入 `work:*` scripts，并创建缺失的全局示例文件，不覆盖已有文档。架构和流程图使用 Markdown 中的 Mermaid 代码块。平台说明见 [`reference/`](reference/)，详细安装说明见 [`install.md`](install.md)。
+
+宿主项目的实际技术选型记录在 `docs/architecture/technology.md`；默认覆盖 Next.js、Prisma、PostgreSQL、Redis、BullMQ、按需 RabbitMQ、OpenFGA 和 Docker Compose，但现有项目技术栈始终优先。Git 分支、Commit、Pull Request、发布和 Hotfix 约定记录在 `docs/development/git-workflow.md`，其中使用 Mermaid `gitGraph` 表达分支演进。
 
 ## 开始需求
 
@@ -33,7 +35,7 @@ pnpm -s work:next frontend:web --require "复用现有组件库"
 
 `--require` 可选，只影响本次 Prompt，并优先于 `config/stages/` 中的阶段默认配置。它不能突破安全规则、输出格式和允许修改范围。`--list` 查看该阶段默认配置、只读全局输入清单和稳定阶段产物；时间戳执行记录与 `.git.patch` 不属于阶段产物。
 
-阶段读取配置的全局产物、`issue/issue.md`、依赖阶段产物和当前阶段产物，不读取源码、其他需求目录或未提供的项目文件。阶段生成的外层 Git Patch 只能修改本阶段目录。`work:issue` 可以读取当前主 Issue；`reference/*.md` 只提供快速开发、命令、作用和例子。
+阶段读取配置的全局产物、`issue/issue.md`、依赖阶段产物和当前阶段产物，不读取源码、其他需求目录或未提供的项目文件。阶段生成的外层 Git Patch 只能修改本阶段目录。`work:issue` 可以读取当前主 Issue；`reference/*.md` 只提供快速开始、命令和作用。
 
 ## 编码提示词
 
@@ -69,6 +71,8 @@ pnpm -s work:backend --require "调整实现约束"
 
 当前已经是 `active` 的阶段也可以再次执行同一命令；工作流生成新的时间戳 Prompt，并把 active 指向最新记录。存在其他 active 阶段时仍会拒绝切换。
 
+需要放弃当前 active 执行并退回其他阶段时，手动删除当前 active 的时间戳执行目录或其中的 `prompt.md`，再运行目标阶段命令。目标命令会检测缺失的 active Prompt、自动清除失效状态，然后按现有重做规则使目标阶段及其所有传递下游阶段失效。不要为此删除阶段目录第一层的稳定阶段产物；已经合并到源码的代码 Patch 也不会自动回滚。
+
 ## 同步全局数据
 
 全部选定阶段完成后执行：
@@ -80,16 +84,35 @@ pnpm -s work:next
 
 `work:patch` 读取本需求当前产物和允许的全局文件，在 `patch/<时间戳>/` 生成一个中间 Git Patch。`work:next` 检查 Patch 路径、执行 `git apply --check`、展示统计，并在人工确认后应用。
 
+最终 Patch 还必须创建或更新需求根目录的 `completion.md`。该文件只保留元信息、完成结果、语义修改、迁移要求、测试结论和关联记录，可以直接作为 Pull Request 描述；不重复 GitHub 已有的文件清单、Commit、代码 Diff 或完整测试日志。即使没有全局文件需要同步，也必须生成完成摘要。
+
 全局 Patch 只允许修改：
 
 - `docs/architecture/**`
 - `docs/contracts/**`
+- `docs/development/**`
 - `packages/design-tokens/tokens/**`
 - `package.json`
 - `pnpm-workspace.yaml`
 - `turbo.json`
 
-## 结果文件
+## 产物分类
+
+工作流统一使用以下五类术语：
+
+| 分类 | 路径 | 说明 |
+|---|---|---|
+| 阶段产物 | `<stage>/*.*` | 阶段最终确认的稳定内容，会被后续依赖阶段读取 |
+| 阶段提示词 | `<stage>/<timestamp>/prompt.md` | 某次阶段执行时交给 AI 的完整提示词 |
+| 阶段补丁 | `<stage>/<timestamp>/prompt.NN.git.patch` | AI 提出的阶段产物或允许范围内代码修改 |
+| 阶段补丁分析 | `<stage>/<timestamp>/prompt.NN.git.patch.md` | 引用 Issue、引用文件、影响文件、共同分析角色和创建时间 |
+| 全局产物 | `docs/architecture/**`、`docs/contracts/**` 等 | 整个项目长期有效的架构、契约和项目配置 |
+
+`completion.md` 归类为 `patch` 阶段产物，保存在需求根目录；最终 Patch 同步的全局架构和契约文件归类为全局产物。时间戳目录中的阶段提示词、阶段补丁和阶段补丁分析都是执行记录，不属于阶段产物。
+
+所有阶段补丁分析使用同一精简结构，顺序固定为“引用 Issue、引用文件、影响文件、角色、时间”。引用文件由工作流根据本次实际注入的全局产物、`issue/issue.md`、依赖阶段产物、当前阶段已有产物和资源生成；角色按阶段配置为多名专家，共同分析后只提交统一结果。
+
+## 执行记录结构
 
 ```text
 <stage>/<timestamp>/
@@ -98,4 +121,4 @@ pnpm -s work:next
 └─ prompt.01.git.patch.md
 ```
 
-再次尝试时使用 `.02`、`.03`，不得覆盖旧结果。没有修改时只生成分析文件，并记录 `patch_file: null` 与 `result: no-changes`。
+再次尝试时使用 `.02`、`.03`，不得覆盖旧结果。普通阶段没有修改时只生成阶段补丁分析，并记录 `patch_file: null` 与 `result: no-changes`；`patch` 阶段必须生成 `completion.md`，不能以 `no-changes` 结束。

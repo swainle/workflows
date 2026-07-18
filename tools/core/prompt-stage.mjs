@@ -15,8 +15,7 @@ function timestamp(now = new Date()) {
 }
 
 function language(file) {
-  const extension = path.extname(file).slice(1).toLowerCase();
-  return extension === "puml" ? "plantuml" : extension;
+  return path.extname(file).slice(1).toLowerCase();
 }
 
 function requirementStageFiles(requirementDir, config, dependencies) {
@@ -49,6 +48,7 @@ function collectContext(config, requirementDir, requirementFile, issue, dependen
   for (const file of requirementStageFiles(requirementDir, config, dependencies)) selected.add(file);
 
   const blocks = [];
+  const included = [];
   let bytes = 0;
   for (const file of [...selected].sort()) {
     const content = readFileSync(file, "utf8");
@@ -57,13 +57,18 @@ function collectContext(config, requirementDir, requirementFile, issue, dependen
       blocks.push("## 上下文限制\n\n其余文件未加入。请精简当前需求产物后重试。");
       break;
     }
+    included.push(projectRelative(file));
     blocks.push(`## 文件：${projectRelative(file)}\n\n\`\`\`${language(file)}\n${content.trimEnd()}\n\`\`\``);
   }
 
   const assetsDir = path.join(requirementDir, "assets");
   if (existsSync(assetsDir)) {
     const assets = readdirSync(assetsDir).sort();
-    if (assets.length) blocks.push(`## 资源\n\n${assets.map((name) => `- ${projectRelative(path.join(assetsDir, name))}`).join("\n")}`);
+    if (assets.length) {
+      const resources = assets.map((name) => projectRelative(path.join(assetsDir, name)));
+      included.push(...resources);
+      blocks.push(`## 资源\n\n${resources.map((file) => `- ${file}`).join("\n")}`);
+    }
   }
 
   if (config.githubIssues) {
@@ -78,7 +83,7 @@ function collectContext(config, requirementDir, requirementFile, issue, dependen
       `通过以上 URL 或 \`gh issue view ${issue.number}\` 阅读主 Issue 完整内容。不要读取无关 Issue。`,
     ].join("\n"));
   }
-  return blocks.join("\n\n");
+  return { text: blocks.join("\n\n"), files: included };
 }
 
 export function stageConfigFile(name) {
@@ -95,6 +100,8 @@ export function formatStageConfig(config) {
   const list = (items) => items.map((file) => `- ${file.replaceAll("{{PLATFORM}}", config.platform || "<platform>")}`).join("\n") || "- 无";
   return [
     readStageConfig(config.module),
+    "# 执行角色",
+    list(config.roles ?? []),
     "# 默认读取的全局产物",
     list(config.globals ?? []),
     "# 阶段产物",
@@ -132,9 +139,14 @@ export async function runPromptStage(config, { target, requirement = "", issue =
 
   const base = readFileSync(path.join(WORKFLOW_ROOT, "templates", "base.prompt.md"), "utf8");
   const stage = readFileSync(path.join(WORKFLOW_ROOT, "templates", config.template), "utf8");
+  const context = collectContext(config, requirementDir, requirementFile, issue, dependencies);
   const replacements = {
     "{{STAGE}}": config.command,
     "{{STAGE_NAME}}": config.stageName,
+    "{{ROLES}}": (config.roles ?? []).map((role) => `- ${role}`).join("\n"),
+    "{{REFERENCE_FILES}}": context.files.length
+      ? context.files.map((file) => `- \`${file}\``).join("\n")
+      : "- 无。",
     "{{REQUIREMENT}}": path.basename(requirementDir),
     "{{REQUIREMENT_DIR}}": projectRelative(requirementDir),
     "{{REQUIREMENT_PATH}}": projectRelative(requirementFile),
@@ -155,7 +167,7 @@ export async function runPromptStage(config, { target, requirement = "", issue =
       return `## ${relative}\n\n${readFileSync(file, "utf8").trim()}`;
     }).join("\n\n"),
     "{{STAGE_INSTRUCTIONS}}": stage.trim(),
-    "{{CONTEXT}}": collectContext(config, requirementDir, requirementFile, issue, dependencies),
+    "{{CONTEXT}}": context.text,
   };
   let prompt = base;
   for (const [key, value] of Object.entries(replacements)) prompt = prompt.replaceAll(key, value);

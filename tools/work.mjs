@@ -20,6 +20,7 @@ import { STAGE_BY_NAME } from "./core/stages.mjs";
 import PATCH_CONFIG, { GLOBAL_PATHS } from "./prompt/patch.mjs";
 import {
   assertStageReady,
+  clearMissingActiveStage,
   completeActiveStage,
   dependencyStages,
   findActiveResult,
@@ -127,7 +128,11 @@ function printStatus(current) {
 }
 
 async function generateStage(current, stage, requirement = "") {
-  const state = readWorkState(current);
+  const reconciled = clearMissingActiveStage(current);
+  const state = reconciled.state;
+  if (reconciled.cleared) {
+    console.log(`Cleared missing active Prompt: ${reconciled.cleared.stage} (${reconciled.cleared.promptFile})`);
+  }
   if (state.active && state.active.stage !== stage) throw new Error(`Stage ${state.active.stage} still has an unapplied result.`);
   let dependencies = [];
   let plan = null;
@@ -169,7 +174,9 @@ function within(file, target) {
 export function assertAllowedPatchPaths(current, stage, files) {
   const registered = STAGE_BY_NAME[stage];
   const allowed = stage === "patch"
-    ? GLOBAL_PATHS
+    ? [...GLOBAL_PATHS, projectRelative(path.join(current.requirementDir, "completion.md"))]
+    : stage === "global"
+      ? GLOBAL_PATHS
     : [projectRelative(path.join(current.requirementDir, registered.directory))];
   for (const input of files) {
     const file = input.replaceAll("\\", "/");
@@ -180,7 +187,7 @@ export function assertAllowedPatchPaths(current, stage, files) {
 }
 
 export function assertAllowedCodePatchPaths(files) {
-  const blocked = [".git", "docs/workflows", "docs/requirements", "docs/architecture", "docs/contracts", "packages/design-tokens/tokens"];
+  const blocked = [".git", "docs/workflows", "docs/requirements", "docs/architecture", "docs/contracts", "docs/development", "packages/design-tokens/tokens"];
   for (const input of files) {
     const file = input.replaceAll("\\", "/");
     if (!file || path.isAbsolute(file) || file.split("/").includes("..") || blocked.some((target) => within(file, target))) {
@@ -200,10 +207,14 @@ function patchPaths(patchFile) {
   });
 }
 
-function checkPatch(current, stage, patchFile) {
+function checkPatch(current, stage, patchFile, { requireCompletion = false } = {}) {
   const files = patchPaths(patchFile);
   if (stage === "code") assertAllowedCodePatchPaths(files);
   else assertAllowedPatchPaths(current, stage, files);
+  if (requireCompletion) {
+    const completion = projectRelative(path.join(current.requirementDir, "completion.md"));
+    if (!files.includes(completion)) throw new Error(`Final Patch must modify: ${completion}`);
+  }
   execFileSync("git", ["apply", "--check", patchFile], { cwd: PROJECT_ROOT, stdio: "inherit" });
   execFileSync("git", ["apply", "--stat", patchFile], { cwd: PROJECT_ROOT, stdio: "inherit" });
 }
@@ -271,9 +282,16 @@ async function generatePatch(current, requirement = "") {
 async function applyAndContinue(current, nextStage, requirement = "") {
   const state = readWorkState(current);
   const result = findActiveResult(current, state);
+  if (state.active.stage === "patch" && !result.patchFile) {
+    throw new Error(`Final Patch must create or update ${projectRelative(path.join(current.requirementDir, "completion.md"))}.`);
+  }
   const patches = [result.patchFile, ...result.globalPatchFiles].filter(Boolean);
   const pendingPatches = unappliedPatches(patches, state.appliedPatches);
-  for (const patchFile of pendingPatches) checkPatch(current, patchFile === result.patchFile ? state.active.stage : "patch", patchFile);
+  for (const patchFile of pendingPatches) {
+    checkPatch(current, patchFile === result.patchFile ? state.active.stage : "global", patchFile, {
+      requireCompletion: state.active.stage === "patch" && patchFile === result.patchFile,
+    });
+  }
   if (state.active.stage === "patch" && nextStage) throw new Error("work:patch is final; run work:next without a stage.");
   if (nextStage && state.active.stage !== "issue") {
     const plan = readWorkflowPlan(current.requirementDir);
