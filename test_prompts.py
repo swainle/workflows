@@ -23,6 +23,8 @@ class PromptTest(unittest.TestCase):
         self.assertIn("支持子代理", base)
         self.assertIn("{{ROLES}}", base)
         self.assertIn("{{REFERENCE_FILES}}", base)
+        self.assertIn("{{QUESTIONS_FILE}}", base)
+        self.assertIn('"{{QUESTIONS_FILE}}"', engine)
         self.assertIn("不得再按引用路径打开这些文件", base)
         self.assertIn('git apply --check "{{PATCH_FILE}}"', base)
         self.assertIn('require: { type: "string" }', cli)

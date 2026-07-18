@@ -46,7 +46,7 @@ test("limits stage and final patches to their path scopes", () => {
   ]), /cannot modify/);
   assert.throws(() => assertAllowedPatchPaths(current, "backend", ["apps/api/src/index.ts"]), /cannot modify/);
   assert.doesNotThrow(() => assertAllowedPatchPaths(current, "patch", [
-    "docs/architecture/product.md", "docs/development/git-workflow.md", "package.json", "docs/requirements/REQ-0004-build/completion.md",
+    "docs/architecture/product.md", "docs/development/git-workflow.md", "package.json", "docs/requirements/REQ-0004-build/completion.md", "docs/requirements/REQ-0004-build/patch/questions.md",
   ]));
   assert.throws(() => assertAllowedPatchPaths(current, "patch", [
     "docs/requirements/REQ-0004-build/issue/issue.md",
@@ -74,8 +74,8 @@ test("limits stage and final patches to their path scopes", () => {
   assert.deepEqual(unappliedPatches(["a.patch", "b.patch"], ["a.patch"]), ["b.patch"]);
   assert.doesNotThrow(() => assertResultReady({ stage: "design", needsConfirmation: false }));
   assert.throws(
-    () => assertResultReady({ stage: "design", needsConfirmation: true }),
-    /work:design --merge/,
+    () => assertResultReady({ stage: "design", needsConfirmation: true, questionsFile: "requirements/design/questions.md" }),
+    /requirements\/design\/questions.md/,
   );
 });
 

@@ -98,6 +98,7 @@ export function readStageConfig(name) {
 
 export function formatStageConfig(config) {
   const list = (items) => items.map((file) => `- ${file.replaceAll("{{PLATFORM}}", config.platform || "<platform>")}`).join("\n") || "- 无";
+  const artifacts = [...new Set([...(config.artifacts ?? []), `${config.directory}/questions.md`])];
   return [
     readStageConfig(config.module),
     "# 执行角色",
@@ -105,7 +106,7 @@ export function formatStageConfig(config) {
     "# 默认读取的全局产物",
     list(config.globals ?? []),
     "# 阶段产物",
-    list(config.artifacts ?? []),
+    list(artifacts),
   ].join("\n\n");
 }
 
@@ -155,6 +156,7 @@ export async function runPromptStage(config, { target, requirement = "", issue =
     "{{PATCH_NAME}}": patchName,
     "{{PATCH_FILE}}": projectRelative(path.join(outputDir, patchName)),
     "{{ANALYSIS_FILE}}": projectRelative(path.join(outputDir, analysisName)),
+    "{{QUESTIONS_FILE}}": projectRelative(path.join(requirementDir, config.directory, "questions.md")),
     "{{CREATED_AT}}": createdAt,
     "{{ISSUE_NUMBER}}": issue?.number ?? "",
     "{{ISSUE_URL}}": issue?.url ?? "",

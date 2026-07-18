@@ -181,7 +181,7 @@ function within(file, target) {
 export function assertAllowedPatchPaths(current, stage, files) {
   const registered = STAGE_BY_NAME[stage];
   const allowed = stage === "patch"
-    ? [...GLOBAL_PATHS, projectRelative(path.join(current.requirementDir, "completion.md"))]
+    ? [...GLOBAL_PATHS, projectRelative(path.join(current.requirementDir, "completion.md")), projectRelative(path.join(current.requirementDir, "patch/questions.md"))]
     : stage === "global"
       ? GLOBAL_PATHS
     : [projectRelative(path.join(current.requirementDir, registered.directory))];
@@ -273,7 +273,7 @@ export function unappliedPatches(patches, applied = []) {
 
 export function assertResultReady(result) {
   if (result.needsConfirmation) {
-    throw new Error(`Stage ${result.stage} still has pending questions. Run pnpm -s work:${result.stage} --merge, fill the answers, then rerun work:${result.stage}.`);
+    throw new Error(`Stage ${result.stage} still has pending questions. Run pnpm -s work:${result.stage} --merge, fill ${result.questionsFile ?? "questions.md"}, then rerun work:${result.stage}.`);
   }
 }
 
@@ -332,7 +332,7 @@ export async function main(args = process.argv.slice(2)) {
     const registered = parsed.command === "patch" ? PATCH_CONFIG : STAGE_BY_NAME[parsed.command];
     const config = parsed.command === "patch"
       ? PATCH_CONFIG
-      : { ...(await import(`./prompt/${registered.module}.mjs`)).default, module: registered.module, platform: registered.platform };
+      : { ...(await import(`./prompt/${registered.module}.mjs`)).default, module: registered.module, directory: registered.directory, platform: registered.platform };
     console.log(formatStageConfig(config));
     return;
   }

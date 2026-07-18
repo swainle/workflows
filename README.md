@@ -61,12 +61,12 @@ pnpm -s work:backend --merge
 
 ## 确认问题
 
-阶段 AI 不在对话中暂停提问。置信度低于 95% 的事项统一写入阶段 Markdown 的 `# 待确认问题`，每项包含“问题、原因、参考、回答”。“参考”给出一至三个帮助理解的答案，但不代表人工确认。使用以下循环补充并优化：
+阶段 AI 不在对话中暂停提问。置信度低于 95% 的事项统一写入固定的 `<阶段目录>/questions.md`，每项包含“问题、原因、参考、回答”。“参考”给出一至三个帮助理解的答案，但不代表人工确认。使用以下循环补充并优化：
 
 ```bash
 pnpm -s work:design
 pnpm -s work:design --merge
-# 手动在 design 阶段产物的“回答”处填写
+# 手动填写 design/questions.md 中的“回答”
 pnpm -s work:design
 ```
 
