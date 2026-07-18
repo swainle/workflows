@@ -4,7 +4,8 @@ import path from "node:path";
 import { PROJECT_ROOT } from "./core/paths.mjs";
 
 const required = [
-  "docs/architecture/product.md", "docs/architecture/process", "docs/architecture/c4.md",
+  "docs/architecture/product.md", "docs/architecture/technology.md", "docs/architecture/process", "docs/architecture/c4.md",
+  "docs/development/git-workflow.md",
   "docs/contracts/openapi.json", "docs/contracts/asyncapi.json", "docs/contracts/schema.dbml",
   "docs/contracts/authorization.fga", "docs/architecture/deployment.md",
   "packages/design-tokens/tokens/index.tokens.json",

@@ -20,6 +20,7 @@ import { STAGE_BY_NAME } from "./core/stages.mjs";
 import PATCH_CONFIG, { GLOBAL_PATHS } from "./prompt/patch.mjs";
 import {
   assertStageReady,
+  clearMissingActiveStage,
   completeActiveStage,
   dependencyStages,
   findActiveResult,
@@ -127,7 +128,11 @@ function printStatus(current) {
 }
 
 async function generateStage(current, stage, requirement = "") {
-  const state = readWorkState(current);
+  const reconciled = clearMissingActiveStage(current);
+  const state = reconciled.state;
+  if (reconciled.cleared) {
+    console.log(`Cleared missing active Prompt: ${reconciled.cleared.stage} (${reconciled.cleared.promptFile})`);
+  }
   if (state.active && state.active.stage !== stage) throw new Error(`Stage ${state.active.stage} still has an unapplied result.`);
   let dependencies = [];
   let plan = null;
@@ -182,7 +187,7 @@ export function assertAllowedPatchPaths(current, stage, files) {
 }
 
 export function assertAllowedCodePatchPaths(files) {
-  const blocked = [".git", "docs/workflows", "docs/requirements", "docs/architecture", "docs/contracts", "packages/design-tokens/tokens"];
+  const blocked = [".git", "docs/workflows", "docs/requirements", "docs/architecture", "docs/contracts", "docs/development", "packages/design-tokens/tokens"];
   for (const input of files) {
     const file = input.replaceAll("\\", "/");
     if (!file || path.isAbsolute(file) || file.split("/").includes("..") || blocked.some((target) => within(file, target))) {

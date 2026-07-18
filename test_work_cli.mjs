@@ -7,7 +7,7 @@ import { currentRequirement, normalizeShortName, readGithubIssue, selectRequirem
 import { assertAllowedCodePatchPaths, assertAllowedPatchPaths, latestUnappliedPatch, parseWorkArguments, unappliedPatches } from "./tools/work.mjs";
 import { STAGES } from "./tools/core/stages.mjs";
 import { PROJECT_ROOT } from "./tools/core/paths.mjs";
-import { assertStageReady, completeActiveStage, dependencyStages, findActiveResult, readWorkflowPlan, readWorkState, stageStatuses, startStage, validateWorkflowPlan } from "./tools/core/workflow.mjs";
+import { assertStageReady, clearMissingActiveStage, completeActiveStage, dependencyStages, findActiveResult, readWorkflowPlan, readWorkState, stageStatuses, startStage, validateWorkflowPlan } from "./tools/core/workflow.mjs";
 
 test("parses requirement, status, next, and stage commands", () => {
   assert.deepEqual(parseWorkArguments(["req", "--issue", "4"]), {
@@ -46,7 +46,7 @@ test("limits stage and final patches to their path scopes", () => {
   ]), /cannot modify/);
   assert.throws(() => assertAllowedPatchPaths(current, "backend", ["apps/api/src/index.ts"]), /cannot modify/);
   assert.doesNotThrow(() => assertAllowedPatchPaths(current, "patch", [
-    "docs/architecture/product.md", "package.json", "docs/requirements/REQ-0004-build/completion.md",
+    "docs/architecture/product.md", "docs/development/git-workflow.md", "package.json", "docs/requirements/REQ-0004-build/completion.md",
   ]));
   assert.throws(() => assertAllowedPatchPaths(current, "patch", [
     "docs/requirements/REQ-0004-build/issue/issue.md",
@@ -59,6 +59,7 @@ test("limits stage and final patches to their path scopes", () => {
   assert.doesNotThrow(() => assertAllowedCodePatchPaths(["apps/api/src/index.ts", "package.json"]));
   assert.throws(() => assertAllowedCodePatchPaths([".git/config"]), /cannot modify/);
   assert.throws(() => assertAllowedCodePatchPaths(["docs/contracts/openapi.json"]), /cannot modify/);
+  assert.throws(() => assertAllowedCodePatchPaths(["docs/development/git-workflow.md"]), /cannot modify/);
   assert.throws(() => assertAllowedCodePatchPaths(["docs/requirements/REQ-0004-build/issue/issue.md"]), /cannot modify/);
   assert.equal(latestUnappliedPatch([
     "run/prompt.01.git.patch",
@@ -122,6 +123,31 @@ test("reads the selected GitHub Issue", () => {
     return JSON.stringify(issue);
   };
   assert.deepEqual(readGithubIssue("36", { projectRoot: process.cwd(), runner }), issue);
+});
+
+test("clears active state only after its Prompt is manually removed", () => {
+  const projectRoot = mkdtempSync(path.join(tmpdir(), "workflows-active-"));
+  const runner = (command, args) => `.git/${args[2]}\n`;
+  try {
+    const issue = { number: 4, title: "Build booking", url: "https://github.com/example/repo/issues/4" };
+    const current = selectRequirement(issue, "build", { projectRoot, runner });
+    const promptFile = "docs/requirements/REQ-0004-build/backend/20260717010101/prompt.md";
+    mkdirSync(path.join(projectRoot, path.dirname(promptFile)), { recursive: true });
+    writeFileSync(path.join(projectRoot, promptFile), "prompt\n");
+    startStage(current, "backend", promptFile, { projectRoot, runner });
+
+    const retained = clearMissingActiveStage(current, { projectRoot, runner });
+    assert.equal(retained.cleared, null);
+    assert.equal(retained.state.active.stage, "backend");
+
+    rmSync(path.join(projectRoot, promptFile));
+    const cleared = clearMissingActiveStage(current, { projectRoot, runner });
+    assert.equal(cleared.cleared.stage, "backend");
+    assert.equal(cleared.state.active, null);
+    assert.equal(readWorkState(current, { projectRoot, runner }).active, null);
+  } finally {
+    rmSync(projectRoot, { recursive: true, force: true });
+  }
 });
 
 test("reads a selected workflow and calculates executable stages", () => {

@@ -40,6 +40,7 @@ const LEGACY_SCRIPTS = new Set([
 const DEFAULT_TARGETS = {
   architecture: path.join(PROJECT_ROOT, "docs/architecture"),
   contracts: path.join(PROJECT_ROOT, "docs/contracts"),
+  development: path.join(PROJECT_ROOT, "docs/development"),
   "design-tokens": path.join(PROJECT_ROOT, "packages/design-tokens/tokens"),
 };
 const UPDATED_FLAG = "--workflows-updated";

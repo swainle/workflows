@@ -11,6 +11,8 @@ node docs/workflows/install.mjs
 
 安装器会写入 `work:*` scripts，并创建缺失的全局示例文件，不覆盖已有文档。架构和流程图使用 Markdown 中的 Mermaid 代码块。平台说明见 [`reference/`](reference/)，详细安装说明见 [`install.md`](install.md)。
 
+宿主项目的实际技术选型记录在 `docs/architecture/technology.md`；默认覆盖 Next.js、Prisma、PostgreSQL、Redis、BullMQ、按需 RabbitMQ、OpenFGA 和 Docker Compose，但现有项目技术栈始终优先。Git 分支、Commit、Pull Request、发布和 Hotfix 约定记录在 `docs/development/git-workflow.md`，其中使用 Mermaid `gitGraph` 表达分支演进。
+
 ## 开始需求
 
 ```bash
@@ -69,6 +71,8 @@ pnpm -s work:backend --require "调整实现约束"
 
 当前已经是 `active` 的阶段也可以再次执行同一命令；工作流生成新的时间戳 Prompt，并把 active 指向最新记录。存在其他 active 阶段时仍会拒绝切换。
 
+需要放弃当前 active 执行并退回其他阶段时，手动删除当前 active 的时间戳执行目录或其中的 `prompt.md`，再运行目标阶段命令。目标命令会检测缺失的 active Prompt、自动清除失效状态，然后按现有重做规则使目标阶段及其所有传递下游阶段失效。不要为此删除阶段目录第一层的稳定阶段产物；已经合并到源码的代码 Patch 也不会自动回滚。
+
 ## 同步全局数据
 
 全部选定阶段完成后执行：
@@ -86,6 +90,7 @@ pnpm -s work:next
 
 - `docs/architecture/**`
 - `docs/contracts/**`
+- `docs/development/**`
 - `packages/design-tokens/tokens/**`
 - `package.json`
 - `pnpm-workspace.yaml`

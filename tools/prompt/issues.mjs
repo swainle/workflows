@@ -4,7 +4,8 @@ export default {
   template: "issues.prompt.md",
   artifacts: ["issue/issue.md", "issue/*.md"],
   globals: [
-    "docs/architecture/product.md", "docs/architecture/c4.md", "docs/architecture/process", "docs/architecture/deployment.md",
+    "docs/architecture/product.md", "docs/architecture/technology.md", "docs/architecture/c4.md", "docs/architecture/process", "docs/architecture/deployment.md",
+    "docs/development/git-workflow.md",
     "docs/contracts/openapi.json", "docs/contracts/asyncapi.json", "docs/contracts/schema.dbml", "docs/contracts/authorization.fga",
     "packages/design-tokens/tokens",
   ],

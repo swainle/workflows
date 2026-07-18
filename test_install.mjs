@@ -49,6 +49,17 @@ test("ships Mermaid Markdown architecture defaults", () => {
   assert.equal(existsSync(path.join(WORKFLOW_ROOT, "defaults/architecture/process/overview.puml")), false);
 });
 
+test("ships technology and Git workflow defaults", () => {
+  const technology = readFileSync(path.join(WORKFLOW_ROOT, "defaults/architecture/technology.md"), "utf8");
+  const gitWorkflow = readFileSync(path.join(WORKFLOW_ROOT, "defaults/development/git-workflow.md"), "utf8");
+  for (const name of ["Next.js", "Prisma", "PostgreSQL", "Redis", "BullMQ", "RabbitMQ", "OpenFGA", "Docker Compose"]) {
+    assert.match(technology, new RegExp(name.replace(".", "\\.")));
+  }
+  assert.match(gitWorkflow, /```mermaid\s+gitGraph/);
+  assert.match(gitWorkflow, /completion\.md/);
+  assert.match(gitWorkflow, /Closes #36/);
+});
+
 test("moves the existing deployment document into architecture", () => {
   const projectRoot = mkdtempSync(path.join(tmpdir(), "workflows-install-"));
   const source = path.join(projectRoot, "docs/operations/deployment.md");

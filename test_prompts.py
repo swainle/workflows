@@ -30,8 +30,25 @@ class PromptTest(unittest.TestCase):
             self.assertTrue((ROOT / f"config/stages/{name}.md").is_file(), name)
 
         issues = (ROOT / "tools/prompt/issues.mjs").read_text(encoding="utf-8")
-        for path in ("product.md", "openapi.json", "asyncapi.json", "schema.dbml", "authorization.fga"):
+        for path in ("product.md", "technology.md", "git-workflow.md", "openapi.json", "asyncapi.json", "schema.dbml", "authorization.fga"):
             self.assertIn(path, issues)
+
+    def test_stage_defaults_cover_delivery_requirements(self):
+        expected = {
+            "process.md": ("flowchart", "sequenceDiagram", "stateDiagram-v2", "可验证规则"),
+            "permission.md": ("OpenFGA", "Tuple", "迁移", "回滚"),
+            "design.md": ("加载与等待", "异常", "无权限", "可访问性"),
+            "c4.md": ("C4Context", "C4Container", "C4Component", "C4Deployment"),
+            "api.md": ("Mock", "examples", "幂等", "契约校验"),
+            "database.md": ("EXPLAIN", "联合", "索引", "性能"),
+            "backend.md": ("Next.js", "Prisma", "PostgreSQL", "Redis", "BullMQ", "RabbitMQ", "OpenFGA"),
+            "test.md": ("覆盖矩阵", "Gherkin", "权限测试", "迁移测试"),
+            "deployment.md": ("Docker Compose", "动态升级", "expand-contract", "备份", "回滚"),
+        }
+        for name, terms in expected.items():
+            text = (ROOT / "config/stages" / name).read_text(encoding="utf-8")
+            for term in terms:
+                self.assertIn(term, text, f"{name}: {term}")
 
     def test_regular_stages_collect_global_and_requirement_artifacts(self):
         engine = (ROOT / "tools/core/prompt-stage.mjs").read_text(encoding="utf-8")
@@ -98,6 +115,8 @@ class PromptTest(unittest.TestCase):
         self.assertIn("Final Patch must modify", cli)
         self.assertIn("assertAllowedPatchPaths", cli)
         self.assertIn("assertAllowedCodePatchPaths", cli)
+        self.assertIn('"docs/development"', (ROOT / "tools/prompt/patch.mjs").read_text(encoding="utf-8"))
+        self.assertIn("`docs/development/**`", prompt)
         self.assertIn('["apply", "--check", patchFile]', cli)
 
     def test_references_are_short_operational_guides(self):
