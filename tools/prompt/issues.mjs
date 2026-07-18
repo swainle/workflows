@@ -1,5 +1,6 @@
 export default {
   command: "issues", stageName: "GitHub Issues 整理",
+  roles: ["互联网产品经理", "业务分析师", "测试工程师"],
   template: "issues.prompt.md",
   artifacts: ["issue/issue.md", "issue/*.md"],
   globals: [

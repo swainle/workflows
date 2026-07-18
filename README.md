@@ -91,7 +91,23 @@ pnpm -s work:next
 - `pnpm-workspace.yaml`
 - `turbo.json`
 
-## 结果文件
+## 产物分类
+
+工作流统一使用以下五类术语：
+
+| 分类 | 路径 | 说明 |
+|---|---|---|
+| 阶段产物 | `<stage>/*.*` | 阶段最终确认的稳定内容，会被后续依赖阶段读取 |
+| 阶段提示词 | `<stage>/<timestamp>/prompt.md` | 某次阶段执行时交给 AI 的完整提示词 |
+| 阶段补丁 | `<stage>/<timestamp>/prompt.NN.git.patch` | AI 提出的阶段产物或允许范围内代码修改 |
+| 阶段补丁分析 | `<stage>/<timestamp>/prompt.NN.git.patch.md` | 引用 Issue、引用文件、影响文件、共同分析角色和创建时间 |
+| 全局产物 | `docs/architecture/**`、`docs/contracts/**` 等 | 整个项目长期有效的架构、契约和项目配置 |
+
+`completion.md` 归类为 `patch` 阶段产物，保存在需求根目录；最终 Patch 同步的全局架构和契约文件归类为全局产物。时间戳目录中的阶段提示词、阶段补丁和阶段补丁分析都是执行记录，不属于阶段产物。
+
+所有阶段补丁分析使用同一精简结构，顺序固定为“引用 Issue、引用文件、影响文件、角色、时间”。引用文件由工作流根据本次实际注入的全局产物、`issue/issue.md`、依赖阶段产物、当前阶段已有产物和资源生成；角色按阶段配置为多名专家，共同分析后只提交统一结果。
+
+## 执行记录结构
 
 ```text
 <stage>/<timestamp>/
@@ -100,4 +116,4 @@ pnpm -s work:next
 └─ prompt.01.git.patch.md
 ```
 
-再次尝试时使用 `.02`、`.03`，不得覆盖旧结果。没有修改时只生成分析文件，并记录 `patch_file: null` 与 `result: no-changes`。
+再次尝试时使用 `.02`、`.03`，不得覆盖旧结果。普通阶段没有修改时只生成阶段补丁分析，并记录 `patch_file: null` 与 `result: no-changes`；`patch` 阶段必须生成 `completion.md`，不能以 `no-changes` 结束。

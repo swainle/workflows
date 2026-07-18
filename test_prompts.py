@@ -15,7 +15,8 @@ class PromptTest(unittest.TestCase):
         self.assertIn("{{USER_REQUIREMENT}}", base)
         self.assertIn("# 专家协作", base)
         self.assertIn("支持子代理", base)
-        self.assertIn("# 专家评审", base)
+        self.assertIn("{{ROLES}}", base)
+        self.assertIn("{{REFERENCE_FILES}}", base)
         self.assertIn('git apply --check "{{PATCH_FILE}}"', base)
         self.assertIn('require: { type: "string" }', cli)
         self.assertIn('list: { type: "boolean" }', cli)
@@ -39,11 +40,11 @@ class PromptTest(unittest.TestCase):
         for config in (ROOT / "tools/prompt").glob("*.mjs"):
             text = config.read_text(encoding="utf-8")
             self.assertIn("artifacts:", text, config.name)
+            self.assertIn("roles:", text, config.name)
             if config.name == "patch.mjs":
                 continue
             self.assertIn("globals:", text, config.name)
             self.assertNotIn("globalPatch:", text, config.name)
-            self.assertNotIn("roles:", text, config.name)
 
     def test_code_stages_create_execution_prompts(self):
         expected = {
@@ -61,6 +62,24 @@ class PromptTest(unittest.TestCase):
         permission = (ROOT / "templates/permission.prompt.md").read_text(encoding="utf-8")
         self.assertNotIn("permission/permission.prompt.md", permission)
         self.assertIn("backend、frontend", permission)
+
+    def test_all_stage_patch_analyses_are_minimal(self):
+        prompt = (ROOT / "templates/base.prompt.md").read_text(encoding="utf-8")
+        for heading in ("# 引用文件", "# 引用 Issue", "# 影响文件", "# 角色", "# 时间"):
+            self.assertIn(heading, prompt)
+        self.assertLess(prompt.index("# 引用 Issue"), prompt.index("# 引用文件"))
+        self.assertIn("{{ROLES}}", prompt)
+        self.assertIn("{{REFERENCE_FILES}}", prompt)
+
+        issue_prompt = (ROOT / "templates/issues.prompt.md").read_text(encoding="utf-8")
+        self.assertNotIn("# 阶段补丁分析", issue_prompt)
+
+        issue_config = (ROOT / "tools/prompt/issues.mjs").read_text(encoding="utf-8")
+        backend_config = (ROOT / "tools/prompt/backend.mjs").read_text(encoding="utf-8")
+        test_config = (ROOT / "tools/prompt/test.mjs").read_text(encoding="utf-8")
+        self.assertIn('roles: ["互联网产品经理", "业务分析师", "测试工程师"]', issue_config)
+        self.assertIn('roles: ["后端架构师", "权限与安全架构师", "测试工程师"]', backend_config)
+        self.assertIn('roles: ["测试工程师", "互联网产品经理", "业务分析师"]', test_config)
 
     def test_final_patch_creates_completion_and_updates_global_files(self):
         installer = (ROOT / "install.mjs").read_text(encoding="utf-8")
@@ -113,6 +132,12 @@ class PromptTest(unittest.TestCase):
 
         self.assertFalse(any(ROOT.glob("defaults/**/*.puml")))
         self.assertFalse(any(ROOT.glob("examples/**/*.puml")))
+
+    def test_readme_defines_artifact_categories(self):
+        readme = (ROOT / "README.md").read_text(encoding="utf-8")
+        for category in ("阶段产物", "阶段提示词", "阶段补丁", "阶段补丁分析", "全局产物"):
+            self.assertIn(f"| {category} |", readme)
+        self.assertIn("`completion.md` 归类为 `patch` 阶段产物", readme)
 
 
 if __name__ == "__main__":

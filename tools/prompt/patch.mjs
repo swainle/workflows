@@ -10,6 +10,7 @@ export const GLOBAL_PATHS = [
 export default {
   command: "patch",
   stageName: "全局数据同步",
+  roles: ["技术负责人", "软件架构师", "发布工程师"],
   module: "patch",
   directory: "patch",
   template: "patch.prompt.md",
