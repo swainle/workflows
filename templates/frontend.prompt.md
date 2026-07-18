@@ -6,7 +6,7 @@
 
 当前阶段发现需要改变契约或其他平台时按照通用对话确认，并说明建议重跑的负责阶段；不得把该职责交给后续编码 AI。
 
-# 允许修改
+# Patch 允许包含的文件
 
 - `{{REQUIREMENT_DIR}}/frontend/{{PLATFORM}}/frontend.prompt.md`
 - `{{REQUIREMENT_DIR}}/frontend/{{PLATFORM}}/design-tokens.json`

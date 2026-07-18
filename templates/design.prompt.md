@@ -2,7 +2,7 @@
 
 根据需求产物整理用户目标、信息结构、关键路径、状态、反馈和平台差异。只为工作流选中的平台生成内容。
 
-# 允许修改
+# Patch 允许包含的文件
 
 - `{{REQUIREMENT_DIR}}/design/design.md`
 - `{{REQUIREMENT_DIR}}/design/<platform>.md`

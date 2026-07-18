@@ -39,7 +39,7 @@ status: completed
 
 `completion.md` 应当可以直接作为 Pull Request 描述使用。只记录最终确认并实际包含在本需求结果中的事实；测试部分只写测试项和结论，不粘贴完整日志；不复述实施过程、阶段产物列表或 GitHub 已经提供的文件变更信息。不得编造 PR URL、Commit、测试结果或关联需求。
 
-# 允许修改
+# Patch 允许包含的文件
 
 - `{{REQUIREMENT_DIR}}/completion.md`
 - `docs/architecture/**`

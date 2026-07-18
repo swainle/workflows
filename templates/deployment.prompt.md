@@ -4,7 +4,7 @@
 
 执行提示词必须要求执行 AI 以其中整理的需求信息为准，只读取现有项目配置，把必要修改生成到 `{{RUN_DIR}}` 中下一个未占用的 `prompt.NN.git.patch`，不得直接应用或写入真实凭据。
 
-# 允许修改
+# Patch 允许包含的文件
 
 - `{{REQUIREMENT_DIR}}/deployment/deployment.md`
 - `{{REQUIREMENT_DIR}}/deployment/deployment.prompt.md`

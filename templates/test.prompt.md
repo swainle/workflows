@@ -2,7 +2,7 @@
 
 根据需求产物整理可执行的验收场景、必要回归、边界和失败路径。每个场景应能追溯到需求或受影响产物。
 
-# 允许修改
+# Patch 允许包含的文件
 
 - `{{REQUIREMENT_DIR}}/test/*.feature`
 - `{{REQUIREMENT_DIR}}/test/*.md`

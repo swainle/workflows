@@ -27,6 +27,10 @@ class PromptTest(unittest.TestCase):
         self.assertIn('path.join(requirementDir, "issue", "questions.md")', engine)
         self.assertIn("不得再按引用路径打开这些文件", base)
         self.assertIn('git apply --check "{{PATCH_FILE}}"', base)
+        self.assertIn("严禁直接创建、修改或删除任何阶段产物", base)
+        for template in (ROOT / "templates").glob("*.prompt.md"):
+            if template.name != "base.prompt.md":
+                self.assertNotIn("# 允许修改", template.read_text(encoding="utf-8"), template.name)
         self.assertIn('require: { type: "string" }', cli)
         self.assertIn('list: { type: "boolean" }', cli)
         self.assertIn("formatStageConfig", cli)

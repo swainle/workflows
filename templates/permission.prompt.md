@@ -2,7 +2,7 @@
 
 根据需求产物说明主体、资源、动作、关系、允许和拒绝条件。只定义授权模型和规则；服务端与前端实现分别由 backend、frontend 阶段处理。
 
-# 允许修改
+# Patch 允许包含的文件
 
 - `{{REQUIREMENT_DIR}}/permission/authorization.fga`
 - `{{REQUIREMENT_DIR}}/permission/*.md`

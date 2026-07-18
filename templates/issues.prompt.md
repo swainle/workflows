@@ -23,7 +23,7 @@
 
 正式接口尚未定义且设计需要先用 `design/mock.json` 表达界面数据需求时，把 `design` 放在 `api` 前，并让 `api.dependsOn` 包含 `design`。
 
-# 允许修改
+# Patch 允许包含的文件
 
 - `{{REQUIREMENT_DIR}}/issue/issue.md`
 - `{{REQUIREMENT_DIR}}/issue/*.md`
