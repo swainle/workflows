@@ -39,14 +39,14 @@ test("parses requirement, status, next, and stage commands", () => {
 test("limits stage and final patches to their path scopes", () => {
   const current = { requirementDir: path.join(PROJECT_ROOT, "docs/requirements/REQ-0004-build") };
   assert.doesNotThrow(() => assertAllowedPatchPaths(current, "backend", [
-    "docs/requirements/REQ-0004-build/backend/backend.prompt.md", "docs/requirements/REQ-0004-build/questions.md",
+    "docs/requirements/REQ-0004-build/backend/backend.prompt.md", "docs/requirements/REQ-0004-build/issue/questions.md",
   ]));
   assert.throws(() => assertAllowedPatchPaths(current, "backend", [
     "docs/requirements/REQ-0004-build/api/openapi.json",
   ]), /cannot modify/);
   assert.throws(() => assertAllowedPatchPaths(current, "backend", ["apps/api/src/index.ts"]), /cannot modify/);
   assert.doesNotThrow(() => assertAllowedPatchPaths(current, "patch", [
-    "docs/architecture/product.md", "docs/development/git-workflow.md", "package.json", "docs/requirements/REQ-0004-build/completion.md", "docs/requirements/REQ-0004-build/questions.md",
+    "docs/architecture/product.md", "docs/development/git-workflow.md", "package.json", "docs/requirements/REQ-0004-build/completion.md", "docs/requirements/REQ-0004-build/issue/questions.md",
   ]));
   assert.throws(() => assertAllowedPatchPaths(current, "patch", [
     "docs/requirements/REQ-0004-build/issue/issue.md",

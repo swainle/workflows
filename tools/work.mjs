@@ -181,10 +181,10 @@ function within(file, target) {
 export function assertAllowedPatchPaths(current, stage, files) {
   const registered = STAGE_BY_NAME[stage];
   const allowed = stage === "patch"
-    ? [...GLOBAL_PATHS, projectRelative(path.join(current.requirementDir, "completion.md")), projectRelative(path.join(current.requirementDir, "questions.md"))]
+    ? [...GLOBAL_PATHS, projectRelative(path.join(current.requirementDir, "completion.md")), projectRelative(path.join(current.requirementDir, "issue", "questions.md"))]
     : stage === "global"
       ? GLOBAL_PATHS
-    : [projectRelative(path.join(current.requirementDir, registered.directory)), projectRelative(path.join(current.requirementDir, "questions.md"))];
+    : [projectRelative(path.join(current.requirementDir, registered.directory)), projectRelative(path.join(current.requirementDir, "issue", "questions.md"))];
   for (const input of files) {
     const file = input.replaceAll("\\", "/");
     if (!file || path.isAbsolute(file) || file.split("/").includes("..") || !allowed.some((target) => within(file, target))) {

@@ -39,7 +39,7 @@ function collectContext(config, requirementDir, requirementFile, issue, dependen
     for (const file of walkTextFiles(fromProject(relative))) selected.add(file);
   }
   if (existsSync(requirementFile)) selected.add(requirementFile);
-  const questionsFile = path.join(requirementDir, "questions.md");
+  const questionsFile = path.join(requirementDir, "issue", "questions.md");
   if (existsSync(questionsFile)) selected.add(questionsFile);
   if (config.command === "issues") {
     for (const name of ["00-issue.md", "01-prd.md"]) {
@@ -100,7 +100,7 @@ export function readStageConfig(name) {
 
 export function formatStageConfig(config) {
   const list = (items) => items.map((file) => `- ${file.replaceAll("{{PLATFORM}}", config.platform || "<platform>")}`).join("\n") || "- 无";
-  const artifacts = [...new Set([...(config.artifacts ?? []), "questions.md"])];
+  const artifacts = [...new Set([...(config.artifacts ?? []), "issue/questions.md"])];
   return [
     readStageConfig(config.module),
     "# 执行角色",
@@ -158,7 +158,7 @@ export async function runPromptStage(config, { target, requirement = "", issue =
     "{{PATCH_NAME}}": patchName,
     "{{PATCH_FILE}}": projectRelative(path.join(outputDir, patchName)),
     "{{ANALYSIS_FILE}}": projectRelative(path.join(outputDir, analysisName)),
-    "{{QUESTIONS_FILE}}": projectRelative(path.join(requirementDir, "questions.md")),
+    "{{QUESTIONS_FILE}}": projectRelative(path.join(requirementDir, "issue", "questions.md")),
     "{{CREATED_AT}}": createdAt,
     "{{ISSUE_NUMBER}}": issue?.number ?? "",
     "{{ISSUE_URL}}": issue?.url ?? "",

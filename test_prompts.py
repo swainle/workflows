@@ -24,7 +24,7 @@ class PromptTest(unittest.TestCase):
         self.assertIn("{{REFERENCE_FILES}}", base)
         self.assertIn("{{QUESTIONS_FILE}}", base)
         self.assertIn('"{{QUESTIONS_FILE}}"', engine)
-        self.assertIn('path.join(requirementDir, "questions.md")', engine)
+        self.assertIn('path.join(requirementDir, "issue", "questions.md")', engine)
         self.assertIn("不得再按引用路径打开这些文件", base)
         self.assertIn('git apply --check "{{PATCH_FILE}}"', base)
         self.assertIn('require: { type: "string" }', cli)
