@@ -47,7 +47,7 @@ frontend/web/frontend.prompt.md
 deployment/deployment.prompt.md
 ```
 
-把这些文件交给具备本地文件能力的编码 AI，由它阅读需求产物和现有源码，在该阶段最新时间戳目录生成下一个未占用的 `prompt.NN.git.patch`。工作流阶段本身不直接修改源码。
+把这些文件交给具备本地文件能力的编码 AI。需求信息以执行提示词为准，编码 AI 只读取现有源码或项目配置，并在该阶段最新时间戳目录生成下一个未占用的 `prompt.NN.git.patch`。工作流阶段本身不直接修改源码。
 
 人工检查代码 Patch 后执行：
 

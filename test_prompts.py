@@ -20,6 +20,7 @@ class PromptTest(unittest.TestCase):
         self.assertIn("支持子代理", base)
         self.assertIn("{{ROLES}}", base)
         self.assertIn("{{REFERENCE_FILES}}", base)
+        self.assertIn("不得再按引用路径打开这些文件", base)
         self.assertIn('git apply --check "{{PATCH_FILE}}"', base)
         self.assertIn('require: { type: "string" }', cli)
         self.assertIn('list: { type: "boolean" }', cli)
@@ -78,6 +79,7 @@ class PromptTest(unittest.TestCase):
             self.assertIn("{{RUN_DIR}}", text)
             self.assertIn("prompt.NN.git.patch", text)
             self.assertIn("外层 Git Patch 只能修改", text)
+            self.assertNotIn("阅读当前需求产物", text)
 
         permission = (ROOT / "templates/permission.prompt.md").read_text(encoding="utf-8")
         self.assertNotIn("permission/permission.prompt.md", permission)
