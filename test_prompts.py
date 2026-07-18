@@ -13,6 +13,9 @@ class PromptTest(unittest.TestCase):
 
         self.assertIn("{{DEFAULT_REQUIREMENTS}}", base)
         self.assertIn("{{USER_REQUIREMENT}}", base)
+        self.assertIn("# 逐项确认", base)
+        self.assertIn("置信度低于 95%", base)
+        self.assertIn("每次只提出一个", base)
         self.assertIn("# 专家协作", base)
         self.assertIn("支持子代理", base)
         self.assertIn("{{ROLES}}", base)
