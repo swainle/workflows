@@ -84,8 +84,9 @@ class PromptTest(unittest.TestCase):
     def test_references_are_short_operational_guides(self):
         for file in (ROOT / "reference").glob("*.md"):
             text = file.read_text(encoding="utf-8")
-            for heading in ("## 快速开发", "## 命令", "## 作用", "## 例子"):
+            for heading in ("## 快速开始", "## 命令", "## 作用"):
                 self.assertIn(heading, text, file.name)
+            self.assertNotIn("## 例子", text, file.name)
             self.assertNotIn("## 最佳实践", text, file.name)
 
     def test_diagrams_use_mermaid_markdown(self):
