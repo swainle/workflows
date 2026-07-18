@@ -16,6 +16,8 @@ class PromptTest(unittest.TestCase):
         self.assertIn("# 对话确认", base)
         self.assertIn("置信度低于 95%", base)
         self.assertIn("每次只问一个", base)
+        self.assertIn("不得要求使用者重新执行阶段命令", base)
+        self.assertIn("作为同一个阶段 Git Patch 的一部分", base)
         self.assertIn("参考：<推荐答案>", base)
         self.assertIn("最终确认", base)
         self.assertIn("# 专家协作", base)
