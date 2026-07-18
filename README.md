@@ -67,11 +67,11 @@ pnpm -s work:backend --merge
 pnpm -s work:backend --require "调整实现约束"
 ```
 
-该阶段切换为 `active`，自身及所有传递依赖它的后续阶段从 `completed` 移除；无关并行阶段保持完成。旧产物和已应用 Patch 保留。`work:status` 显示新的 `active`、`ready` 和 `blocked` 状态。
+该阶段切换为 `active`，自身及工作流列表中位于它之后的所有阶段从 `completed` 移除。旧产物和已应用 Patch 保留。`work:status` 显示新的 `active`、`ready` 和 `blocked` 状态。
 
-当前已经是 `active` 的阶段也可以再次执行同一命令；工作流生成新的时间戳 Prompt，并把 active 指向最新记录。存在其他 active 阶段时仍会拒绝切换。
+当前已经是 `active` 的阶段也可以再次执行同一命令；工作流生成新的时间戳 Prompt，并把 active 指向最新记录。
 
-需要放弃当前 active 执行并退回其他阶段时，手动删除当前 active 的时间戳执行目录或其中的 `prompt.md`，再运行目标阶段命令。目标命令会检测缺失的 active Prompt、自动清除失效状态，然后按现有重做规则使目标阶段及其所有传递下游阶段失效。不要为此删除阶段目录第一层的稳定阶段产物；已经合并到源码的代码 Patch 也不会自动回滚。
+需要放弃当前 active 执行并退回其任一依赖阶段时，直接运行 `pnpm -s work:<之前阶段> [--require "..."]`。工作流自动切换 active，并使目标阶段及工作流列表中位于它之后的所有阶段失效；旧 Prompt、产物和已应用 Patch 保留。无关阶段或更后的阶段仍不能直接切换。
 
 ## 同步全局数据
 

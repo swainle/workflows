@@ -163,6 +163,7 @@ test("reads a selected workflow and calculates executable stages", () => {
         { name: "issue", dependsOn: [], reason: "required" },
         { name: "process", dependsOn: ["issue"], reason: "workflow changed" },
         { name: "api", dependsOn: ["process"], reason: "contract changed" },
+        { name: "permission", dependsOn: ["issue"], reason: "parallel stage" },
       ],
     }, null, 2)}\n\`\`\`\n<!-- WORKFLOW:END -->\n`);
 
@@ -173,6 +174,7 @@ test("reads a selected workflow and calculates executable stages", () => {
       { name: "issue", status: "completed" },
       { name: "process", status: "ready" },
       { name: "api", status: "blocked" },
+      { name: "permission", status: "ready" },
     ]);
     assert.deepEqual(dependencyStages(plan, "api"), ["process", "issue"]);
     const promptFile = "docs/requirements/REQ-0004-build/process/20260717010101/prompt.md";
@@ -196,7 +198,7 @@ test("reads a selected workflow and calculates executable stages", () => {
     assert.deepEqual(readWorkState(current, { projectRoot, runner }).completed, ["issue", "process"]);
     writeFileSync(path.join(projectRoot, ".git/workflows/state/REQ-0004-build.json"), `${JSON.stringify({
       active: null,
-      completed: ["issue", "process", "api"],
+      completed: ["issue", "process", "api", "permission"],
       appliedPatches: [],
     })}\n`);
     startStage(current, "process", promptFile, { projectRoot, runner, plan });
@@ -206,12 +208,23 @@ test("reads a selected workflow and calculates executable stages", () => {
       { name: "issue", status: "completed" },
       { name: "process", status: "active" },
       { name: "api", status: "blocked" },
+      { name: "permission", status: "ready" },
     ]);
     assert.doesNotThrow(() => assertStageReady(plan, rerun, "process", rerun.completed, true, true));
     const replacementPrompt = "docs/requirements/REQ-0004-build/process/20260717020202/prompt.md";
     startStage(current, "process", replacementPrompt, { projectRoot, runner, plan });
     assert.equal(readWorkState(current, { projectRoot, runner }).active.promptFile, replacementPrompt);
     assert.throws(() => startStage(current, "api", replacementPrompt, { projectRoot, runner, plan }), /process still has/);
+
+    writeFileSync(path.join(projectRoot, ".git/workflows/state/REQ-0004-build.json"), `${JSON.stringify({
+      active: { stage: "api", promptFile: replacementPrompt },
+      completed: ["issue", "process", "api"],
+      appliedPatches: [],
+    })}\n`);
+    startStage(current, "process", replacementPrompt, { projectRoot, runner, plan, rewind: true });
+    const rewound = readWorkState(current, { projectRoot, runner });
+    assert.equal(rewound.active.stage, "process");
+    assert.deepEqual(rewound.completed, ["issue"]);
   } finally {
     rmSync(projectRoot, { recursive: true, force: true });
   }

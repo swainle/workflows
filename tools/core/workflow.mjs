@@ -100,24 +100,15 @@ export function clearMissingActiveStage(current, { runner = execFileSync, projec
   return { state, cleared };
 }
 
-export function startStage(current, stage, promptFile, { runner = execFileSync, projectRoot = PROJECT_ROOT, plan = null } = {}) {
+export function startStage(current, stage, promptFile, { runner = execFileSync, projectRoot = PROJECT_ROOT, plan = null, rewind = false } = {}) {
   if (!STAGE_BY_NAME[stage] && stage !== "patch") throw new Error(`Unknown stage: ${stage}.`);
   const state = readWorkState(current, { runner, projectRoot });
-  if (state.active && state.active.stage !== stage) throw new Error(`Stage ${state.active.stage} still has an unapplied result.`);
+  if (state.active && state.active.stage !== stage && !rewind) throw new Error(`Stage ${state.active.stage} still has an unapplied result.`);
   if (stage === "issue") state.completed = [];
   else if (stage === "patch") state.completed = state.completed.filter((name) => name !== stage);
   else if (plan && state.completed.includes(stage)) {
-    const stale = new Set([stage]);
-    let changed = true;
-    while (changed) {
-      changed = false;
-      for (const item of plan.stages) {
-        if (!stale.has(item.name) && item.dependsOn.some((dependency) => stale.has(dependency))) {
-          stale.add(item.name);
-          changed = true;
-        }
-      }
-    }
+    const index = plan.stages.findIndex(({ name }) => name === stage);
+    const stale = new Set(plan.stages.slice(index).map(({ name }) => name));
     state.completed = state.completed.filter((name) => !stale.has(name));
   }
   state.active = { stage, promptFile };

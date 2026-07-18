@@ -133,11 +133,17 @@ async function generateStage(current, stage, requirement = "") {
   if (reconciled.cleared) {
     console.log(`Cleared missing active Prompt: ${reconciled.cleared.stage} (${reconciled.cleared.promptFile})`);
   }
-  if (state.active && state.active.stage !== stage) throw new Error(`Stage ${state.active.stage} still has an unapplied result.`);
   let dependencies = [];
-  let plan = null;
+  const plan = stage !== "issue" || existsSync(workflowFile(current.requirementDir))
+    ? readWorkflowPlan(current.requirementDir)
+    : null;
+  const rewind = Boolean(state.active && state.active.stage !== stage && plan && (
+    state.active.stage === "patch"
+      ? plan.stages.some(({ name }) => name === stage)
+      : dependencyStages(plan, state.active.stage).includes(stage)
+  ));
+  if (state.active && state.active.stage !== stage && !rewind) throw new Error(`Stage ${state.active.stage} still has an unapplied result.`);
   if (stage !== "issue") {
-    plan = readWorkflowPlan(current.requirementDir);
     assertStageReady(plan, state, stage, state.completed, true, true);
     dependencies = dependencyStages(plan, stage);
   }
@@ -164,7 +170,8 @@ async function generateStage(current, stage, requirement = "") {
     issue: current.issue,
     dependencies,
   });
-  startStage(current, stage, promptFile, { plan });
+  startStage(current, stage, promptFile, { plan, rewind });
+  if (rewind) console.log(`Rewound: ${state.active.stage} -> ${stage}`);
 }
 
 function within(file, target) {
