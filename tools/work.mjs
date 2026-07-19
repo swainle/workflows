@@ -23,6 +23,7 @@ import {
   completeActiveStage,
   dependencyStages,
   findActiveResult,
+  recordAppliedPatch,
   readWorkflowPlan,
   readWorkState,
   stageStatuses,
@@ -34,7 +35,7 @@ const usage = `Usage:
   pnpm -s work:status
   pnpm -s work:next [stage] [--require <text>]
   pnpm -s work:patch [--require <text>] [--list]
-  pnpm -s work:<stage> [--require <text>] [--list]`;
+  pnpm -s work:<stage> [--require <text>] [--list] [--merge]`;
 
 export function parseWorkArguments(args = process.argv.slice(2)) {
   args = [...args];
@@ -66,10 +67,10 @@ export function parseWorkArguments(args = process.argv.slice(2)) {
       args,
       allowPositionals: true,
       strict: true,
-      options: { require: { type: "string" }, list: { type: "boolean" } },
+      options: { require: { type: "string" }, list: { type: "boolean" }, merge: { type: "boolean" } },
     });
-    if (positionals.length || (values.list && values.require)) throw new Error(usage);
-    return { command, requirement: values.require ?? "", list: values.list ?? false };
+    if (positionals.length || (values.list && values.require) || (values.merge && (command === "patch" || values.list || values.require))) throw new Error(usage);
+    return { command, requirement: values.require ?? "", list: values.list ?? false, ...(values.merge ? { merge: true } : {}) };
   }
   throw new Error(usage);
 }
@@ -214,6 +215,26 @@ export function unappliedPatches(patches, applied = []) {
   return patches.filter((patchFile) => !applied.includes(patchFile));
 }
 
+async function mergeActiveStage(current, stage) {
+  const state = readWorkState(current);
+  if (state.active?.stage !== stage) throw new Error(`Stage ${stage} is not active.`);
+  const result = findActiveResult(current, state);
+  const patches = [result.patchFile, ...result.globalPatchFiles].filter(Boolean);
+  const pendingPatches = unappliedPatches(patches, state.appliedPatches);
+  if (!pendingPatches.length) throw new Error(result.noChanges ? `Stage ${stage} has no Patch to merge.` : `Stage ${stage} Patch is already merged.`);
+  for (const patchFile of pendingPatches) {
+    checkPatch(current, patchFile === result.patchFile ? stage : "global", patchFile);
+  }
+  console.log(`Stage: ${stage}\nPatches: ${pendingPatches.join(", ")}\nAnalysis: ${result.analysisFile}`);
+  const answer = (await ask("Apply these Patches and keep the stage active? [y/N] ")).trim().toLowerCase();
+  if (!["y", "yes"].includes(answer)) throw new Error("Cancelled.");
+  for (const patchFile of pendingPatches) {
+    execFileSync("git", ["apply", patchFile], { cwd: PROJECT_ROOT, stdio: "inherit" });
+    recordAppliedPatch(current, patchFile);
+  }
+  console.log(`Merged: ${stage}\nStage remains active. Re-run work:${stage} or finish with work:next.`);
+}
+
 async function generatePatch(current, requirement = "") {
   const state = readWorkState(current);
   if (state.active) throw new Error(`Stage ${state.active.stage} still has an unapplied result.`);
@@ -283,6 +304,7 @@ export async function main(args = process.argv.slice(2)) {
   if (parsed.command === "status") return printStatus(current);
   if (parsed.command === "next") return applyAndContinue(current, parsed.nextStage, parsed.requirement);
   if (parsed.command === "patch") return generatePatch(current, parsed.requirement);
+  if (parsed.merge) return mergeActiveStage(current, parsed.command);
   await generateStage(current, parsed.command, parsed.requirement);
 }
 

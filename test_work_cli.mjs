@@ -7,7 +7,7 @@ import { currentRequirement, normalizeShortName, readGithubIssue, selectRequirem
 import { assertAllowedPatchPaths, parseWorkArguments, unappliedPatches } from "./tools/work.mjs";
 import { STAGES } from "./tools/core/stages.mjs";
 import { PROJECT_ROOT } from "./tools/core/paths.mjs";
-import { assertStageReady, clearMissingActiveStage, completeActiveStage, dependencyStages, findActiveResult, readWorkflowPlan, readWorkState, stageStatuses, startStage, validateWorkflowPlan } from "./tools/core/workflow.mjs";
+import { assertStageReady, clearMissingActiveStage, completeActiveStage, dependencyStages, findActiveResult, readWorkflowPlan, readWorkState, recordAppliedPatch, stageStatuses, startStage, validateWorkflowPlan } from "./tools/core/workflow.mjs";
 
 test("parses the simplified commands", () => {
   assert.deepEqual(parseWorkArguments(["req", "--issue", "4"]), { command: "req", issue: "4" });
@@ -15,11 +15,13 @@ test("parses the simplified commands", () => {
   assert.deepEqual(parseWorkArguments(["next", "dev"]), { command: "next", nextStage: "dev", requirement: "" });
   assert.deepEqual(parseWorkArguments(["design", "--require", "web only"]), { command: "design", requirement: "web only", list: false });
   assert.deepEqual(parseWorkArguments(["dev", "--list"]), { command: "dev", requirement: "", list: true });
+  assert.deepEqual(parseWorkArguments(["design", "--merge"]), { command: "design", requirement: "", list: false, merge: true });
   assert.deepEqual(parseWorkArguments(["patch"]), { command: "patch", requirement: "", list: false });
   for (const retired of ["issue", "process", "api", "backend", "frontend:web"] ) {
     assert.throws(() => parseWorkArguments([retired]));
   }
-  assert.throws(() => parseWorkArguments(["dev", "--merge"]));
+  assert.throws(() => parseWorkArguments(["dev", "--merge", "--require", "again"]));
+  assert.throws(() => parseWorkArguments(["patch", "--merge"]));
 });
 
 test("registers the fixed workflow", () => {
@@ -104,6 +106,11 @@ test("tracks active results without rewriting history", () => {
     writeFileSync(path.join(runDir, "prompt.01.git.patch.md"), "result: proposed\n");
     const result = findActiveResult(current, readWorkState(current, { projectRoot, runner }), { projectRoot });
     assert.equal(result.patchFile, "docs/requirements/REQ-0004-build/design/20260717010101/prompt.01.git.patch");
+    recordAppliedPatch(current, result.patchFile, { projectRoot, runner });
+    const merged = readWorkState(current, { projectRoot, runner });
+    assert.equal(merged.active.stage, "design");
+    assert.deepEqual(merged.completed, []);
+    assert.deepEqual(merged.appliedPatches, [result.patchFile]);
     completeActiveStage(current, result, { projectRoot, runner });
     const completed = readWorkState(current, { projectRoot, runner });
     assert.deepEqual(completed.completed, ["design"]);

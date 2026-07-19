@@ -184,6 +184,14 @@ Dev 是唯一可以直接修改业务源码的阶段；其他阶段通过 Git Pa
 pnpm -s work:next <下一阶段>
 ```
 
+如果只想合并当前 Patch 查看效果，同时保持阶段为 `active`：
+
+```bash
+pnpm -s work:<阶段> --merge
+```
+
+合并后可以重新执行同一阶段生成新的 Prompt；确认最终结果后再运行 `work:next` 完成阶段。
+
 例如：
 
 ```bash
