@@ -1,9 +1,9 @@
-import { execFileSync } from "node:child_process";
 import { existsSync, mkdirSync, readFileSync, readdirSync, statSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import { walkTextFiles } from "./files.mjs";
-import { PROJECT_ROOT, WORKFLOW_ROOT, fromProject, projectRelative } from "./paths.mjs";
+import { WORKFLOW_ROOT, fromProject, projectRelative } from "./paths.mjs";
 import { STAGE_BY_NAME } from "./stages.mjs";
+import { REQUIREMENT_SPEC_ARTIFACTS } from "./specs.mjs";
 import { requirementsForIssue } from "./current-requirement.mjs";
 
 const MAX_CONTEXT_BYTES = 1_500_000;
@@ -20,19 +20,6 @@ function language(file) {
   return path.extname(file).slice(1).toLowerCase();
 }
 
-export function sourceBaseline(config, { projectRoot = PROJECT_ROOT, runner = execFileSync } = {}) {
-  if (!config.directSourceChanges) return "不适用。";
-  let commit;
-  try {
-    commit = runner("git", ["rev-parse", "--verify", "--quiet", "HEAD"], { cwd: projectRoot, encoding: "utf8" }).trim();
-  } catch (error) {
-    if (error.status !== 1) throw error;
-    commit = "无（仓库尚无提交）";
-  }
-  const changes = runner("git", ["status", "--short"], { cwd: projectRoot, encoding: "utf8" }).trim();
-  return [`- 开始 Commit：\`${commit}\``, "- 开始前已有工作树变化：", changes ? `\n\`\`\`text\n${changes}\n\`\`\`` : "  无。"].join("\n");
-}
-
 function requirementStageFiles(requirementDir, config, dependencies) {
   const directories = new Set([
     config.directory,
@@ -45,6 +32,10 @@ function requirementStageFiles(requirementDir, config, dependencies) {
       .filter((entry) => entry.isFile())
       .flatMap((entry) => walkTextFiles(path.join(directory, entry.name)));
   });
+}
+
+function requirementSpecFiles(requirementDir) {
+  return REQUIREMENT_SPEC_ARTIFACTS.flatMap((relative) => walkTextFiles(path.join(requirementDir, relative)));
 }
 
 function referencedIssueNumbers(issue) {
@@ -63,6 +54,7 @@ function relatedStageFiles(config, issue) {
     }
     if (!requirements.length) return [];
     return config.relatedStages.flatMap((stage) => {
+      if (stage === "design") return requirementSpecFiles(requirements[0]);
       const directory = path.join(requirements[0], STAGE_BY_NAME[stage]?.directory ?? stage);
       if (!existsSync(directory)) return [];
       return readdirSync(directory, { withFileTypes: true })
@@ -77,9 +69,12 @@ function collectContext(config, requirementDir, requirementFile, issue, dependen
   for (const relative of config.globals ?? []) {
     for (const file of walkTextFiles(fromProject(relative))) selected.add(file);
   }
-  if (existsSync(requirementFile)) selected.add(requirementFile);
-  const statusFile = path.join(requirementDir, "status.json");
-  if (existsSync(statusFile)) selected.add(statusFile);
+  for (const file of requirementSpecFiles(requirementDir)) selected.add(file);
+  for (const relative of config.artifacts ?? []) {
+    if (!relative.includes("/") && !relative.includes("*")) {
+      for (const file of walkTextFiles(path.join(requirementDir, relative))) selected.add(file);
+    }
+  }
   const questionsFile = path.join(requirementDir, config.directory, "questions.md");
   if (existsSync(questionsFile)) selected.add(questionsFile);
   for (const file of requirementStageFiles(requirementDir, config, dependencies)) selected.add(file);
@@ -159,7 +154,7 @@ export async function runPromptStage(config, { target, requirement = "", issue =
   if (!existsSync(requirementDir) || !statSync(requirementDir).isDirectory()) {
     throw new Error(`Requirement directory not found: ${target}`);
   }
-  const requirementFile = path.join(requirementDir, "design", "requirement.md");
+  const requirementFile = path.join(requirementDir, "requirement.md");
   if (!/^REQ-\d{4}-[A-Za-z0-9][A-Za-z0-9_-]*$/.test(path.basename(requirementDir))) {
     throw new Error("Requirement directory must look like REQ-0010-feature.");
   }
@@ -210,7 +205,7 @@ export async function runPromptStage(config, { target, requirement = "", issue =
       return `## ${relative}\n\n${readFileSync(file, "utf8").trim()}`;
     }).join("\n\n"),
     "{{WORKTREE_RULES}}": config.directSourceChanges
-      ? `允许直接创建、修改或删除完成本次开发所需的源码、迁移、测试和非敏感项目配置。不得直接修改阶段产物、全局产物、其他需求目录或 \`${projectRelative(outputDir)}\` 中的 \`prompt.md\`；阶段产物只能通过本次 Git Patch 提出。保留开始前已有的用户修改，不得重置、覆盖或清理无关工作树内容。`
+      ? `允许直接创建、修改或删除完成本次开发所需的业务源码、迁移、自动化测试和非敏感应用内配置。不得直接修改需求层规范、阶段产物、全局产物、根项目配置、其他需求目录或 \`${projectRelative(outputDir)}\` 中的 \`prompt.md\`；阶段产物和 Status 只能通过本次 Git Patch 提出。保留当前已有内容，不得重置、覆盖或清理无关工作树。`
       : `严禁直接创建、修改或删除任何阶段产物、源码或全局产物；只能在 \`${projectRelative(outputDir)}\` 创建本次 Git Patch 和分析文件。检查 Patch 时也不得通过临时修改目标文件来生成或修复 Patch。`,
     "{{READ_RULES}}": config.directSourceChanges
       ? "- 输入上下文已经包含需求、依赖阶段产物、关联需求参考和全局产物，不得再读取其他需求目录或历史时间戳目录。\n- 可以读取当前项目源码、配置和脚本以识别实际实现与验证命令；不得读取密钥、令牌或与本次开发无关的外部文件。"
@@ -218,7 +213,6 @@ export async function runPromptStage(config, { target, requirement = "", issue =
     "{{IMPACT_RULES}}": config.directSourceChanges
       ? "“影响文件”列出本次直接修改的源码、迁移、测试和配置，以及阶段 Patch 修改的稳定产物，并在影响说明中标注修改方式。"
       : "“影响文件”只列阶段 Patch 实际修改的路径。",
-    "{{SOURCE_BASELINE}}": sourceBaseline(config),
     "{{STAGE_INSTRUCTIONS}}": stage.trim(),
     "{{CONTEXT}}": context.text,
   };

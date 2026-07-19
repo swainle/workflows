@@ -1,12 +1,6 @@
-- 只把已完成需求中确认的长期事实同步到全局文件。
-- 在当前需求根目录生成 `completion.md`，只记录元信息、完成结果、语义修改、迁移要求、测试结论和关联记录，并使其可以直接作为 Pull Request 描述。
-- 不在 `completion.md` 中重复 GitHub 已提供的文件清单、代码 Diff、Commit 或完整测试日志。
-- 测试结果和关联记录必须有依据；未执行、未确认或不存在时明确标注，不得编造。
-- 不把单次验收条件、待确认问题或实现过程写入全局文件。
-- 把 Design 中确认且长期有效的需求、架构、流程、技术选型和部署变化分别增量同步到 `docs/architecture/requirement.md`、`architecture.md`、`process/`、`technology.md` 和 `deployment.md`。
-- 把 `design/backend.process.md` 增量同步到 `docs/architecture/process/backend.process.md`，把 `design/backend.ddd.md` 增量同步到 `docs/architecture/backend.ddd.md`。
-- 把 `design/design.token.json` 的长期变化合并到全局 `packages/design-tokens/tokens/token.json`。
-- 把 `design/<platform>.design.token.json` 的长期变化合并到对应全局 `<platform>.token.json`；平台文件只保存平台差异，不复制公共 Token。
-- 把 Design 中经后续阶段验证的三套 `.compose.yml` 和 `.env` 同步到宿主项目 `docker/` 下的同名文件；不得同步敏感值。
-- 以根层 `status.json` 为最终完成清单，只更新 Patch 状态；任何 active 项未闭环时不得生成完成摘要。
-- 不修改业务源码和其他需求目录。
+- Patch 是唯一可以修改全局文件的阶段。
+- 只有 Design、Dev、Test 对全部 active 项闭环后才能执行。
+- 把需求根层长期规范增量合并到全局架构、契约、流程、Tokens、Docker 和必要项目配置。
+- 同步唯一 `compose.yml` 与 `dev.env`、`test.env`、`prod.env`，不得同步密钥。
+- 生成 `completion.md`，只更新 `status.json` 的 Patch 状态与证据。
+- 不修改业务源码、需求设计语义、其他需求或历史执行记录。

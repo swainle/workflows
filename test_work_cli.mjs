@@ -6,58 +6,39 @@ import test from "node:test";
 import { currentRequirement, normalizeShortName, readGithubIssue, selectRequirement } from "./tools/core/current-requirement.mjs";
 import { assertAllowedPatchPaths, parseWorkArguments, unappliedPatches } from "./tools/work.mjs";
 import { STAGES } from "./tools/core/stages.mjs";
-import { PROJECT_ROOT } from "./tools/core/paths.mjs";
-import { sourceBaseline } from "./tools/core/prompt-stage.mjs";
+import { PROJECT_ROOT, WORKFLOW_ROOT, projectRelative } from "./tools/core/paths.mjs";
+import { runPromptStage } from "./tools/core/prompt-stage.mjs";
+import DESIGN_CONFIG from "./tools/prompt/design.mjs";
 import { walkTextFiles } from "./tools/core/files.mjs";
 import { assertStageReady, assertTrackingStageComplete, clearMissingActiveStage, completeActiveStage, dependencyStages, findActiveResult, readWorkflowPlan, readWorkState, recordAppliedPatch, stageStatuses, startStage, validateWorkflowPlan } from "./tools/core/workflow.mjs";
 
 test("parses the simplified commands", () => {
   assert.deepEqual(parseWorkArguments(["req", "--issue", "4"]), { command: "req", issue: "4" });
   assert.deepEqual(parseWorkArguments(["status"]), { command: "status" });
-  assert.deepEqual(parseWorkArguments(["next", "dev"]), { command: "next", nextStage: "dev", requirement: "" });
   assert.deepEqual(parseWorkArguments(["design", "--require", "web only"]), { command: "design", requirement: "web only", list: false });
   assert.deepEqual(parseWorkArguments(["dev", "--list"]), { command: "dev", requirement: "", list: true });
   assert.deepEqual(parseWorkArguments(["design", "--merge"]), { command: "design", requirement: "", list: false, merge: true });
   assert.deepEqual(parseWorkArguments(["patch"]), { command: "patch", requirement: "", list: false });
-  for (const retired of ["issue", "process", "api", "backend", "frontend:web"] ) {
+  assert.deepEqual(parseWorkArguments(["patch", "--merge"]), { command: "patch", requirement: "", list: false, merge: true });
+  for (const retired of ["next", "deployment", "issue", "process", "api", "backend", "frontend:web"] ) {
     assert.throws(() => parseWorkArguments([retired]));
   }
   assert.throws(() => parseWorkArguments(["dev", "--merge", "--require", "again"]));
-  assert.throws(() => parseWorkArguments(["patch", "--merge"]));
 });
 
 test("registers the fixed workflow", () => {
-  assert.deepEqual(STAGES.map(({ name }) => name), ["design", "dev", "test", "deployment"]);
+  assert.deepEqual(STAGES.map(({ name }) => name), ["design", "dev", "test"]);
   const plan = readWorkflowPlan();
   assert.deepEqual(plan.stages.map(({ name, dependsOn }) => ({ name, dependsOn })), [
     { name: "design", dependsOn: [] },
     { name: "dev", dependsOn: ["design"] },
     { name: "test", dependsOn: ["dev"] },
-    { name: "deployment", dependsOn: ["test"] },
   ]);
-  assert.deepEqual(dependencyStages(plan, "deployment"), ["test", "dev", "design"]);
+  assert.deepEqual(dependencyStages(plan, "test"), ["dev", "design"]);
   assert.throws(() => validateWorkflowPlan({ version: 1, stages: [
     { name: "design", dependsOn: ["dev"], reason: "cycle" },
     { name: "dev", dependsOn: ["design"], reason: "cycle" },
   ] }), /design stage cannot have dependencies|dependency cycle/);
-});
-
-test("captures the source baseline for direct development", () => {
-  assert.equal(sourceBaseline({ directSourceChanges: false }), "不适用。");
-  const runner = (_command, args) => args[0] === "rev-parse" ? "abc123\n" : " M apps/web/page.tsx\n";
-  const baseline = sourceBaseline({ directSourceChanges: true }, { projectRoot: "C:/project", runner });
-  assert.match(baseline, /开始 Commit：`abc123`/);
-  assert.match(baseline, /M apps\/web\/page\.tsx/);
-
-  const unbornRunner = (_command, args) => {
-    if (args[0] !== "rev-parse") return "?? package.json\n";
-    const error = new Error("no HEAD");
-    error.status = 1;
-    throw error;
-  };
-  const unborn = sourceBaseline({ directSourceChanges: true }, { projectRoot: "C:/project", runner: unbornRunner });
-  assert.match(unborn, /开始 Commit：`无（仓库尚无提交）`/);
-  assert.match(unborn, /\?\? package\.json/);
 });
 
 test("reads named environment artifacts but skips local dotenv files", () => {
@@ -71,13 +52,36 @@ test("reads named environment artifacts but skips local dotenv files", () => {
   }
 });
 
+test("embeds root requirement specs in the generated prompt", async () => {
+  const root = mkdtempSync(path.join(WORKFLOW_ROOT, ".prompt-test-"));
+  const requirementDir = path.join(root, "REQ-9999-prompt-test");
+  const target = projectRelative(requirementDir);
+  try {
+    mkdirSync(requirementDir, { recursive: true });
+    writeFileSync(path.join(requirementDir, "requirement.md"), "# Requirement root fact\n");
+    const output = await runPromptStage({ ...DESIGN_CONFIG, module: "design", directory: "design", references: [] }, {
+      target,
+      issue: { number: 9999, title: "Prompt test", url: "https://example/9999", body: "Root context", comments: [] },
+      dependencies: [],
+    });
+    const prompt = readFileSync(path.join(PROJECT_ROOT, output), "utf8");
+    assert.match(prompt, /# 通用规范/);
+    assert.ok(prompt.includes(`文件：${target}/requirement.md`));
+    assert.match(prompt, /Requirement root fact/);
+    assert.doesNotMatch(prompt, /\{\{[A-Z_]+\}\}/);
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+});
+
 test("limits stage and final patches to their path scopes", () => {
   const current = { requirementDir: path.join(PROJECT_ROOT, "docs/requirements/REQ-0004-build") };
   assert.doesNotThrow(() => assertAllowedPatchPaths(current, "design", [
-    "docs/requirements/REQ-0004-build/design/requirement.md",
-    "docs/requirements/REQ-0004-build/design/web.ui.yaml",
-    "docs/requirements/REQ-0004-build/design/development.compose.yml",
-    "docs/requirements/REQ-0004-build/design/development.env",
+    "docs/requirements/REQ-0004-build/requirement.md",
+    "docs/requirements/REQ-0004-build/requirement.functional.md",
+    "docs/requirements/REQ-0004-build/web.ui.yaml",
+    "docs/requirements/REQ-0004-build/compose.yml",
+    "docs/requirements/REQ-0004-build/dev.env",
   ]));
   assert.doesNotThrow(() => assertAllowedPatchPaths(current, "dev", [
     "docs/requirements/REQ-0004-build/dev/development.md",
@@ -87,15 +91,19 @@ test("limits stage and final patches to their path scopes", () => {
   assert.throws(() => assertAllowedPatchPaths(current, "dev", ["apps/api/src/index.ts"]), /cannot modify/);
   assert.throws(() => assertAllowedPatchPaths(current, "design", [
     "docs/requirements/REQ-0004-build/design/20260717010101/prompt.md",
-  ]), /execution history/);
+  ]), /cannot modify|execution history/);
+  assert.doesNotThrow(() => assertAllowedPatchPaths(current, "design", [
+    "docs/requirements/REQ-0004-build/design/requirement.md",
+  ]));
   assert.doesNotThrow(() => assertAllowedPatchPaths(current, "patch", [
     "docs/architecture/requirement.md", "docs/architecture/architecture.md",
     "packages/design-tokens/tokens/token.json",
-    "docker/production.compose.yml", "docker/production.env",
+    "docker/compose.yml", "docker/prod.env",
     "docs/requirements/REQ-0004-build/completion.md",
     "docs/requirements/REQ-0004-build/status.json",
   ]));
-  assert.throws(() => assertAllowedPatchPaths(current, "dev", ["docker/development.compose.yml"]), /cannot modify/);
+  assert.throws(() => assertAllowedPatchPaths(current, "dev", ["docs/requirements/REQ-0004-build/requirement.md"]), /cannot modify/);
+  assert.throws(() => assertAllowedPatchPaths(current, "dev", ["docker/compose.yml"]), /cannot modify/);
   assert.throws(() => assertAllowedPatchPaths(current, "patch", ["apps/api/src/index.ts"]), /cannot modify/);
   assert.deepEqual(unappliedPatches(["a.patch", "b.patch"], ["a.patch"]), ["b.patch"]);
 });
@@ -105,16 +113,16 @@ test("validates the shared requirement tracking file", () => {
   const requirementDir = path.join(root, "REQ-0004-build");
   mkdirSync(requirementDir, { recursive: true });
   const item = (id, type, links) => ({
-    id, type, title: id, source: `design/requirement.md#${id}`, links, lifecycle: "active",
-    stages: { design: "done", dev: "done", test: "passed", deployment: "not-applicable", patch: "pending" },
-    evidence: { design: ["design"], dev: ["source"], test: ["test/report.md"], deployment: ["no deployment change"], patch: [] },
+    id, type, title: id, source: `requirement.functional.md#${id}`, links, lifecycle: "active",
+    stages: { design: "done", dev: "done", test: "passed", patch: "pending" },
+    evidence: { design: ["design"], dev: ["source"], test: ["test/report.md"], patch: [] },
   });
   const tracking = {
     version: 1, requirement: "REQ-0004", items: [
       item("REQ-0004-FR-001", "functional-requirement", ["REQ-0004-FLOW-001", "REQ-0004-AC-001", "REQ-0004-TC-001"]),
-      item("REQ-0004-FLOW-001", "flow", ["REQ-0004-FR-001"]),
-      item("REQ-0004-AC-001", "acceptance-criterion", ["REQ-0004-FR-001"]),
-      item("REQ-0004-TC-001", "test-case", ["REQ-0004-FR-001"]),
+      item("REQ-0004-FLOW-001", "flow", []),
+      item("REQ-0004-AC-001", "acceptance-criterion", []),
+      item("REQ-0004-TC-001", "test-case", []),
     ],
   };
   try {
@@ -186,7 +194,6 @@ test("tracks active results without rewriting history", () => {
       { name: "design", status: "completed" },
       { name: "dev", status: "ready" },
       { name: "test", status: "blocked" },
-      { name: "deployment", status: "blocked" },
     ]);
     assert.doesNotThrow(() => assertStageReady(readWorkflowPlan(), completed, "dev"));
     rmSync(path.join(projectRoot, promptFile));

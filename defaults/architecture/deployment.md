@@ -2,17 +2,17 @@
 
 ## Development
 
-- 使用 `docker/development.compose.yml` 和 `docker/development.env`。
+- 使用 `docker/compose.yml` 和 `docker/dev.env`。
 - 支持本地构建、调试和开发数据初始化。
 
 ## Test
 
-- 使用 `docker/test.compose.yml` 和 `docker/test.env`。
+- 使用 `docker/compose.yml` 和 `docker/test.env`。
 - 使用隔离数据执行集成、迁移和回归测试。
 
 ## Production
 
-- 使用 `docker/production.compose.yml` 和 `docker/production.env`。
+- 使用 `docker/compose.yml` 和 `docker/prod.env`。
 - 部署锁定版本的镜像，并在发布后检查健康状态。
 
 ## 迁移

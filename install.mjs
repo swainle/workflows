@@ -26,7 +26,6 @@ const SCRIPTS = Object.fromEntries([
   ["work:check", "node docs/workflows/tools/check.mjs"],
   ["work:req", "node docs/workflows/tools/work.mjs req"],
   ["work:status", "node docs/workflows/tools/work.mjs status"],
-  ["work:next", "node docs/workflows/tools/work.mjs next"],
   ["work:patch", "node docs/workflows/tools/work.mjs patch"],
   ...STAGE_NAMES.map((stage) => [`work:${stage}`, `node docs/workflows/tools/work.mjs ${stage}`]),
 ]);
@@ -35,6 +34,7 @@ const LEGACY_SCRIPTS = new Set([
   "prompt:api", "prompt:database", "prompt:backend", "prompt:permission", "prompt:frontend",
   "prompt:test", "prompt:deployment",
   "work:frontend",
+  "work:next", "work:deployment",
   "work:issue", "work:process", "work:permission", "work:c4", "work:api", "work:database", "work:backend",
   "work:frontend:web", "work:frontend:mobile", "work:frontend:mini-program", "work:frontend:desktop",
 ]);

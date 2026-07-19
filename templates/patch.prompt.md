@@ -1,65 +1,37 @@
-# 阶段目标
+## 目标（最重要）
 
-需求的选定阶段已经全部完成。对照全部需求产物和下面提供的当前全局文件，只同步长期有效且已经确认的项目事实，并生成本需求的完成摘要。
+读取需求根层全部规范、Dev 与 Test 结果和现有全局文件，只把已经实现、测试并确认的长期事实增量合并到全局文件，同时生成 `completion.md`。Patch 是唯一可以修改全局文件的阶段，不修改业务源码或需求设计语义。
 
-先以需求根层 `status.json` 为唯一完成清单。任一 active 项的 Design、Dev、Test 或 Deployment 状态不是对应的 `done`、`passed` 或 `not-applicable` 时停止，不得生成完成结果。输出一个中间 Git Patch，同时包含全局产物变化、`{{REQUIREMENT_DIR}}/completion.md` 和更新后的 `status.json`；本阶段发生对话确认时也可以更新 `{{QUESTIONS_FILE}}`。不得修改业务源码、当前需求的其他文件、其他需求、工作流工具或未在输入上下文中出现的全局文件。即使没有需要同步的全局变化，也必须创建或更新 `completion.md` 和 `status.json`，不得输出 `no-changes`。
+开始前检查每个 active 项的 Design、Dev、Test 分别为 `done`、`done`、`passed` 或有证据的 `not-applicable`；任一项未闭环时停止。
 
-Design Tokens 只在本阶段同步：把 `design/design.token.json` 中确认且长期有效的变化增量合并到 `packages/design-tokens/tokens/token.json`；把 `design/<platform>.design.token.json` 合并到对应 `<platform>.token.json`。平台文件只保留平台新增或覆盖项，不复制公共 Token，不用当前需求文件整体覆盖全局文件。
+## 可修改文件范围
 
-Design 的长期项目事实只在本阶段增量同步：`design/requirement.md` 对应 `docs/architecture/requirement.md`，`design/architecture.md` 对应 `docs/architecture/architecture.md`，`design/process.md` 的长期流程对应 `docs/architecture/process/overview.md`，`design/backend.process.md` 对应 `docs/architecture/process/backend.process.md`，`design/backend.ddd.md` 对应 `docs/architecture/backend.ddd.md`，`design/technology.md` 对应 `docs/architecture/technology.md`，`design/deployment.md` 对应 `docs/architecture/deployment.md`。不得用单个需求文件整体覆盖全局文件。
+- `{{REQUIREMENT_DIR}}/completion.md`；
+- `{{REQUIREMENT_DIR}}/patch/questions.md`；
+- `{{REQUIREMENT_DIR}}/status.json` 中 Patch 状态与证据；
+- 已注入且确需增量同步的 `docs/architecture/**`、`docs/contracts/**`、`docs/development/**`、`docker/**`、`packages/design-tokens/tokens/**`、根 `package.json`、`pnpm-workspace.yaml`、`turbo.json`。
 
-Design 契约也只在本阶段增量同步：把已经实现并通过测试的 `design/openapi.json`、`asyncapi.json`、`schema.dbml` 和 `authorization.fga` 变化分别合并到 `docs/contracts/` 对应文件。保留无关契约、稳定 `operationId`、事件、模型和权限语义，不得用当前需求文件整体覆盖全局文件；没有对应变化时不修改。
+不得修改业务源码、需求根层其他规范、Dev/Test 结果、其他需求或执行历史，不得整体覆盖无关全局内容。
 
-Docker 编排也只在本阶段同步：把 Design 中已经通过 Dev、Test 和 Deployment 验证的 `development.compose.yml`、`development.env`、`test.compose.yml`、`test.env`、`production.compose.yml`、`production.env` 同步到宿主项目 `docker/` 下的同名文件。不得同步包含密码、Token、证书、真实凭据或其他密钥的环境值。
+## 专家团
 
-# 完成摘要
+- 技术负责人：判断长期事实和最终范围；
+- 架构与契约专家：合并架构、流程、DDD、技术栈和正式契约；
+- 发布与配置专家：合并 Compose、环境变量名、Tokens 和项目配置；
+- 测试负责人：核对实际实现、测试证据和剩余风险。
 
-`completion.md` 只包含以下结构：
+## 专家团协作流程
 
-```md
----
-requirement: {{REQUIREMENT}}
-issue: {{ISSUE_NUMBER}}
-status: completed
----
+1. 逐个 active 编号核对根层规范、Dev 实现、Test 证据和是否应形成全局事实。
+2. 增量同步：需求文件到 `docs/architecture/requirement.md`；状态与流程到 `docs/architecture/process/`；DDD、技术、架构、部署到对应全局架构文件；正式契约到 `docs/contracts/`。
+3. 把 `design.token.json` 与平台 Token 增量合并到全局 Tokens；不复制公共值，不覆盖无关平台值。
+4. 把经验证的唯一 `compose.yml` 和 `dev.env`、`test.env`、`prod.env` 同步到 `docker/`；只保留非敏感值和外部密钥变量名。
+5. 根项目配置只有确属本需求实现且经 Test 验证时才修改；再次核对无密钥、无范围外变化。
 
-# 完成
+## 上下文要求
 
-<已经交付、可以观察到的能力或结果>
+读取需求根层全部规范、Design/Dev/Test 阶段结果、`status.json` 和配置声明的全局文件。当前文件内容是合并基线，不依赖 Commit；没有注入的全局文件不得自行读取或修改。
 
-# 修改
+## 执行状态
 
-<行为、规则、接口或契约发生的语义变化；不列文件清单、Commit 或代码 Diff>
-
-# 迁移
-
-<部署、数据、客户端或使用方式需要执行的迁移动作；没有则写“无。”>
-
-# 测试
-
-<实际执行的自动化测试、人工验证及结果；未执行或未确认的项目必须明确标注>
-
-# 关联记录
-
-- Closes #{{ISSUE_NUMBER}}
-- 相关需求：<当前 Issue 明确引用的前置或相关需求；没有则写“无。”>
-```
-
-`completion.md` 应当可以直接作为 Pull Request 描述使用。只记录最终确认并实际包含在本需求结果中的事实；测试部分只写测试项和结论，不粘贴完整日志；不复述实施过程、阶段产物列表或 GitHub 已经提供的文件变更信息。不得编造 PR URL、Commit、测试结果或关联需求。
-
-# status.json
-
-只更新 Patch 状态和证据。已增量同步或已纳入最终完成摘要的 active 项标记 `done`，确实没有全局同步动作的项标记 `not-applicable` 并说明原因；证据引用实际全局文件或 `completion.md`。不得修改其他阶段状态、设计项身份或追溯关系。结束时每个 active 项五个阶段均已闭环，`completion.md` 才可写 `status: completed`。
-
-# Patch 允许包含的文件
-
-- `{{REQUIREMENT_DIR}}/completion.md`
-- `{{REQUIREMENT_DIR}}/status.json`
-- `docs/architecture/**`
-- `docs/contracts/**`
-- `docs/development/**`
-- `docker/**`
-- `packages/design-tokens/tokens/**`
-- `package.json`
-- `pnpm-workspace.yaml`
-- `turbo.json`
+只更新 `status.json` 的 Patch 状态与证据。已同步或已纳入完成摘要的 active 项标记 `done`；无需形成全局变化的项标记 `not-applicable` 并说明原因。所有 active 项四阶段闭环后，`completion.md` 才能写 `status: completed`，其内容包含完成、修改、迁移、测试和关联 Issue，可直接作为 PR 描述。

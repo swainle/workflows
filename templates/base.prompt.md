@@ -9,131 +9,167 @@ questions_file: {{QUESTIONS_FILE}}
 created_at: {{CREATED_AT}}
 ---
 
-# 任务
+# 通用规范
 
-执行“{{STAGE_NAME}}”阶段。阅读下面已内嵌的文件内容，在已有内容上补充和修正。
+当前磁盘中的需求层规范、阶段结果和源码是最新事实，不要求已有 Commit，也不得用 Git 历史覆盖当前文件。信息冲突时依次服从：Patch 与安全边界、本次对话确认及附加要求、当前主 Issue、当前需求文件、明确关联需求、全局文件和阶段默认配置。同级事实冲突时按“对话确认信息”处理。
 
-执行角色：
+只做当前阶段目标需要的最小修改。人工可能已经修改文件，必须保留无关内容、稳定编号、名称和契约，不重置、不清理、不顺手重构或升级依赖。
 
-{{ROLES}}
+## Mermaid 图表
 
-人工可能已经修改需求产物。已有文件代表当前最新状态，不要无理由重新生成或覆盖。
+图表只写在 Markdown 的 fenced `mermaid` 代码块中，不创建 PlantUML 文件。一个图只回答一个主要问题：
 
-# 信息优先级
+| 目的 | Mermaid |
+|---|---|
+| 核心状态 | `stateDiagram-v2` |
+| 业务流程 | `flowchart` |
+| 接口业务时序 | `sequenceDiagram` |
+| 系统架构 | `C4Container`，渲染器不支持时使用 `flowchart` |
+| 数据关系 | `erDiagram` |
 
-发生冲突时按以下顺序处理，低优先级内容不得覆盖高优先级内容：
+图前说明目的，图后补充无法在图中表达的约束；使用当前渲染环境支持的稳定语法，不为装饰生成图表。
 
-1. Patch 允许范围、安全边界和输出格式；
-2. 使用者在本次对话中的明确确认和“本次附加要求”；
-3. 当前主 Issue、输入上下文中的现有阶段产物和确认记录；
-4. 阶段默认配置与平台参考。
+## 对话确认信息
 
-同一优先级的事实互相冲突，或高优先级要求缺少完成所需信息时，按照“对话确认”处理。没有冲突时只做本阶段达成目标所需的最小修改，保留已有内容、命名和结构。
+生成结果前检查目标、范围、业务规则、验收、权限、兼容性、外部费用、账号依赖和不可逆操作。无法从执行上下文唯一确定且会改变产品结果时必须询问：
 
-# 阶段默认配置
+- 先穷尽已注入上下文；能由事实确定或不影响语义的排版选择不得提问。
+- 每次只问一个影响最大的问题，说明原因和影响，提供一至三个有依据的参考答案，等待回答后继续同一阶段。
+- 全部确认后立即继续，不要求使用者重新执行命令。
+- 只把已经回答且可复用的确认追加到 `{{QUESTIONS_FILE}}`；不保存未回答问题，不删除仍有效记录。
 
-{{DEFAULT_REQUIREMENTS}}
-
-# 本次附加要求
-
-{{USER_REQUIREMENT}}
-
-本次附加要求优先于阶段默认配置；但不得突破 Patch 允许范围、安全边界和输出格式。
-
-# 对话确认
-
-生成阶段产物前，检查需求目标、范围、约束、验收条件和本阶段关键决策。存在会改变产品结果、契约、权限、兼容性或不可逆操作且无法从事实唯一确定的事项时，必须先与使用者对话确认：
-
-- 提问前先穷尽输入上下文；能由已有事实唯一推出、由阶段默认配置明确规定，或不影响需求语义的排版选择，不得提问。
-- 每次只问一个当前影响最大的问题，等待回答后在同一次任务中继续；仍有阻塞事项时继续下一轮，直到达到本阶段门禁，不得要求使用者重新执行阶段命令。
-- 提问时说明影响的阶段和原因，并给出一至三个有依据的参考答案；推荐项放在最前，但不得把参考答案当作使用者的确认。
-- 信息应由其他阶段产出或修改时，明确建议重跑的负责阶段；不得在当前阶段自行补充。
-- 全部确认后立即继续生成阶段产物；把本轮问题、原因、参考答案和最终确认作为同一个阶段 Git Patch 的一部分追加或更新到 `{{QUESTIONS_FILE}}`，不得直接修改该文件。
-- `{{QUESTIONS_FILE}}` 是本阶段的稳定确认记录，供本需求后续阶段和明确关联的其他需求读取；不保存未回答的问题，不得删除已有有效记录。
-- 确认结果只写入当前阶段的 `{{QUESTIONS_FILE}}`，不得越权修改其他阶段的确认记录。
-
-确认记录使用以下精简格式：
+确认记录使用：
 
 ```md
-# 需求确认记录
+# 确认记录
 
-## {{STAGE_NAME}}
-
-- 问题：<曾经不确定的事项>
-  - 原因：影响 <阶段> <内容>；<确认原因>
-  - 参考：<推荐答案> / <备选答案> / <备选答案>
-  - 确认：<使用者最终确认的答案>
+- 问题：<不确定事项>
+  - 原因：<影响及为什么必须确认>
+  - 参考：<推荐> / <备选>
+  - 确认：<使用者答案>
 ```
 
-# 专家协作
+## 专家协作规范
 
-你是由以下多名与“{{STAGE_NAME}}”相关的资深专家组成的评审组：
+- 专家只依据执行上下文分析，不读取其他需求或历史时间戳目录。
+- 每名专家从专业正确性、可实现性、风险和边界提出结论，再交叉检查冲突、遗漏和假设。
+- 能由事实解决的分歧直接解决；不能解决时遵守“对话确认信息”。
+- 只有主 Agent 统一生成修改，不拼接未经检查的专家草稿，不输出内部讨论过程。
 
-{{ROLES}}
+## Status 规范
 
-至少从领域正确性、技术可行性、风险与边界三个角度共同评审：
+需求根层 `status.json` 是唯一执行状态与追踪文件。编号格式为 `<需求号>-<类型>-<三位序号>`，已使用编号不得改号、复用或重排：
 
-- 执行环境支持子代理时，交给不同专家并行审阅；否则在当前 AI 内部模拟不同专家审阅。
-- 每名专家只依据输入上下文提出简短意见，再交叉检查冲突、遗漏和不成立的假设。
-- 以需求、现有产物和可验证事实解决分歧；无法确认时遵守“对话确认”，不得编造。
-- 最终只提交经过确认的统一方案，不输出内部讨论过程。
+| 前缀 | 类型 |
+|---|---|
+| `FR` | `functional-requirement` |
+| `NFR` | `non-functional-requirement` |
+| `BR` | `business-rule` |
+| `FLOW` | `flow` |
+| `AC` | `acceptance-criterion` |
+| `TC` | `test-case` |
+| `PERM` | `permission-rule` |
+| `UI` | `platform-behavior` |
+| `MIG` | `migration` |
 
-# 执行顺序
+每项固定包含 `id`、`type`、`title`、`source`、`links`、`lifecycle`、`stages` 和 `evidence`。`links` 只需引用存在的编号，不要求反向重复引用；每个 active `FR` 必须关联至少一个 `FLOW`、`AC` 和 `TC`。`lifecycle` 只能是 `active`、`superseded` 或 `cancelled`，废弃项保留编号。
 
-1. 从输入上下文提取本阶段的目标、已有结论、未覆盖项和明确冲突，不扩展需求范围。
-2. 按照信息优先级解决冲突；只有触发“对话确认”时才暂停提问。
-3. 设计满足阶段目标的最小增量修改，并逐项核对阶段默认配置和 Patch 允许范围。
-4. 生成 Git Patch 和补丁分析；不得先改目标文件再反向生成 Patch。
-5. 运行规定的 Patch 校验。失败时修复输出文件并重新校验，直到通过。
-6. 校验输出文件、序号、frontmatter、引用文件和影响文件一致后结束。
+阶段只有 `design`、`dev`、`test`、`patch`。Design/Dev/Patch 状态使用 `pending`、`in-progress`、`done`、`blocked`、`not-applicable`；Test 使用 `pending`、`in-progress`、`passed`、`failed`、`blocked`、`not-applicable`。`done`、`passed` 和 `not-applicable` 必须有真实证据。
 
-{{STAGE_INSTRUCTIONS}}
+```json
+{
+  "version": 1,
+  "requirement": "REQ-0001",
+  "items": [{
+    "id": "REQ-0001-NFR-001",
+    "type": "non-functional-requirement",
+    "title": "沿用现有兼容范围",
+    "source": "requirement.non-functional.md#REQ-0001-NFR-001",
+    "links": [],
+    "lifecycle": "active",
+    "stages": { "design": "done", "dev": "not-applicable", "test": "pending", "patch": "pending" },
+    "evidence": { "design": ["requirement.non-functional.md#REQ-0001-NFR-001"], "dev": ["仅为测试约束，无源码变化"], "test": [], "patch": [] }
+  }]
+}
+```
 
-{{PLATFORM_REFERENCES}}
+- Design 创建编号和追踪关系，只更新 Design 状态与证据。
+- Dev/Test 只能更新自己阶段的状态与证据，不得修改需求层其他文件、编号、语义或其他阶段状态。
+- Patch 只更新 Patch 状态与证据。
+- 发现需求规范错误时停止当前阶段，说明原因并建议重新执行 `work:design`。
 
-# Mermaid 图表规范
+## Patch 规范
 
-需要图表时，只能在 `.md` 文件中使用 fenced `mermaid` 代码块，不得创建 `.puml` 文件或输出 PlantUML 语法。根据要回答的问题选择最小且最合适的图：
-
-| 目的 | Mermaid 声明 | 适用阶段 | 回答的问题 |
-|---|---|---|---|
-| 架构图 | `architecture-beta`，渲染器不支持时用 `flowchart` | 系统设计 | 系统由哪些模块组成？ |
-| 流程图 | `flowchart` | 需求分析、业务设计 | 业务流程是什么？ |
-| 时序图 | `sequenceDiagram` | 接口设计、详细设计 | 谁先调用谁？ |
-| 状态图 | `stateDiagram-v2` | 状态机设计 | 对象有哪些状态？ |
-| 类图 | `classDiagram` | OO 设计 | 类之间如何组织？ |
-| ER 图 | `erDiagram` | 数据库设计 | 数据表关系是什么？ |
-| Git 图 | `gitGraph` | Git 流程说明 | 分支如何演进？ |
-| Journey 图 | `journey` | 用户体验设计 | 用户经历了哪些步骤？ |
-| C4 图 | `C4Context`、`C4Container`、`C4Component` 或 `C4Deployment` | 软件架构 | 系统边界和不同层级的职责是什么？ |
-
-一个图只回答一个主要问题。优先使用当前文档渲染环境已经支持的 Mermaid 稳定语法；图前用一句话说明目的，图后补充图中无法表达的约束。
-
-# 输出文件
-
-需要修改时，直接创建：
-
-- Git Patch：`{{PATCH_FILE}}`
-- 简单分析：`{{ANALYSIS_FILE}}`
-
-Git Patch 必须从 `diff --git` 开始，使用项目相对路径，不得省略内容。只提出修改，不要应用 Patch。
+除 Dev 明确允许的源码修改外，不直接修改目标文件；通过本次 Git Patch 提出稳定文件变化。只有 Patch 阶段可以修改全局文件。所有阶段都不得修改其他需求、工作流工具或历史时间戳执行记录。
 
 {{WORKTREE_RULES}}
 
-创建 Git Patch 后必须在项目根目录运行 `git apply --check "{{PATCH_FILE}}"`。检查失败时先修复 Patch，直到检查通过；不得把损坏的 Patch 作为结果提交，也不得实际应用。
+需要修改时创建：
 
-`.01` 表示当前 Prompt 的第一次 AI 结果。如果同名结果已经存在，不得覆盖；本次所有输出同时改用下一个两位序号，例如 `.02`、`.03`，分析文件 frontmatter 中的文件名也必须使用实际序号。
+- Git Patch：`{{PATCH_FILE}}`
+- 补丁分析：`{{ANALYSIS_FILE}}`
 
-不需要修改时，只创建分析文件 `{{ANALYSIS_FILE}}`，并将 `patch_file` 写为 `null`，将 `result` 写为 `no-changes`。
+Git Patch 必须从 `diff --git` 开始，使用项目相对路径，不省略内容，不包含二进制、密钥或真实凭据。创建后从项目根目录运行 `git apply --check "{{PATCH_FILE}}"`，失败时修复 Patch 并重试，不实际应用。结果通过后由使用者运行 `work:{{STAGE}} --merge` 应用并完成阶段。
 
-所有阶段补丁分析统一使用以下精简结构，不得添加其他正文标题：
+同名结果已存在时使用下一个两位序号 `.02`、`.03`，Patch 与分析必须使用相同序号。不需要修改时只创建分析文件，`patch_file: null`、`result: no-changes`，不创建空 Patch。
+
+# 设计文件规范
+
+以下稳定规范全部位于 `{{REQUIREMENT_DIR}}/` 根层，不放在 `design/`；`design/`、`dev/`、`test/`、`patch/` 只保存各阶段确认记录、结果和时间戳执行历史。
+
+| 文件 | 规范 |
+|---|---|
+| `requirement.md` | 概览、背景、用户、场景、当前行为、目标行为、包含、不包含、约束和术语，不重复拆分文件正文 |
+| `requirement.functional.md` | 编号 `FR` 的功能需求；每项说明主体、前置、输入、行为、结果和失败结果 |
+| `requirement.business.md` | 编号 `BR` 的业务规则、适用条件、优先级和冲突处理 |
+| `requirement.permission.md` | 编号 `PERM` 的认证边界、主体、资源、操作、允许与明确禁止、租户边界和权限矩阵 |
+| `requirement.acceptance.md` | 编号 `AC` 的可观察验收条件，以及编号 `TC` 的前置数据、Given、When、Then、风险和适用平台 |
+| `requirement.non-functional.md` | 编号 `NFR` 的性能、安全、兼容、可访问性、可靠性等可验证指标；没有事实不猜数字 |
+| `all.state.md` | 核心业务对象、状态定义和 `stateDiagram-v2`，状态名与流程、API、数据一致 |
+| `all.process.md` | 编号 `FLOW` 的核心业务流程、分支、失败和结束条件，使用最小 `flowchart` |
+| `backend.process.md` | Backend 接口业务流程、事务、权限、幂等、并发、重试和补偿，每个主要流程一个 `sequenceDiagram` |
+| `ddd.md` | 统一语言、Bounded Context、聚合、实体、值对象、不变量、领域服务、事件、仓储端口和依赖方向 |
+| `technology.md` | 已确认技术栈、准确版本、用途、理由、兼容约束和事实来源；不写 `latest` |
+| `architecture.md` | 系统边界、容器职责、依赖、通信和数据所有权，使用 `C4Container` |
+| `contracts.md` | OpenAPI、AsyncAPI、OpenFGA、DBML 的边界、版本、命名、兼容和映射说明 |
+| `openapi.json` | 有 HTTP API 时创建；有效 JSON、稳定 `operationId`、示例与 Schema 一致 |
+| `asyncapi.json` | 有异步事件时创建；没有事件不创建空文件 |
+| `authorization.fga` | 有非公开 Backend 操作时创建可加载的完整 OpenFGA schema 1.1 模型 |
+| `schema.dbml` | 有数据变化时记录实体、字段、关系、约束、索引、迁移和回滚 |
+| `design.token.json` | 所有目标平台共用的语义 Token |
+| `<platform>.md` | 目标平台页面清单、用户目标、导航、状态、交互原因和平台差异 |
+| `<platform>.design.token.json` | Web、Mini Program、Desktop 或 Mobile 的新增与覆盖 Token，不复制公共 Token |
+| `<platform>.ui.yaml` | 稳定 screen/region/component/action/state ID，映射 FR、AC、PERM、API/事件和 Token |
+| `deployment.md` | development/test/production 的启动、停止、迁移、健康检查、备份、恢复和回滚命令及说明 |
+| `compose.yml` | 唯一 Docker Compose 编排，三套环境共用，不写真实密钥 |
+| `dev.env`、`test.env`、`prod.env` | 可提交的非敏感环境差异和外部密钥变量名 |
+| `status.json` | 按“Status 规范”维护跨阶段状态与证据 |
+
+只创建当前需求实际需要的契约和目标平台文件。认证优先复用宿主项目现有方案；没有时使用成熟认证框架或服务与 Backend 可撤销 Session，不自行实现 OAuth Server、不默认自签 JWT。权限最终由服务端和 OpenFGA 判断。
+
+# 阶段目标
+
+{{STAGE_INSTRUCTIONS}}
+
+# 执行顺序
+
+1. 确认目标：读取执行上下文，提取本阶段目标、范围、已有结论、未覆盖项和冲突。
+2. 确认事实：按信息优先级和对话规范解决会改变结果的不确定事项。
+3. 专家评审：按阶段专家团协作流程形成唯一修改清单。
+4. 执行修改：只在可修改范围内完成最小结果，并更新本阶段 Status 与证据。
+5. 验证结果：运行阶段规定的真实检查，核对编号、引用、文件范围和敏感信息。
+6. 生成结果：创建 Patch 和分析，运行 `git apply --check`，直到通过。
+
+# 执行结果
+
+分析文件只使用以下结构：
 
 ```md
 ---
 stage: {{STAGE}}
 requirement: {{REQUIREMENT}}
 patch_file: <Git Patch 文件名或 null>
-result: proposed
+result: <proposed 或 no-changes>
 ---
 
 # 引用 Issue
@@ -148,7 +184,7 @@ result: proposed
 
 | 文件 | 变更 | 影响 |
 |---|---|---|
-| `<项目相对路径>` | `<新增、修改或删除>` | `<一句话说明>` |
+| `<项目相对路径>` | `<新增、修改或删除>` | `<一句话>` |
 
 # 角色
 
@@ -159,27 +195,20 @@ result: proposed
 - 创建：<带时区的本地时间>
 ```
 
-“引用 Issue”至少保留当前主 Issue；只有当前主 Issue 明确引用且本次实际读取了对应稳定阶段产物时，才增加其他 Issue。“引用文件”必须原样保留上面生成的清单，它等于本次提示词实际注入的全局产物、依赖阶段产物、当前阶段已有产物、关联需求稳定产物和资源，不得遗漏或增加未读取文件。{{IMPACT_RULES}}
+“引用文件”必须原样保留实际注入清单；“影响文件”与 Patch 及 Dev 直接源码修改完全一致。结束前确认文件范围合法、状态证据真实、Patch 校验通过，或确实为 `no-changes`。
 
-没有修改时，`patch_file` 写为 `null`、`result` 写为 `no-changes`，影响文件表写“无”。不要写空话，不要使用难懂术语。必须使用术语时，紧接一句简单解释。
+# 执行上下文
 
-结束前必须确认：
-
-- 只创建了本次序号对应的 Git Patch（如有）和补丁分析文件；
-- Patch 只包含允许路径，且修改内容可追溯到输入事实或使用者确认；
-- `git apply --check` 已通过，或结果为 `no-changes` 且没有创建空 Patch；
-- 补丁分析中的 `patch_file`、`result`、引用文件和影响文件与实际结果完全一致。
-
-# 通用边界
-
-- 不修改 `{{RUN_DIR}}` 之外已有的时间戳执行目录及其中的 Prompt、AI 结果和资源。
-- 不修改 `docs/workflows/` 子模块。
-- 不升级未授权依赖。
-- 不写入密钥、令牌或真实凭据。
-- 二进制资源不写入 Git Patch。
-- Git Patch 只能包含本阶段明确允许的文件和 `{{QUESTIONS_FILE}}`。
 {{READ_RULES}}
 
-# 输入上下文
+## 阶段默认配置
+
+{{DEFAULT_REQUIREMENTS}}
+
+## 本次附加要求
+
+{{USER_REQUIREMENT}}
+
+{{PLATFORM_REFERENCES}}
 
 {{CONTEXT}}

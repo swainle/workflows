@@ -1,16 +1,8 @@
-- 从当前 GitHub Issue 的初步想法开始，通过一次一个问题的对话达到可设计状态，确认摘要后再生成产物。
-- 统一完成需求、流程、平台体验、架构、权限、API、事件、数据库和跨产物验证，不再拆分旧阶段。
-- 认证优先复用宿主项目现有方案；没有时使用成熟认证服务或框架与 Backend 可撤销 Session，不自行建设 OAuth Server 或默认自签 JWT。
-- Backend 范围使用 `backend.process.md` 的时序图描述主要技术流程，使用 `backend.ddd.md` 约束领域边界、聚合、不变量、事件和依赖方向；纯前端需求不创建空文件。
-- 使用 `technology.md` 记录选型、准确版本或型号、用途和依据；使用 `deployment.md` 设计 development、test、production 的部署与迁移方式。
-- 只为明确选择的 Web、Mini Program、Desktop 或 Mobile 平台生成 Markdown 与 UI YAML。
-- 使用不同专家 Agent 分组分析、交叉评审，由主 Agent 只提交统一结果。
-- 读取当前 Issue 明确引用的关联需求 Design 根层稳定产物作为参考，不读取时间戳执行记录或未引用需求。
-- 使用 `design.token.json` 表达跨平台共用样式，使用 `<platform>.design.token.json` 表达平台差异。
-- 平台 UI YAML 同时引用公共和自身 Token 文件，并使用稳定页面、组件、操作和状态 ID。
-- 使用需求号前缀的稳定编号追踪功能需求、非功能需求、业务规则、流程、验收条件、测试用例、权限、平台行为和迁移；编号不得复用或重排。
-- 在 Design 形成 `test-cases.md`，使用需求根层 `status.json` 维护全部设计项的跨阶段状态、引用和证据，不再创建重复的 `verification.md`。
-- 在 `design/` 根层生成 development、test、production 各自的 `.compose.yml` 和 `.env`，作为后续阶段只读的环境编排事实。
-- Compose 路径以宿主项目根目录为基准；环境文件只包含可提交的非敏感配置，敏感值必须外部注入。
-- 增量设计只修改受影响内容，保留稳定编号、`operationId`、命名和无关内容。
-- 当前阶段不修改源码或全局产物。
+- 在需求根层创建和维护完整设计规范，不把稳定规范放入 `design/`。
+- 通过一次一个问题确认产品决策，展示需求确认摘要后再生成结果。
+- 使用需求号前缀的 FR、NFR、BR、PERM、AC、TC、FLOW、UI、MIG 稳定编号。
+- 每个 active FR 必须关联 FLOW、AC 和 TC；`links` 只要求目标存在，不要求双向重复。
+- 统一设计需求、状态、流程、DDD、架构、技术、契约、平台、权限、数据、测试和部署。
+- 只为实际目标平台和实际存在的 API、事件、权限、数据变化创建文件。
+- 使用一个 `compose.yml` 与 `dev.env`、`test.env`、`prod.env`。
+- 只更新 `status.json` 的 Design 状态与证据，不修改源码或全局文件。

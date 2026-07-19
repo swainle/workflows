@@ -6,110 +6,73 @@ ROOT = Path(__file__).parent
 
 
 class PromptTest(unittest.TestCase):
-    def test_base_enforces_incremental_patch_delivery(self):
+    def test_common_prompt_has_requested_structure(self):
         base = (ROOT / "templates/base.prompt.md").read_text(encoding="utf-8")
-        engine = (ROOT / "tools/core/prompt-stage.mjs").read_text(encoding="utf-8")
         for text in (
-            "# 信息优先级", "# 对话确认", "每次只问一个", "# 专家协作",
-            "# 执行顺序", "{{WORKTREE_RULES}}", "{{READ_RULES}}", "{{IMPACT_RULES}}",
-            'git apply --check "{{PATCH_FILE}}"', "结束前必须确认",
+            "# 通用规范", "## Mermaid 图表", "## 对话确认信息", "## 专家协作规范",
+            "## Status 规范", "## Patch 规范", "# 设计文件规范", "# 阶段目标",
+            "# 执行顺序", "# 执行结果", "# 执行上下文", "{{STAGE_INSTRUCTIONS}}",
+            'git apply --check "{{PATCH_FILE}}"', "work:{{STAGE}} --merge",
         ):
             self.assertIn(text, base)
-        self.assertIn("config.directSourceChanges", engine)
-        self.assertIn("relatedStageFiles", engine)
-        self.assertIn("不得再读取其他需求目录或历史时间戳目录", engine)
+        for file in (
+            "requirement.md", "requirement.functional.md", "requirement.business.md",
+            "requirement.permission.md", "requirement.acceptance.md", "requirement.non-functional.md",
+            "all.state.md", "all.process.md", "backend.process.md", "ddd.md", "technology.md",
+            "architecture.md", "contracts.md", "openapi.json", "asyncapi.json", "authorization.fga",
+            "schema.dbml", "design.token.json", "<platform>.design.token.json", "<platform>.ui.yaml",
+            "deployment.md", "compose.yml", "dev.env", "test.env", "prod.env", "status.json",
+        ):
+            self.assertIn(f"`{file}`", base)
+        self.assertIn("不要求反向重复引用", base)
 
-    def test_design_is_complete_and_conversational(self):
+    def test_stage_prompts_have_fixed_sections(self):
+        for stage in ("design", "dev", "test", "patch"):
+            prompt = (ROOT / f"templates/{stage}.prompt.md").read_text(encoding="utf-8")
+            for heading in ("## 目标（最重要）", "## 可修改文件范围", "## 专家团", "## 专家团协作流程", "## 上下文要求", "## 执行状态"):
+                self.assertIn(heading, prompt, stage)
+
+    def test_design_owns_root_specs_and_status(self):
         prompt = (ROOT / "templates/design.prompt.md").read_text(encoding="utf-8")
         config = (ROOT / "tools/prompt/design.mjs").read_text(encoding="utf-8")
         defaults = (ROOT / "config/stages/design.md").read_text(encoding="utf-8")
-        for text in (
-            "对话式需求发现", "需求可设计门禁", "需求确认摘要", "多专家 Agent 协作",
-            "requirement.md", "process.md", "architecture.md", "authorization.fga",
-            "openapi.json", "asyncapi.json", "schema.dbml", "test-cases.md", "status.json",
-            "design.token.json", "web.design.token.json", "mini-program.design.token.json",
-            "desktop.design.token.json", "mobile.design.token.json", "web.ui.yaml",
-            "development.compose.yml", "development.env", "test.compose.yml", "test.env",
-            "production.compose.yml", "production.env", "docker/",
-            "technology.md", "deployment.md", "docs/architecture/technology.md",
-            "docs/architecture/deployment.md",
-            "backend.process.md", "backend.ddd.md", "BSEQ-xxx", "sequenceDiagram",
-            "Bounded Context", "Aggregate Root", "docs/architecture/backend.ddd.md",
-            "统一编号与 status.json", "authorization.fga", "权限矩阵", "平台 Markdown 与 UI YAML",
-            "认证与会话", "HttpOnly", "不自行实现 OAuth Server", "不默认引入自签 JWT",
-        ):
+        for text in ("需求根层", "需求确认摘要", "FR", "FLOW", "AC", "TC", "status.json"):
             self.assertIn(text, prompt)
-        for text in ("development.compose.yml", "test.compose.yml", "production.compose.yml", "backend.process.md", "backend.ddd.md"):
-            self.assertIn(text, config)
-        self.assertIn("githubIssues: true", config)
-        self.assertIn('relatedStages: ["design"]', config)
-        self.assertIn("关联需求 Design 根层稳定产物", defaults)
-        self.assertIn("不再创建重复的 `verification.md`", defaults)
+        self.assertIn("REQUIREMENT_SPEC_ARTIFACTS", config)
+        self.assertIn("不要求双向重复", defaults)
 
-        test_prompt = (ROOT / "templates/test.prompt.md").read_text(encoding="utf-8")
-        for text in ("测试入口门禁", "覆盖矩阵", "没有本轮真实执行证据不得写", "test/report.md", "status.json"):
-            self.assertIn(text, test_prompt)
+    def test_dev_and_test_only_change_their_requirement_status(self):
+        dev = (ROOT / "templates/dev.prompt.md").read_text(encoding="utf-8")
+        test = (ROOT / "templates/test.prompt.md").read_text(encoding="utf-8")
+        self.assertIn("不以 Commit 为前提", dev)
+        self.assertIn("不得修改需求根层其他规范", dev)
+        self.assertIn("只更新 `status.json` 的 `dev`", dev)
+        self.assertIn("使用者人工审核", test)
+        self.assertIn("不得修改源码、需求根层其他规范、全局文件", test)
+        self.assertIn("只更新 Test 状态", test)
 
-    def test_dev_directly_modifies_source_and_records_decisions(self):
-        prompt = (ROOT / "templates/dev.prompt.md").read_text(encoding="utf-8")
-        config = (ROOT / "tools/prompt/dev.mjs").read_text(encoding="utf-8")
-        defaults = (ROOT / "config/stages/dev.md").read_text(encoding="utf-8")
-        for text in (
-            "Backend", "Web", "Mini Program", "Desktop", "Mobile",
-            "直接修改", "dev/development.md", "dev/questions.md", "DEV-Q-xxx",
-            "不得把源码修改包装进阶段 Patch", "实际运行的验证命令", "{{SOURCE_BASELINE}}",
-        ):
-            self.assertIn(text, prompt)
-        self.assertIn("directSourceChanges: true", config)
-        self.assertIn('relatedStages: ["design", "dev"]', config)
-        self.assertIn("不生成源码 Patch", defaults)
-        self.assertIn("development.compose.yml", prompt)
-
-    def test_only_new_stages_are_registered(self):
-        stages = (ROOT / "tools/core/stages.mjs").read_text(encoding="utf-8")
-        for name in ("design", "dev", "test", "deployment"):
-            self.assertIn(f'name: "{name}"', stages)
-            self.assertTrue((ROOT / f"config/stages/{name}.md").is_file())
-        for name in ("issue", "process", "permission", "c4", "api", "database", "backend", "frontend"):
-            self.assertFalse((ROOT / f"tools/prompt/{name}.mjs").exists(), name)
-
-    def test_patch_owns_global_token_and_docker_sync(self):
+    def test_patch_is_the_only_global_writer(self):
         prompt = (ROOT / "templates/patch.prompt.md").read_text(encoding="utf-8")
         defaults = (ROOT / "config/stages/patch.md").read_text(encoding="utf-8")
-        config = (ROOT / "tools/prompt/patch.mjs").read_text(encoding="utf-8")
-        for text in ("design/design.token.json", "token.json", "<platform>.token.json"):
+        for text in ("唯一可以修改全局文件", "completion.md", "compose.yml", "dev.env", "test.env", "prod.env", "status.json"):
             self.assertIn(text, prompt)
-            self.assertIn(text, defaults)
-        self.assertIn('"packages/design-tokens/tokens"', config)
-        for text in ("development.compose.yml", "test.compose.yml", "production.compose.yml", "docker/"):
-            self.assertIn(text, prompt)
-        for text in ("design/requirement.md", "design/architecture.md", "design/process.md", "design/backend.process.md", "design/backend.ddd.md", "design/technology.md", "design/deployment.md"):
-            self.assertIn(text, prompt)
-        self.assertIn('"docker"', config)
-        self.assertIn('".env"', (ROOT / "tools/core/files.mjs").read_text(encoding="utf-8"))
-        for name in ("token.json", "web.token.json", "mini-program.token.json", "desktop.token.json", "mobile.token.json"):
-            self.assertTrue((ROOT / f"defaults/design-tokens/{name}").is_file(), name)
+        self.assertIn("唯一可以修改全局文件", defaults)
 
-    def test_diagrams_and_references_use_current_commands(self):
-        base = (ROOT / "templates/base.prompt.md").read_text(encoding="utf-8")
-        for diagram in (
-            "architecture-beta", "flowchart", "sequenceDiagram", "stateDiagram-v2",
-            "classDiagram", "erDiagram", "gitGraph", "journey", "C4Context",
-        ):
-            self.assertIn(diagram, base)
-        for file in (ROOT / "reference").glob("*.md"):
-            text = file.read_text(encoding="utf-8")
-            for heading in ("## 快速开始", "## 命令", "## 作用"):
-                self.assertIn(heading, text, file.name)
-            self.assertNotIn("work:frontend:", text, file.name)
+    def test_only_design_dev_test_are_registered(self):
+        stages = (ROOT / "tools/core/stages.mjs").read_text(encoding="utf-8")
+        for name in ("design", "dev", "test"):
+            self.assertIn(f'name: "{name}"', stages)
+            self.assertTrue((ROOT / f"config/stages/{name}.md").is_file())
+        self.assertNotIn('name: "deployment"', stages)
+        self.assertFalse((ROOT / "tools/prompt/deployment.mjs").exists())
+        self.assertFalse((ROOT / "templates/deployment.prompt.md").exists())
 
-    def test_readme_defines_new_flow_and_artifacts(self):
+    def test_readme_uses_merge_without_next(self):
         readme = (ROOT / "README.md").read_text(encoding="utf-8")
-        for command in ("work:req", "work:design", "work:dev", "work:test", "work:deployment", "work:patch"):
+        for command in ("work:req", "work:design", "work:dev", "work:test", "work:patch", "--merge"):
             self.assertIn(command, readme)
-        for category in ("全局产物", "阶段产物", "阶段提示词", "阶段补丁", "阶段补丁分析"):
-            self.assertIn(f"| {category} |", readme)
-        self.assertIn("Dev 是唯一可以直接修改业务源码的阶段", readme)
+        self.assertNotIn("work:next", readme)
+        self.assertNotIn("work:deployment", readme)
 
 
 if __name__ == "__main__":

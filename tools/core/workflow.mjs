@@ -11,7 +11,6 @@ export const DEFAULT_WORKFLOW_PLAN = {
     { name: "design", dependsOn: [], reason: "形成完整且一致的需求设计" },
     { name: "dev", dependsOn: ["design"], reason: "按确认的平台直接实现源码" },
     { name: "test", dependsOn: ["dev"], reason: "验证需求、实现和回归风险" },
-    { name: "deployment", dependsOn: ["test"], reason: "确认发布、迁移、监控和回滚" },
   ],
 };
 
@@ -26,15 +25,14 @@ const TRACKING_TYPES = new Map([
   ["UI", "platform-behavior"],
   ["MIG", "migration"],
 ]);
-const TRACKING_STAGES = ["design", "dev", "test", "deployment", "patch"];
+const TRACKING_STAGES = ["design", "dev", "test", "patch"];
 const TRACKING_STATUSES = {
   design: new Set(["pending", "in-progress", "done", "blocked", "not-applicable"]),
   dev: new Set(["pending", "in-progress", "done", "blocked", "not-applicable"]),
   test: new Set(["pending", "in-progress", "passed", "failed", "blocked", "not-applicable"]),
-  deployment: new Set(["pending", "in-progress", "done", "blocked", "not-applicable"]),
   patch: new Set(["pending", "in-progress", "done", "blocked", "not-applicable"]),
 };
-const COMPLETE_STATUS = { design: "done", dev: "done", test: "passed", deployment: "done", patch: "done" };
+const COMPLETE_STATUS = { design: "done", dev: "done", test: "passed", patch: "done" };
 
 export function assertTrackingStageComplete(current, stage) {
   if (!TRACKING_STAGES.includes(stage)) return;
@@ -58,6 +56,9 @@ export function assertTrackingStageComplete(current, stage) {
     if (!["active", "superseded", "cancelled"].includes(item.lifecycle) || typeof item.title !== "string" || !item.title.trim() || typeof item.source !== "string" || !item.source.trim() || !Array.isArray(item.links)) {
       throw new Error(`Incomplete tracking item: ${item.id}`);
     }
+    if (Object.keys(item.stages ?? {}).some((name) => !TRACKING_STAGES.includes(name)) || Object.keys(item.evidence ?? {}).some((name) => !TRACKING_STAGES.includes(name))) {
+      throw new Error(`Unknown tracking stage for ${item.id}`);
+    }
     for (const name of TRACKING_STAGES) {
       if (!TRACKING_STATUSES[name].has(item.stages?.[name])) throw new Error(`Invalid ${name} status for ${item.id}`);
       if (!Array.isArray(item.evidence?.[name]) || item.evidence[name].some((entry) => typeof entry !== "string" || !entry.trim())) {
@@ -74,8 +75,6 @@ export function assertTrackingStageComplete(current, stage) {
   for (const item of tracking.items) {
     for (const link of item.links ?? []) {
       if (!ids.has(link)) throw new Error(`Unknown tracking link ${link} from ${item.id}`);
-      const target = tracking.items.find(({ id }) => id === link);
-      if (!target.links?.includes(item.id)) throw new Error(`Tracking link must be bidirectional: ${item.id} -> ${link}`);
     }
     if (item.lifecycle !== "active") continue;
     if (item.type === "functional-requirement") {
@@ -91,7 +90,7 @@ export function assertTrackingStageComplete(current, stage) {
 }
 
 export function workflowFile(requirementDir) {
-  return path.join(requirementDir, "design", "requirement.md");
+  return path.join(requirementDir, "requirement.md");
 }
 
 export function readWorkflowPlan() {
@@ -147,7 +146,9 @@ export function readWorkState(current, { runner = execFileSync, projectRoot = PR
       appliedPatches: [],
     };
   }
-  return JSON.parse(readFileSync(file, "utf8"));
+  const state = JSON.parse(readFileSync(file, "utf8"));
+  state.completed = (state.completed ?? []).filter((name) => STAGE_NAMES.includes(name) || name === "patch");
+  return state;
 }
 
 function writeWorkState(current, state, runner = execFileSync, projectRoot = PROJECT_ROOT) {

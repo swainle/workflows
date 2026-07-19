@@ -1,23 +1,16 @@
+import { REQUIREMENT_SPEC_ARTIFACTS } from "../core/specs.mjs";
+
 export default {
   command: "design",
-  stageName: "完整项目设计",
+  stageName: "需求与系统设计",
   roles: [
-    "产品经理与业务分析师",
-    "各目标平台 UX 与前端架构师",
-    "解决方案、权限与安全架构师",
-    "API、数据与测试架构师",
+    "产品经理与业务分析师：确认目标、范围、规则、流程和验收",
+    "平台 UX 与前端架构师：设计目标平台页面、状态和交互",
+    "解决方案、权限与安全架构师：设计架构、认证、授权和部署",
+    "API、领域、数据与测试架构师：设计契约、DDD、数据和测试用例",
   ],
   template: "design.prompt.md",
-  artifacts: [
-    "design/requirement.md", "design/process.md", "design/backend.process.md", "design/backend.ddd.md",
-    "design/architecture.md", "design/technology.md", "design/deployment.md",
-    "design/authorization.fga", "design/openapi.json", "design/asyncapi.json",
-    "design/schema.dbml", "design/design.token.json", "design/<platform>.design.token.json",
-    "design/<platform>.md", "design/<platform>.ui.yaml", "design/test-cases.md",
-    "design/development.compose.yml", "design/development.env",
-    "design/test.compose.yml", "design/test.env",
-    "design/production.compose.yml", "design/production.env", "status.json",
-  ],
+  artifacts: REQUIREMENT_SPEC_ARTIFACTS,
   globals: [
     "docs/architecture", "docs/contracts", "docs/development",
     "packages/design-tokens/tokens", "docker", "package.json", "pnpm-workspace.yaml", "turbo.json",

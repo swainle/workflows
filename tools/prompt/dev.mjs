@@ -8,7 +8,7 @@ export default {
     "安全与测试工程师",
   ],
   template: "dev.prompt.md",
-  artifacts: ["dev/development.md", "dev/questions.md", "status.json"],
+  artifacts: ["dev/development.md", "status.json"],
   globals: [
     "docs/architecture", "docs/contracts", "docs/development",
     "packages/design-tokens/tokens", "package.json", "pnpm-workspace.yaml", "turbo.json",

@@ -1,6 +1,6 @@
 # AI Project Workflows
 
-基于 Turborepo 的 AI 项目开发工作流。以一个 GitHub Issue 为一个需求，通过 `design → dev → test → deployment → patch` 推进设计、开发、验证、部署和全局项目事实。
+基于 Turborepo 的 AI 项目开发工作流。以一个 GitHub Issue 为一个需求，通过 `design → dev → test → patch` 推进设计、开发、验证和全局项目事实。
 
 ## 环境要求
 
@@ -163,7 +163,7 @@ pnpm -s work:design
 首次选择 Issue 时输入英文短名称。工作流在 `docs/requirements/REQ-<编号>-<名称>/` 创建需求目录，并按以下固定阶段执行：
 
 ```text
-design → dev → test → deployment → patch
+design → dev → test → patch
 ```
 
 对应命令：
@@ -172,35 +172,32 @@ design → dev → test → deployment → patch
 pnpm -s work:design
 pnpm -s work:dev
 pnpm -s work:test
-pnpm -s work:deployment
 pnpm -s work:patch
 ```
 
 Dev 是唯一可以直接修改业务源码的阶段；其他阶段通过 Git Patch 提交结果。
 
-Design 在需求的 `design/` 目录生成带全需求唯一编号的需求、业务规则、流程、验收条件、测试用例、平台体验、权限、契约、后端时序、DDD、架构、技术选型、部署设计，以及 development、test、production 各自的 `.compose.yml` 和 `.env`。需求根层 `status.json` 统一维护每个设计项在 Design、Dev、Test、Deployment 和 Patch 的状态与证据；各阶段只能更新自己的状态。最终 Patch 只在所有 active 项闭环后把长期事实同步到宿主项目。
+Design 在需求根层生成带唯一编号的需求、规则、状态、流程、验收与测试用例、平台体验、权限、契约、DDD、架构、技术和部署规范。三套环境共用一个 `compose.yml`，差异写入 `dev.env`、`test.env`、`prod.env`。`status.json` 统一维护 Design、Dev、Test、Patch 状态与证据。
 
-执行阶段后，把生成的 `prompt.md` 交给 AI。AI 返回结果后，应用当前阶段并开始下一阶段：
-
-```bash
-pnpm -s work:next <下一阶段>
-```
-
-如果只想合并当前 Patch 查看效果，同时保持阶段为 `active`：
+执行阶段后，把生成的 `prompt.md` 交给 AI。AI 返回结果后，手动应用并完成当前阶段：
 
 ```bash
 pnpm -s work:<阶段> --merge
 ```
 
-合并后可以重新执行同一阶段生成新的 Prompt；确认最终结果后再运行 `work:next` 完成阶段。
-
-例如：
+完成后再运行下一个阶段命令生成新 Prompt：
 
 ```bash
-pnpm -s work:next dev
-pnpm -s work:next test
-pnpm -s work:next deployment
+pnpm -s work:design --merge
+pnpm -s work:dev
+pnpm -s work:dev --merge
+pnpm -s work:test
+pnpm -s work:test --merge
+pnpm -s work:patch
+pnpm -s work:patch --merge
 ```
+
+`--merge` 会执行 Patch 路径检查和 `git apply --check`，询问确认后应用结果、校验 `status.json` 并完成阶段。文件当前内容是事实，不要求先提交 Commit。需要修正已完成阶段时重新运行该阶段命令，后续阶段状态会失效并需要重新执行。
 
 查看当前状态和阶段配置：
 
@@ -219,7 +216,7 @@ pnpm -s work:<阶段> --require "<约束>"
 
 ```bash
 pnpm -s work:patch
-pnpm -s work:next
+pnpm -s work:patch --merge
 ```
 
 最终结果记录在需求目录的 `completion.md`，可作为 Pull Request 描述。
@@ -227,7 +224,8 @@ pnpm -s work:next
 | 分类 | 说明 |
 |---|---|
 | 全局产物 | 全项目长期有效的架构、契约、开发约定、Tokens、`docker/` 编排和项目配置 |
-| 阶段产物 | 当前需求各阶段确认后的稳定结论 |
+| 需求层规范 | 需求根层供全部阶段共享、仅由 Design 修改的规范文件 |
+| 阶段产物 | `dev/`、`test/` 等目录中的阶段结果和确认记录 |
 | 状态文件 | 当前需求全部编号设计项的跨阶段状态、关系和完成证据 |
 | 阶段提示词 | 某次阶段执行生成的 `prompt.md` |
 | 阶段补丁 | AI 提出的阶段结果或最终项目修改 |
