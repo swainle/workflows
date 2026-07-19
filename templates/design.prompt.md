@@ -77,10 +77,10 @@
 - `{{REQUIREMENT_DIR}}/design/asyncapi.json`
 - `{{REQUIREMENT_DIR}}/design/schema.dbml`
 - `{{REQUIREMENT_DIR}}/design/design.token.json`
-- `{{REQUIREMENT_DIR}}/design/design.web.token.json`
-- `{{REQUIREMENT_DIR}}/design/design.mini-program.token.json`
-- `{{REQUIREMENT_DIR}}/design/design.desktop.token.json`
-- `{{REQUIREMENT_DIR}}/design/design.mobile.token.json`
+- `{{REQUIREMENT_DIR}}/design/web.design.token.json`
+- `{{REQUIREMENT_DIR}}/design/mini-program.design.token.json`
+- `{{REQUIREMENT_DIR}}/design/desktop.design.token.json`
+- `{{REQUIREMENT_DIR}}/design/mobile.design.token.json`
 - `{{REQUIREMENT_DIR}}/design/web.md`
 - `{{REQUIREMENT_DIR}}/design/web.ui.yaml`
 - `{{REQUIREMENT_DIR}}/design/mini-program.md`
@@ -120,13 +120,13 @@
 ```yaml
 tokens:
   common: ./design.token.json
-  platform: ./design.web.token.json
+  platform: ./web.design.token.json
 ```
 
 ## Design Tokens
 
 - `design.token.json` 只放所有目标平台共用的 Token；
-- `design.<platform>.token.json` 只放该平台新增或覆盖项；
+- `<platform>.design.token.json` 只放该平台新增或覆盖项；
 - 平台文件不得复制公共 Token；
 - 平台最终值按公共文件、平台文件的顺序合并；
 - 当前阶段 Token 是需求阶段产物，不得直接修改 `packages/design-tokens/tokens/**`；

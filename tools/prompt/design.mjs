@@ -11,7 +11,7 @@ export default {
   artifacts: [
     "design/requirement.md", "design/process.md", "design/architecture.md",
     "design/authorization.fga", "design/openapi.json", "design/asyncapi.json",
-    "design/schema.dbml", "design/design.token.json", "design/design.<platform>.token.json",
+    "design/schema.dbml", "design/design.token.json", "design/<platform>.design.token.json",
     "design/<platform>.md", "design/<platform>.ui.yaml", "design/verification.md",
   ],
   globals: [

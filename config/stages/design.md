@@ -3,7 +3,7 @@
 - 只为明确选择的 Web、Mini Program、Desktop 或 Mobile 平台生成 Markdown 与 UI YAML。
 - 使用不同专家 Agent 分组分析、交叉评审，由主 Agent 只提交统一结果。
 - 读取当前 Issue 明确引用的关联需求 Design 根层稳定产物作为参考，不读取时间戳执行记录或未引用需求。
-- 使用 `design.token.json` 表达跨平台共用样式，使用 `design.<platform>.token.json` 表达平台差异。
+- 使用 `design.token.json` 表达跨平台共用样式，使用 `<platform>.design.token.json` 表达平台差异。
 - 平台 UI YAML 同时引用公共和自身 Token 文件，并使用稳定页面、组件、操作和状态 ID。
 - 使用 `verification.md` 追溯需求、验收、流程、平台、API、事件、权限和数据模型。
 - 增量设计只修改受影响内容，保留稳定编号、`operationId`、命名和无关内容。

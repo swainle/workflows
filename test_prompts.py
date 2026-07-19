@@ -27,7 +27,8 @@ class PromptTest(unittest.TestCase):
             "对话式需求发现", "需求可设计门禁", "需求确认摘要", "多专家 Agent 协作",
             "requirement.md", "process.md", "architecture.md", "authorization.fga",
             "openapi.json", "asyncapi.json", "schema.dbml", "verification.md",
-            "design.token.json", "design.web.token.json", "web.ui.yaml",
+            "design.token.json", "web.design.token.json", "mini-program.design.token.json",
+            "desktop.design.token.json", "mobile.design.token.json", "web.ui.yaml",
         ):
             self.assertIn(text, prompt)
         self.assertIn("githubIssues: true", config)
