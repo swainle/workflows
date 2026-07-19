@@ -9,7 +9,7 @@ import { STAGES } from "./tools/core/stages.mjs";
 import { PROJECT_ROOT } from "./tools/core/paths.mjs";
 import { sourceBaseline } from "./tools/core/prompt-stage.mjs";
 import { walkTextFiles } from "./tools/core/files.mjs";
-import { assertStageReady, clearMissingActiveStage, completeActiveStage, dependencyStages, findActiveResult, readWorkflowPlan, readWorkState, recordAppliedPatch, stageStatuses, startStage, validateWorkflowPlan } from "./tools/core/workflow.mjs";
+import { assertStageReady, assertTrackingStageComplete, clearMissingActiveStage, completeActiveStage, dependencyStages, findActiveResult, readWorkflowPlan, readWorkState, recordAppliedPatch, stageStatuses, startStage, validateWorkflowPlan } from "./tools/core/workflow.mjs";
 
 test("parses the simplified commands", () => {
   assert.deepEqual(parseWorkArguments(["req", "--issue", "4"]), { command: "req", issue: "4" });
@@ -82,6 +82,7 @@ test("limits stage and final patches to their path scopes", () => {
   assert.doesNotThrow(() => assertAllowedPatchPaths(current, "dev", [
     "docs/requirements/REQ-0004-build/dev/development.md",
     "docs/requirements/REQ-0004-build/dev/questions.md",
+    "docs/requirements/REQ-0004-build/status.json",
   ]));
   assert.throws(() => assertAllowedPatchPaths(current, "dev", ["apps/api/src/index.ts"]), /cannot modify/);
   assert.throws(() => assertAllowedPatchPaths(current, "design", [
@@ -92,10 +93,41 @@ test("limits stage and final patches to their path scopes", () => {
     "packages/design-tokens/tokens/token.json",
     "docker/production.compose.yml", "docker/production.env",
     "docs/requirements/REQ-0004-build/completion.md",
+    "docs/requirements/REQ-0004-build/status.json",
   ]));
   assert.throws(() => assertAllowedPatchPaths(current, "dev", ["docker/development.compose.yml"]), /cannot modify/);
   assert.throws(() => assertAllowedPatchPaths(current, "patch", ["apps/api/src/index.ts"]), /cannot modify/);
   assert.deepEqual(unappliedPatches(["a.patch", "b.patch"], ["a.patch"]), ["b.patch"]);
+});
+
+test("validates the shared requirement tracking file", () => {
+  const root = mkdtempSync(path.join(tmpdir(), "workflows-tracking-"));
+  const requirementDir = path.join(root, "REQ-0004-build");
+  mkdirSync(requirementDir, { recursive: true });
+  const item = (id, type, links) => ({
+    id, type, title: id, source: `design/requirement.md#${id}`, links, lifecycle: "active",
+    stages: { design: "done", dev: "done", test: "passed", deployment: "not-applicable", patch: "pending" },
+    evidence: { design: ["design"], dev: ["source"], test: ["test/report.md"], deployment: ["no deployment change"], patch: [] },
+  });
+  const tracking = {
+    version: 1, requirement: "REQ-0004", items: [
+      item("REQ-0004-FR-001", "functional-requirement", ["REQ-0004-FLOW-001", "REQ-0004-AC-001", "REQ-0004-TC-001"]),
+      item("REQ-0004-FLOW-001", "flow", ["REQ-0004-FR-001"]),
+      item("REQ-0004-AC-001", "acceptance-criterion", ["REQ-0004-FR-001"]),
+      item("REQ-0004-TC-001", "test-case", ["REQ-0004-FR-001"]),
+    ],
+  };
+  try {
+    writeFileSync(path.join(requirementDir, "status.json"), `${JSON.stringify(tracking)}\n`);
+    const current = { requirementDir };
+    assert.doesNotThrow(() => assertTrackingStageComplete(current, "test"));
+    assert.throws(() => assertTrackingStageComplete(current, "patch"), /not complete for patch/);
+    tracking.items[0].links = ["REQ-0004-TC-999"];
+    writeFileSync(path.join(requirementDir, "status.json"), `${JSON.stringify(tracking)}\n`);
+    assert.throws(() => assertTrackingStageComplete(current, "test"), /Unknown tracking link/);
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
 });
 
 test("normalizes an English requirement short name", () => {

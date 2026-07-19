@@ -8,4 +8,5 @@
 - 把 `design/design.token.json` 的长期变化合并到全局 `packages/design-tokens/tokens/token.json`。
 - 把 `design/<platform>.design.token.json` 的长期变化合并到对应全局 `<platform>.token.json`；平台文件只保存平台差异，不复制公共 Token。
 - 把 Design 中经后续阶段验证的三套 `.compose.yml` 和 `.env` 同步到宿主项目 `docker/` 下的同名文件；不得同步敏感值。
+- 以根层 `status.json` 为最终完成清单，只更新 Patch 状态；任何 active 项未闭环时不得生成完成摘要。
 - 不修改业务源码和其他需求目录。

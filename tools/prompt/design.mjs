@@ -13,10 +13,10 @@ export default {
     "design/architecture.md", "design/technology.md", "design/deployment.md",
     "design/authorization.fga", "design/openapi.json", "design/asyncapi.json",
     "design/schema.dbml", "design/design.token.json", "design/<platform>.design.token.json",
-    "design/<platform>.md", "design/<platform>.ui.yaml", "design/verification.md",
+    "design/<platform>.md", "design/<platform>.ui.yaml", "design/test-cases.md",
     "design/development.compose.yml", "design/development.env",
     "design/test.compose.yml", "design/test.env",
-    "design/production.compose.yml", "design/production.env",
+    "design/production.compose.yml", "design/production.env", "status.json",
   ],
   globals: [
     "docs/architecture", "docs/contracts", "docs/development",

@@ -178,7 +178,7 @@ pnpm -s work:patch
 
 Dev 是唯一可以直接修改业务源码的阶段；其他阶段通过 Git Patch 提交结果。
 
-Design 在需求的 `design/` 目录生成需求、业务流程、后端时序、DDD、架构、技术选型、部署设计，以及 development、test、production 各自的 `.compose.yml` 和 `.env`。Dev、Test、Deployment 只读使用对应设计；最终 Patch 才把长期事实同步到宿主项目的 `docs/architecture/` 和 `docker/`。
+Design 在需求的 `design/` 目录生成带全需求唯一编号的需求、业务规则、流程、验收条件、测试用例、平台体验、权限、契约、后端时序、DDD、架构、技术选型、部署设计，以及 development、test、production 各自的 `.compose.yml` 和 `.env`。需求根层 `status.json` 统一维护每个设计项在 Design、Dev、Test、Deployment 和 Patch 的状态与证据；各阶段只能更新自己的状态。最终 Patch 只在所有 active 项闭环后把长期事实同步到宿主项目。
 
 执行阶段后，把生成的 `prompt.md` 交给 AI。AI 返回结果后，应用当前阶段并开始下一阶段：
 
@@ -228,6 +228,7 @@ pnpm -s work:next
 |---|---|
 | 全局产物 | 全项目长期有效的架构、契约、开发约定、Tokens、`docker/` 编排和项目配置 |
 | 阶段产物 | 当前需求各阶段确认后的稳定结论 |
+| 状态文件 | 当前需求全部编号设计项的跨阶段状态、关系和完成证据 |
 | 阶段提示词 | 某次阶段执行生成的 `prompt.md` |
 | 阶段补丁 | AI 提出的阶段结果或最终项目修改 |
 | 阶段补丁分析 | Patch 的引用、影响文件、角色和验证记录 |

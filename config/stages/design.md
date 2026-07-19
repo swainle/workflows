@@ -7,7 +7,8 @@
 - 读取当前 Issue 明确引用的关联需求 Design 根层稳定产物作为参考，不读取时间戳执行记录或未引用需求。
 - 使用 `design.token.json` 表达跨平台共用样式，使用 `<platform>.design.token.json` 表达平台差异。
 - 平台 UI YAML 同时引用公共和自身 Token 文件，并使用稳定页面、组件、操作和状态 ID。
-- 使用 `verification.md` 追溯需求、验收、流程、平台、API、事件、权限和数据模型。
+- 使用需求号前缀的稳定编号追踪功能需求、非功能需求、业务规则、流程、验收条件、测试用例、权限、平台行为和迁移；编号不得复用或重排。
+- 在 Design 形成 `test-cases.md`，使用需求根层 `status.json` 维护全部设计项的跨阶段状态、引用和证据，不再创建重复的 `verification.md`。
 - 在 `design/` 根层生成 development、test、production 各自的 `.compose.yml` 和 `.env`，作为后续阶段只读的环境编排事实。
 - Compose 路径以宿主项目根目录为基准；环境文件只包含可提交的非敏感配置，敏感值必须外部注入。
 - 增量设计只修改受影响内容，保留稳定编号、`operationId`、命名和无关内容。

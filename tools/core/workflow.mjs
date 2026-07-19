@@ -15,6 +15,81 @@ export const DEFAULT_WORKFLOW_PLAN = {
   ],
 };
 
+const TRACKING_TYPES = new Map([
+  ["FR", "functional-requirement"],
+  ["NFR", "non-functional-requirement"],
+  ["BR", "business-rule"],
+  ["FLOW", "flow"],
+  ["AC", "acceptance-criterion"],
+  ["TC", "test-case"],
+  ["PERM", "permission-rule"],
+  ["UI", "platform-behavior"],
+  ["MIG", "migration"],
+]);
+const TRACKING_STAGES = ["design", "dev", "test", "deployment", "patch"];
+const TRACKING_STATUSES = {
+  design: new Set(["pending", "in-progress", "done", "blocked", "not-applicable"]),
+  dev: new Set(["pending", "in-progress", "done", "blocked", "not-applicable"]),
+  test: new Set(["pending", "in-progress", "passed", "failed", "blocked", "not-applicable"]),
+  deployment: new Set(["pending", "in-progress", "done", "blocked", "not-applicable"]),
+  patch: new Set(["pending", "in-progress", "done", "blocked", "not-applicable"]),
+};
+const COMPLETE_STATUS = { design: "done", dev: "done", test: "passed", deployment: "done", patch: "done" };
+
+export function assertTrackingStageComplete(current, stage) {
+  if (!TRACKING_STAGES.includes(stage)) return;
+  const file = path.join(current.requirementDir, "status.json");
+  if (!existsSync(file)) throw new Error(`Tracking file not found: ${file}`);
+  let tracking;
+  try {
+    tracking = JSON.parse(readFileSync(file, "utf8"));
+  } catch (error) {
+    throw new Error(`Invalid tracking JSON: ${error.message}`);
+  }
+  const requirement = path.basename(current.requirementDir).match(/^(REQ-\d{4})-/)?.[1];
+  if (tracking.version !== 1 || tracking.requirement !== requirement || !Array.isArray(tracking.items) || !tracking.items.length) {
+    throw new Error(`Invalid tracking header in ${file}`);
+  }
+  const ids = new Set();
+  for (const item of tracking.items) {
+    const match = typeof item.id === "string" && item.id.match(new RegExp(`^${requirement}-(FR|NFR|BR|FLOW|AC|TC|PERM|UI|MIG)-\\d{3}$`));
+    if (!match || TRACKING_TYPES.get(match[1]) !== item.type || ids.has(item.id)) throw new Error(`Invalid or duplicate tracking item: ${item.id ?? "unknown"}`);
+    ids.add(item.id);
+    if (!["active", "superseded", "cancelled"].includes(item.lifecycle) || typeof item.title !== "string" || !item.title.trim() || typeof item.source !== "string" || !item.source.trim() || !Array.isArray(item.links)) {
+      throw new Error(`Incomplete tracking item: ${item.id}`);
+    }
+    for (const name of TRACKING_STAGES) {
+      if (!TRACKING_STATUSES[name].has(item.stages?.[name])) throw new Error(`Invalid ${name} status for ${item.id}`);
+      if (!Array.isArray(item.evidence?.[name]) || item.evidence[name].some((entry) => typeof entry !== "string" || !entry.trim())) {
+        throw new Error(`Invalid ${name} evidence for ${item.id}`);
+      }
+      if ([COMPLETE_STATUS[name], "not-applicable"].includes(item.stages[name]) && !item.evidence?.[name]?.length) {
+        throw new Error(`Missing ${name} evidence for ${item.id}`);
+      }
+    }
+    for (const link of item.links ?? []) {
+      if (typeof link !== "string") throw new Error(`Invalid link for ${item.id}`);
+    }
+  }
+  for (const item of tracking.items) {
+    for (const link of item.links ?? []) {
+      if (!ids.has(link)) throw new Error(`Unknown tracking link ${link} from ${item.id}`);
+      const target = tracking.items.find(({ id }) => id === link);
+      if (!target.links?.includes(item.id)) throw new Error(`Tracking link must be bidirectional: ${item.id} -> ${link}`);
+    }
+    if (item.lifecycle !== "active") continue;
+    if (item.type === "functional-requirement") {
+      const linkedTypes = new Set(item.links.map((link) => tracking.items.find(({ id }) => id === link)?.type));
+      for (const required of ["flow", "acceptance-criterion", "test-case"]) {
+        if (!linkedTypes.has(required)) throw new Error(`Tracking item ${item.id} must link to a ${required}`);
+      }
+    }
+    const accepted = new Set([COMPLETE_STATUS[stage], "not-applicable"]);
+    if (!accepted.has(item.stages[stage])) throw new Error(`Tracking item ${item.id} is not complete for ${stage}: ${item.stages[stage]}`);
+  }
+  return tracking;
+}
+
 export function workflowFile(requirementDir) {
   return path.join(requirementDir, "design", "requirement.md");
 }

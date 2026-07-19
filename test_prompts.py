@@ -26,7 +26,7 @@ class PromptTest(unittest.TestCase):
         for text in (
             "对话式需求发现", "需求可设计门禁", "需求确认摘要", "多专家 Agent 协作",
             "requirement.md", "process.md", "architecture.md", "authorization.fga",
-            "openapi.json", "asyncapi.json", "schema.dbml", "verification.md",
+            "openapi.json", "asyncapi.json", "schema.dbml", "test-cases.md", "status.json",
             "design.token.json", "web.design.token.json", "mini-program.design.token.json",
             "desktop.design.token.json", "mobile.design.token.json", "web.ui.yaml",
             "development.compose.yml", "development.env", "test.compose.yml", "test.env",
@@ -35,6 +35,7 @@ class PromptTest(unittest.TestCase):
             "docs/architecture/deployment.md",
             "backend.process.md", "backend.ddd.md", "BSEQ-xxx", "sequenceDiagram",
             "Bounded Context", "Aggregate Root", "docs/architecture/backend.ddd.md",
+            "统一编号与 status.json", "authorization.fga", "权限矩阵", "平台 Markdown 与 UI YAML",
         ):
             self.assertIn(text, prompt)
         for text in ("development.compose.yml", "test.compose.yml", "production.compose.yml", "backend.process.md", "backend.ddd.md"):
@@ -42,6 +43,11 @@ class PromptTest(unittest.TestCase):
         self.assertIn("githubIssues: true", config)
         self.assertIn('relatedStages: ["design"]', config)
         self.assertIn("关联需求 Design 根层稳定产物", defaults)
+        self.assertIn("不再创建重复的 `verification.md`", defaults)
+
+        test_prompt = (ROOT / "templates/test.prompt.md").read_text(encoding="utf-8")
+        for text in ("测试入口门禁", "覆盖矩阵", "没有本轮真实执行证据不得写", "test/report.md", "status.json"):
+            self.assertIn(text, test_prompt)
 
     def test_dev_directly_modifies_source_and_records_decisions(self):
         prompt = (ROOT / "templates/dev.prompt.md").read_text(encoding="utf-8")

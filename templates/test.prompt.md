@@ -1,12 +1,72 @@
 # 阶段目标
 
-根据需求产物整理可执行的验收场景、必要回归、边界和失败路径。每个场景应能追溯到需求或受影响产物。
+根据 Design 的编号需求、流程、验收条件和测试用例，以及 Dev 的实际实现范围，补充最小必要回归，运行项目真实存在的测试与验收命令，记录证据、缺陷和放行结论。测试文档设计完成不等于产品测试通过；没有本轮真实执行证据不得写 `passed`。
 
-把 `{{REQUIREMENT_DIR}}/design/test.compose.yml` 和 `test.env` 作为测试环境编排事实，测试命令从宿主项目根目录使用 `docker compose --project-directory .`。不得直接修改这两个 Design 阶段文件或宿主项目 `docker/`；发现错误时返回 Design 修正。
+Test 不修改业务实现、Design 产物、全局文件或测试环境编排。实现或自动化测试代码缺失、错误时返回 Dev；需求、契约、权限、测试用例或 Compose 错误时返回 Design；不得修改实现、降低断言或改写需求来绕过失败。
+
+# 测试入口门禁
+
+开始前检查：
+
+- `status.json` 有效，每个 active 的 `FR` 都关联 `FLOW`、`AC` 和 `TC`；
+- Design 的 `test-cases.md`、权限、平台、API/事件、数据和迁移设计可以测试；
+- Dev 的实际实现范围、影响文件、验证命令、未实现项和已知限制明确；
+- `test.compose.yml`、`test.env`、初始化方式和非敏感测试数据来源明确。
+
+缺少条件时先穷尽输入上下文和现有项目命令；仍无法执行则在报告中记为 `blocked` 并指出负责阶段，不得虚构补齐或放行。
+
+# 风险与覆盖
+
+按用户影响、权限与跨租户、金额或关键业务、删除与不可逆操作、数据迁移、并发与幂等、异步任务、外部系统、兼容性和变更复杂度确定风险。只测试实际适用项，高风险项必须有正向、反向和边界场景。
+
+`test/report.md` 中维护覆盖矩阵：
+
+| TC | FR/AC/BR | 流程/平台 | operationId/事件 | PERM | 数据/MIG | 风险 | 执行方式 | 结果 | 证据 |
+|---|---|---|---|---|---|---|---|---|---|
+
+每个 `AC` 至少由一个 `TC` 覆盖。Design 已有 `TC` 保留编号；Test 发现缺少或错误用例时返回 Design。只可为实现级回归补充 `test/*.feature`，使用 `TST-xxx` 本阶段局部编号并引用正式 `TC`，不得复制或重编号 Design 用例。
+
+# 执行要求
+
+把 `{{REQUIREMENT_DIR}}/design/test.compose.yml` 和 `test.env` 作为只读测试环境编排事实，从宿主项目根目录使用 `docker compose --project-directory .`。记录实际执行的环境、应用或镜像版本、初始化、迁移、健康检查、测试和清理命令；不得使用生产数据或真实凭据，测试数据必须可重复、隔离且可清理。
+
+按实际范围执行：
+
+- 验收：正常、失败、边界、无权限、重复提交、并发和恢复；
+- API：method、path、参数、Schema、示例、错误、兼容性和真实响应；
+- 事件：payload、生产消费、重复、顺序、重试、死信和兼容性；
+- 权限：允许、拒绝、未登录、跨租户、已撤权、禁用、自我提权、列表与批量泄漏，直接调用 API 也必须失败；
+- 数据与迁移：全新初始化、历史数据、约束、重复执行、兼容窗口、失败停止和安全恢复；
+- 平台：流程、loading/empty/error/forbidden/success、表单、刷新返回、弱网离线、响应式、窗口和可访问性；
+- 性能：只使用 Design 已确认阈值；没有阈值时仅报告基线，不得宣布合格；
+- 回归：只覆盖受影响路径、共享契约和高风险邻接能力，不生成无依据的全量回归。
+
+Gherkin 场景使用 Given 表达业务前置、When 表达一个核心动作、Then 表达可观察结果；不写类名、表名或实现步骤。一个场景只验证一个行为，失败场景明确错误表现及数据是否改变。只有项目存在对应 Runner 且实际运行时，`.feature` 才算自动化测试。
+
+# 证据、缺陷与结论
+
+`test/report.md` 固定包含且不增加同义文件：范围、风险、环境、覆盖矩阵、执行记录、缺陷、未执行项、结论。每条执行记录包含命令、环境、开始时间、退出码、通过/失败/跳过数量和简短证据；区分实际执行、静态检查、人工验证、未执行、阻塞和不适用，不粘贴冗长日志。
+
+失败按根因分类：`implementation` 返回 Dev，`design` 返回 Design，`environment` 记录环境阻塞，`test` 修正当前测试产物。每个缺陷记录关联编号、复现条件、预期、实际、影响、证据和负责阶段。
+
+最终结论只能是：
+
+- `passed`：所有 active 项的必测内容通过，无阻断缺陷；
+- `failed`：存在未修复失败；
+- `blocked`：前置或环境导致无法完成；
+- `partial`：明确存在未执行范围。
+
+只有 `passed` 才能把 active 项的 Test 状态改为 `passed`。`not-applicable` 必须有 Design 依据；失败、阻塞和未执行不得写成通过，也不得进入 Deployment。
+
+# status.json
+
+通过阶段 Patch 只更新 `status.json` 中 Test 的状态和证据，不改编号、类型、标题、来源、链接、生命周期或其他阶段状态。每个 `passed` 证据引用 `test/report.md` 的覆盖记录和真实执行命令；发现设计项缺失或关系错误时返回 Design。
 
 # Patch 允许包含的文件
 
+- `{{REQUIREMENT_DIR}}/test/report.md`
 - `{{REQUIREMENT_DIR}}/test/*.feature`
-- `{{REQUIREMENT_DIR}}/test/*.md`
+- `{{REQUIREMENT_DIR}}/test/questions.md`
+- `{{REQUIREMENT_DIR}}/status.json`
 
-不得修改业务实现或全局文件。
+当前阶段 Git Patch 只能修改上述 Test 稳定产物和状态文件，不得修改业务实现、Design 产物、全局文件或宿主项目 `docker/`。

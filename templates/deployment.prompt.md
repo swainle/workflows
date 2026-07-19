@@ -17,9 +17,14 @@
 
 需要后续修改部署代码或配置时，只在阶段产物中列出明确的目标、约束和验证方式，不在当前阶段直接执行。
 
+# status.json
+
+通过阶段 Patch 只更新需求根层 `status.json` 中 Deployment 的状态和证据，不修改编号、设计关系或其他阶段状态。每个 active 项必须为 `done` 或有 Design 依据的 `not-applicable`；`done` 证据引用 `deployment/deployment.md` 中真实验证的构建、迁移、健康检查、恢复或回滚记录。Dev/Test 未通过、生产编排无效、迁移或回滚不可验证时标记 `blocked` 并返回负责阶段，不得放行。
+
 # Patch 允许包含的文件
 
 - `{{REQUIREMENT_DIR}}/deployment/deployment.md`
 - `{{REQUIREMENT_DIR}}/deployment/questions.md`
+- `{{REQUIREMENT_DIR}}/status.json`
 
-当前阶段 Git Patch 只能修改上述部署稳定阶段产物。
+当前阶段 Git Patch 只能修改上述部署稳定阶段产物和状态文件。

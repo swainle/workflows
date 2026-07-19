@@ -19,6 +19,7 @@ import { STAGE_BY_NAME } from "./core/stages.mjs";
 import PATCH_CONFIG, { GLOBAL_PATHS } from "./prompt/patch.mjs";
 import {
   assertStageReady,
+  assertTrackingStageComplete,
   clearMissingActiveStage,
   completeActiveStage,
   dependencyStages,
@@ -172,11 +173,12 @@ function within(file, target) {
 export function assertAllowedPatchPaths(current, stage, files) {
   const registered = STAGE_BY_NAME[stage];
   const stageRoot = registered ? projectRelative(path.join(current.requirementDir, registered.directory)) : null;
+  const statusFile = projectRelative(path.join(current.requirementDir, "status.json"));
   const allowed = stage === "patch"
-    ? [...GLOBAL_PATHS, projectRelative(path.join(current.requirementDir, "completion.md")), projectRelative(path.join(current.requirementDir, "patch", "questions.md"))]
+    ? [...GLOBAL_PATHS, projectRelative(path.join(current.requirementDir, "completion.md")), statusFile, projectRelative(path.join(current.requirementDir, "patch", "questions.md"))]
     : stage === "global"
       ? GLOBAL_PATHS
-      : [projectRelative(path.join(current.requirementDir, registered.directory))];
+      : [projectRelative(path.join(current.requirementDir, registered.directory)), statusFile];
   for (const input of files) {
     const file = input.replaceAll("\\", "/");
     if (!file || path.isAbsolute(file) || file.split("/").includes("..") || !allowed.some((target) => within(file, target))) {
@@ -206,6 +208,8 @@ function checkPatch(current, stage, patchFile, { requireCompletion = false } = {
   if (requireCompletion) {
     const completion = projectRelative(path.join(current.requirementDir, "completion.md"));
     if (!files.includes(completion)) throw new Error(`Final Patch must modify: ${completion}`);
+    const status = projectRelative(path.join(current.requirementDir, "status.json"));
+    if (!files.includes(status)) throw new Error(`Final Patch must modify: ${status}`);
   }
   execFileSync("git", ["apply", "--check", patchFile], { cwd: PROJECT_ROOT, stdio: "inherit" });
   execFileSync("git", ["apply", "--stat", patchFile], { cwd: PROJECT_ROOT, stdio: "inherit" });
@@ -241,6 +245,7 @@ async function generatePatch(current, requirement = "") {
   const plan = readWorkflowPlan(current.requirementDir);
   const pending = stageStatuses(plan, state).filter(({ status }) => status !== "completed");
   if (pending.length) throw new Error(`Requirement is not complete: ${pending.map(({ name }) => name).join(", ")}.`);
+  for (const stage of ["design", "dev", "test", "deployment"]) assertTrackingStageComplete(current, stage);
   const promptFile = await runPromptStage(PATCH_CONFIG, {
     target: projectRelative(current.requirementDir),
     requirement,
@@ -273,7 +278,11 @@ async function applyAndContinue(current, nextStage, requirement = "") {
   console.log(`Next: ${nextStage ?? "finish"}`);
   const answer = (await ask(`${pendingPatches.length ? "Apply" : "Complete"} this result and continue? [y/N] `)).trim().toLowerCase();
   if (!['y', 'yes'].includes(answer)) throw new Error("Cancelled.");
-  for (const patchFile of pendingPatches) execFileSync("git", ["apply", patchFile], { cwd: PROJECT_ROOT, stdio: "inherit" });
+  for (const patchFile of pendingPatches) {
+    execFileSync("git", ["apply", patchFile], { cwd: PROJECT_ROOT, stdio: "inherit" });
+    recordAppliedPatch(current, patchFile);
+  }
+  assertTrackingStageComplete(current, state.active.stage);
   completeActiveStage(current, result);
   console.log(`Completed: ${result.stage}`);
   if (!nextStage) return;

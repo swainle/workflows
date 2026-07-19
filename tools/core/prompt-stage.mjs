@@ -78,6 +78,8 @@ function collectContext(config, requirementDir, requirementFile, issue, dependen
     for (const file of walkTextFiles(fromProject(relative))) selected.add(file);
   }
   if (existsSync(requirementFile)) selected.add(requirementFile);
+  const statusFile = path.join(requirementDir, "status.json");
+  if (existsSync(statusFile)) selected.add(statusFile);
   const questionsFile = path.join(requirementDir, config.directory, "questions.md");
   if (existsSync(questionsFile)) selected.add(questionsFile);
   for (const file of requirementStageFiles(requirementDir, config, dependencies)) selected.add(file);

@@ -62,16 +62,21 @@
 
 - 本次确认的 Backend 和平台范围；
 - 已实现、未实现和不适用项；
-- `AC-xxx` 到实现与测试的对应关系；
+- `status.json` 中正式编号到实现与自动化测试的对应关系；
 - 实际运行的验证命令和真实结果；
 - 迁移、部署前置条件和已知限制；
 - 源码影响文件清单，只列本次实际修改。
+
+# status.json
+
+实现和验证后，通过阶段 Patch 只更新需求根层 `status.json` 中 Dev 的状态和证据，不修改编号、类型、标题、来源、链接、生命周期或其他阶段状态。每个 active 项必须为 `done` 或有 Design 已确认依据的 `not-applicable`；`done` 证据引用实际源码、迁移、测试文件及真实验证命令。未实现、验证失败或仍有阻塞时使用 `blocked`，返回负责阶段，不得标记完成。发现设计项缺失、错误或需要拆分时返回 Design，不得在 Dev 自行新增或改号。
 
 # Patch 允许包含的文件
 
 - `{{REQUIREMENT_DIR}}/dev/development.md`
 - `{{REQUIREMENT_DIR}}/dev/questions.md`
+- `{{REQUIREMENT_DIR}}/status.json`
 
-阶段 Patch 只能修改上述 Dev 稳定产物，不得包含源码、迁移、测试或项目配置的 Diff。源码修改已经直接存在于工作树中。
+阶段 Patch 只能修改上述 Dev 稳定产物和状态文件，不得包含源码、迁移、测试或项目配置的 Diff。源码修改已经直接存在于工作树中。
 
 Patch 和分析文件必须写入 `{{RUN_DIR}}`。分析文件的“影响文件”同时列出直接修改的源码文件和阶段 Patch 修改的稳定产物，并明确区分“直接修改”和“阶段 Patch”。
