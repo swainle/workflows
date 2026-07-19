@@ -44,6 +44,7 @@
 4. 直接编辑源码、迁移、测试和完成实现所需的非敏感配置；不得把源码修改包装进阶段 Patch。
 5. 复用现有组件和全局 Tokens。平台实现同时读取公共 `token.json` 与自身 `<platform>.token.json`，当前需求阶段 Token 仅作为尚未全局同步的增量设计依据。
 6. 处理输入边界、错误、事务、并发、幂等、权限、数据一致性、加载、空、异常、无权限、重试、响应式和可访问性中实际适用的部分。
+   认证实现优先复用现有方案；没有现有方案时严格采用 Design 确认的成熟认证框架或服务与 Backend Session，不自行建设 OAuth Server、不默认改成自签 JWT、不把 Token 写入浏览器 `localStorage`。
 7. 运行项目真实存在的 lint、类型检查、单元测试、集成测试和构建命令；没有相应脚本时明确记录，不得虚构通过结果。
 8. 发现会改变需求、契约、权限、数据兼容性或平台行为的问题时先对话确认；不能用实现细节静默改变 Design。
 9. 把 `{{REQUIREMENT_DIR}}/design/development.compose.yml` 和 `development.env` 作为开发环境编排事实，使用 `docker compose --project-directory .` 从宿主项目根目录执行；可以创建其引用的 Dockerfile 和源码，但不得直接修改这两个 Design 阶段文件或宿主项目 `docker/`。发现错误时返回 Design 修正。

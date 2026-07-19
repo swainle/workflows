@@ -161,7 +161,7 @@
         "patch": "pending"
       },
       "evidence": {
-        "design": ["design/requirement.md#REQ-0010-FR-001"],
+        "design": ["design/requirement.md#REQ-0010-NFR-001"],
         "dev": [],
         "test": [],
         "deployment": ["不涉及部署变化：沿用现有服务"],
@@ -275,6 +275,18 @@ tokens:
 ## 正式契约
 
 OpenAPI 和 AsyncAPI 使用有效 JSON，操作使用稳定 `operationId`，示例与 Schema 一致。权限以服务端为准。DBML 覆盖实体、字段、关系、约束、索引、迁移和回滚。没有异步事件时不创建空的 `asyncapi.json`。
+
+## 认证与会话
+
+身份认证优先复用宿主项目现有方案，不重复建设。当前项目没有认证且本需求需要登录时，使用项目已有依赖能够支持的成熟认证框架，或经确认的成熟认证服务，由 Backend 创建可过期、可撤销的 Session；不自行实现 OAuth Server，不默认引入自签 JWT。具体产品、版本和选择依据写入 `technology.md`，无法从项目事实确定且选择会造成外部费用、账号依赖或数据边界变化时先对话确认。
+
+- Web：Session 由服务端通过 `HttpOnly`、`Secure`、`SameSite` Cookie 设置，不把 Access Token 或 Refresh Token 放入 `localStorage`；
+- Mobile 与 Desktop：通过系统浏览器完成登录，应用侧凭据只放系统安全存储，不使用可读取凭据的内嵌 WebView；
+- Mini Program：使用平台临时 Code，由 Backend 换取平台身份并映射为系统内部稳定 `user_id`；
+- Backend：Session 只提供稳定 `user_id` 和必要会话上下文，业务权限仍由服务端与 OpenFGA 判断，不信任前端角色字段；
+- 服务间调用：只有实际存在时才设计 Workload Identity 或 Client Credentials，不让服务冒充普通用户。
+
+设计登录、登录失败、续期、过期、退出、全设备撤销、用户禁用和认证服务不可用行为。管理员或高风险账户按已确认风险启用 MFA，不为普通需求强制扩展认证范围。每个平台说明 Session 载体、有效期来源、撤销方式、身份绑定与账号合并规则；没有事实时不得猜测具体时长。
 
 ## authorization.fga
 

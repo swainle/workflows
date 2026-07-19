@@ -24,7 +24,10 @@
 ## 权限
 
 - OpenFGA：细粒度授权
-- 身份认证由宿主项目现有认证方案负责
+- 身份认证优先复用宿主项目现有方案；没有现有方案时，使用成熟认证服务或框架，由 Backend 维护可过期、可撤销的 Session
+- Web 默认使用服务端设置的 `HttpOnly`、`Secure`、`SameSite` Cookie；Mobile 与 Desktop 使用系统浏览器登录和系统安全存储；Mini Program 使用平台临时 Code 由 Backend 换取身份
+- 各平台身份统一映射到稳定内部 `user_id`；认证只确认身份，业务授权仍由服务端和 OpenFGA 判断
+- 不自行实现 OAuth Server，不默认使用自签 JWT，不把 Access Token 或 Refresh Token 放入浏览器 `localStorage`
 
 ## 部署
 

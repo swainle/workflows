@@ -1,5 +1,6 @@
 - 从当前 GitHub Issue 的初步想法开始，通过一次一个问题的对话达到可设计状态，确认摘要后再生成产物。
 - 统一完成需求、流程、平台体验、架构、权限、API、事件、数据库和跨产物验证，不再拆分旧阶段。
+- 认证优先复用宿主项目现有方案；没有时使用成熟认证服务或框架与 Backend 可撤销 Session，不自行建设 OAuth Server 或默认自签 JWT。
 - Backend 范围使用 `backend.process.md` 的时序图描述主要技术流程，使用 `backend.ddd.md` 约束领域边界、聚合、不变量、事件和依赖方向；纯前端需求不创建空文件。
 - 使用 `technology.md` 记录选型、准确版本或型号、用途和依据；使用 `deployment.md` 设计 development、test、production 的部署与迁移方式。
 - 只为明确选择的 Web、Mini Program、Desktop 或 Mobile 平台生成 Markdown 与 UI YAML。

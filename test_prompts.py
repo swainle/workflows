@@ -36,6 +36,7 @@ class PromptTest(unittest.TestCase):
             "backend.process.md", "backend.ddd.md", "BSEQ-xxx", "sequenceDiagram",
             "Bounded Context", "Aggregate Root", "docs/architecture/backend.ddd.md",
             "统一编号与 status.json", "authorization.fga", "权限矩阵", "平台 Markdown 与 UI YAML",
+            "认证与会话", "HttpOnly", "不自行实现 OAuth Server", "不默认引入自签 JWT",
         ):
             self.assertIn(text, prompt)
         for text in ("development.compose.yml", "test.compose.yml", "production.compose.yml", "backend.process.md", "backend.ddd.md"):
