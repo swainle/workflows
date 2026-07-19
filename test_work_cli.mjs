@@ -7,6 +7,7 @@ import { currentRequirement, normalizeShortName, readGithubIssue, selectRequirem
 import { assertAllowedPatchPaths, parseWorkArguments, unappliedPatches } from "./tools/work.mjs";
 import { STAGES } from "./tools/core/stages.mjs";
 import { PROJECT_ROOT } from "./tools/core/paths.mjs";
+import { sourceBaseline } from "./tools/core/prompt-stage.mjs";
 import { assertStageReady, clearMissingActiveStage, completeActiveStage, dependencyStages, findActiveResult, readWorkflowPlan, readWorkState, recordAppliedPatch, stageStatuses, startStage, validateWorkflowPlan } from "./tools/core/workflow.mjs";
 
 test("parses the simplified commands", () => {
@@ -38,6 +39,14 @@ test("registers the fixed workflow", () => {
     { name: "design", dependsOn: ["dev"], reason: "cycle" },
     { name: "dev", dependsOn: ["design"], reason: "cycle" },
   ] }), /design stage cannot have dependencies|dependency cycle/);
+});
+
+test("captures the source baseline for direct development", () => {
+  assert.equal(sourceBaseline({ directSourceChanges: false }), "不适用。");
+  const runner = (_command, args) => args[0] === "rev-parse" ? "abc123\n" : " M apps/web/page.tsx\n";
+  const baseline = sourceBaseline({ directSourceChanges: true }, { projectRoot: "C:/project", runner });
+  assert.match(baseline, /开始 Commit：`abc123`/);
+  assert.match(baseline, /M apps\/web\/page\.tsx/);
 });
 
 test("limits stage and final patches to their path scopes", () => {

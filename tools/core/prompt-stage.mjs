@@ -2,7 +2,7 @@ import { execFileSync } from "node:child_process";
 import { existsSync, mkdirSync, readFileSync, readdirSync, statSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import { walkTextFiles } from "./files.mjs";
-import { WORKFLOW_ROOT, fromProject, projectRelative } from "./paths.mjs";
+import { PROJECT_ROOT, WORKFLOW_ROOT, fromProject, projectRelative } from "./paths.mjs";
 import { STAGE_BY_NAME } from "./stages.mjs";
 import { requirementsForIssue } from "./current-requirement.mjs";
 
@@ -20,10 +20,10 @@ function language(file) {
   return path.extname(file).slice(1).toLowerCase();
 }
 
-function sourceBaseline(config) {
+export function sourceBaseline(config, { projectRoot = PROJECT_ROOT, runner = execFileSync } = {}) {
   if (!config.directSourceChanges) return "不适用。";
-  const commit = execFileSync("git", ["rev-parse", "HEAD"], { cwd: PROJECT_ROOT, encoding: "utf8" }).trim();
-  const changes = execFileSync("git", ["status", "--short"], { cwd: PROJECT_ROOT, encoding: "utf8" }).trim();
+  const commit = runner("git", ["rev-parse", "HEAD"], { cwd: projectRoot, encoding: "utf8" }).trim();
+  const changes = runner("git", ["status", "--short"], { cwd: projectRoot, encoding: "utf8" }).trim();
   return [`- 开始 Commit：\`${commit}\``, "- 开始前已有工作树变化：", changes ? `\n\`\`\`text\n${changes}\n\`\`\`` : "  无。"].join("\n");
 }
 
