@@ -1,18 +1,31 @@
 # 移动端
 
+使用 Flutter 在 `apps/mobile` 创建移动应用。
+
 ## 快速开始
 
-先在 `design` 中选择 Mobile，再通过 Dev 对话确认开发范围。
+先安装 Flutter SDK 和目标平台工具链，再在 monorepo 根目录执行：
 
 ```bash
-pnpm -s work:dev --require "实现 Mobile，使用项目现有 Flutter 框架"
+flutter doctor
+flutter create apps/mobile
+cd apps/mobile
+flutter devices
+flutter run
 ```
+
+`flutter doctor` 会报告缺失的 Android、iOS 或桌面开发工具；`flutter run` 会提示选择可用设备并提供热重载和调试能力。
 
 ## 命令
 
-- `pnpm -s work:dev`：生成统一开发阶段 Prompt并在对话中选择 Mobile。
-- `pnpm -s work:dev --list`：查看 Dev 默认配置。
+- `flutter doctor`：检查 Flutter 和平台工具链。
+- `flutter devices`：列出模拟器和已连接设备。
+- `flutter run`：启动应用并进入调试模式。
+- `flutter analyze`：执行静态检查。
+- `flutter test`：运行测试。
 
 ## 作用
 
-让开发 AI 读取移动端设计、UI YAML、公共和移动端 Token，直接修改源码并验证。
+创建 Flutter 原生项目。它可以放在 monorepo 的 `apps/mobile`，但不需要伪装成 pnpm workspace 包，日常命令直接使用 Flutter CLI。
+
+参考：[Flutter CLI](https://docs.flutter.dev/reference/flutter-cli)。
