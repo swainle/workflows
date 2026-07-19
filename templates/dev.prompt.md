@@ -6,7 +6,8 @@
 
 - 完成本需求所需的业务源码、迁移、自动化测试和非敏感应用配置；
 - `{{REQUIREMENT_DIR}}/dev/development.md`；
-- `{{REQUIREMENT_DIR}}/dev/questions.md`；
+- `{{REQUIREMENT_DIR}}/questions.md`；
+- `{{REQUIREMENT_DIR}}/dev/requirements.md`；
 - `{{REQUIREMENT_DIR}}/status.json` 中 Dev 状态与证据。
 
 不得修改需求根层其他规范、全局文件、Test/Patch 结果、`compose.yml`、环境文件或执行历史。根项目配置、全局架构、契约、Docker 和全局 Tokens 如需变化，只记录到 `dev/development.md`，由 Patch 阶段处理。

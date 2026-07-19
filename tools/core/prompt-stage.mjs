@@ -7,6 +7,7 @@ import { REQUIREMENT_SPEC_ARTIFACTS } from "./specs.mjs";
 import { requirementsForIssue } from "./current-requirement.mjs";
 
 const MAX_CONTEXT_BYTES = 1_500_000;
+const REQUIREMENTS_HEADER = "# 阶段附加要求";
 
 function timestamp(now = new Date()) {
   const part = (value) => String(value).padStart(2, "0");
@@ -75,8 +76,10 @@ function collectContext(config, requirementDir, requirementFile, issue, dependen
       for (const file of walkTextFiles(path.join(requirementDir, relative))) selected.add(file);
     }
   }
-  const questionsFile = path.join(requirementDir, config.directory, "questions.md");
+  const questionsFile = path.join(requirementDir, "questions.md");
   if (existsSync(questionsFile)) selected.add(questionsFile);
+  const stageRequirementsFile = path.join(requirementDir, config.directory, "requirements.md");
+  if (existsSync(stageRequirementsFile)) selected.add(stageRequirementsFile);
   for (const file of requirementStageFiles(requirementDir, config, dependencies)) selected.add(file);
   for (const file of relatedStageFiles(config, issue)) selected.add(file);
 
@@ -137,7 +140,7 @@ export function readStageConfig(name) {
 
 export function formatStageConfig(config) {
   const list = (items) => items.map((file) => `- ${file.replaceAll("{{PLATFORM}}", config.platform || "<platform>")}`).join("\n") || "- 无";
-  const artifacts = [...new Set([...(config.artifacts ?? []), `${config.directory}/questions.md`])];
+  const artifacts = [...new Set([...(config.artifacts ?? []), "questions.md", `${config.directory}/requirements.md`])];
   return [
     readStageConfig(config.module),
     "# 执行角色",
@@ -147,6 +150,33 @@ export function formatStageConfig(config) {
     "# 阶段产物",
     list(artifacts),
   ].join("\n\n");
+}
+
+export function writeStageRequirement(file, createdAt, text) {
+  const header = `## ${createdAt}`;
+  const sectionLines = ["", header, "", `- ${text}`, ""];
+  let lines;
+  if (existsSync(file)) {
+    lines = readFileSync(file, "utf8").split(/\r?\n/);
+  } else {
+    lines = [REQUIREMENTS_HEADER, ""];
+  }
+  const headerIndex = lines.findIndex((line) => line === header);
+  if (headerIndex >= 0) {
+    let nextIndex = lines.length;
+    for (let i = headerIndex + 1; i < lines.length; i++) {
+      if (/^## /.test(lines[i])) {
+        nextIndex = i;
+        break;
+      }
+    }
+    lines.splice(headerIndex, nextIndex - headerIndex, ...sectionLines);
+  } else {
+    if (lines.length && lines[lines.length - 1] !== "") lines.push("");
+    lines.push(...sectionLines);
+  }
+  mkdirSync(path.dirname(file), { recursive: true });
+  writeFileSync(file, `${lines.join("\n").trimEnd()}\n`, "utf8");
 }
 
 export async function runPromptStage(config, { target, requirement = "", issue = null, dependencies = [] }) {
@@ -174,6 +204,14 @@ export async function runPromptStage(config, { target, requirement = "", issue =
   const promptFile = path.join(outputDir, promptName);
   if (existsSync(promptFile)) throw new Error(`Prompt already exists: ${projectRelative(promptFile)}`);
 
+  if (requirement.trim()) {
+    writeStageRequirement(
+      path.join(requirementDir, config.directory, "requirements.md"),
+      createdAt,
+      requirement.trim(),
+    );
+  }
+
   const base = readFileSync(path.join(WORKFLOW_ROOT, "templates", "base.prompt.md"), "utf8");
   const stage = readFileSync(path.join(WORKFLOW_ROOT, "templates", config.template), "utf8");
   const context = collectContext(config, requirementDir, requirementFile, issue, dependencies);
@@ -192,7 +230,7 @@ export async function runPromptStage(config, { target, requirement = "", issue =
     "{{PATCH_NAME}}": patchName,
     "{{PATCH_FILE}}": projectRelative(path.join(outputDir, patchName)),
     "{{ANALYSIS_FILE}}": projectRelative(path.join(outputDir, analysisName)),
-    "{{QUESTIONS_FILE}}": projectRelative(path.join(requirementDir, config.directory, "questions.md")),
+    "{{QUESTIONS_FILE}}": projectRelative(path.join(requirementDir, "questions.md")),
     "{{CREATED_AT}}": createdAt,
     "{{ISSUE_NUMBER}}": issue?.number ?? "",
     "{{ISSUE_URL}}": issue?.url ?? "",

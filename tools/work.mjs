@@ -164,15 +164,20 @@ function within(file, target) {
 
 export function assertAllowedPatchPaths(current, stage, files) {
   const registered = STAGE_BY_NAME[stage];
-  const stageRoot = registered ? projectRelative(path.join(current.requirementDir, registered.directory)) : null;
+  const stageDirectory = registered?.directory ?? (stage === "patch" ? "patch" : null);
+  const stageRoot = stageDirectory ? projectRelative(path.join(current.requirementDir, stageDirectory)) : null;
   const statusFile = projectRelative(path.join(current.requirementDir, "status.json"));
+  const questionsFile = projectRelative(path.join(current.requirementDir, "questions.md"));
+  const stageRequirementsFile = stageDirectory
+    ? projectRelative(path.join(current.requirementDir, stageDirectory, "requirements.md"))
+    : null;
   const designFiles = REQUIREMENT_SPEC_ARTIFACTS.map((relative) => projectRelative(path.join(current.requirementDir, relative)));
   const legacyDesignFiles = LEGACY_DESIGN_ARTIFACTS.map((relative) => projectRelative(path.join(current.requirementDir, "design", relative)));
   const stageFiles = stage === "design"
-    ? [projectRelative(path.join(current.requirementDir, "design", "questions.md"))]
-    : [projectRelative(path.join(current.requirementDir, registered?.directory ?? ""))];
+    ? [questionsFile, stageRequirementsFile]
+    : [questionsFile, stageRoot];
   const allowed = stage === "patch"
-    ? [...GLOBAL_PATHS, projectRelative(path.join(current.requirementDir, "completion.md")), statusFile, projectRelative(path.join(current.requirementDir, "patch", "questions.md"))]
+    ? [...GLOBAL_PATHS, projectRelative(path.join(current.requirementDir, "completion.md")), statusFile, questionsFile, stageRequirementsFile]
     : stage === "global"
       ? GLOBAL_PATHS
       : [...stageFiles, statusFile, ...(stage === "design" ? [...designFiles, ...legacyDesignFiles] : [])];

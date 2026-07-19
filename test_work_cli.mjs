@@ -7,7 +7,7 @@ import { currentRequirement, normalizeShortName, readGithubIssue, selectRequirem
 import { assertAllowedPatchPaths, parseWorkArguments, unappliedPatches } from "./tools/work.mjs";
 import { STAGES } from "./tools/core/stages.mjs";
 import { PROJECT_ROOT, WORKFLOW_ROOT, projectRelative } from "./tools/core/paths.mjs";
-import { runPromptStage } from "./tools/core/prompt-stage.mjs";
+import { runPromptStage, writeStageRequirement } from "./tools/core/prompt-stage.mjs";
 import DESIGN_CONFIG from "./tools/prompt/design.mjs";
 import { walkTextFiles } from "./tools/core/files.mjs";
 import { assertStageReady, assertTrackingStageComplete, clearMissingActiveStage, completeActiveStage, dependencyStages, findActiveResult, readWorkflowPlan, readWorkState, recordAppliedPatch, stageStatuses, startStage, validateWorkflowPlan } from "./tools/core/workflow.mjs";
@@ -82,16 +82,22 @@ test("limits stage and final patches to their path scopes", () => {
     "docs/requirements/REQ-0004-build/web.ui.yaml",
     "docs/requirements/REQ-0004-build/compose.yml",
     "docs/requirements/REQ-0004-build/dev.env",
+    "docs/requirements/REQ-0004-build/questions.md",
+    "docs/requirements/REQ-0004-build/design/requirements.md",
   ]));
   assert.doesNotThrow(() => assertAllowedPatchPaths(current, "dev", [
     "docs/requirements/REQ-0004-build/dev/development.md",
-    "docs/requirements/REQ-0004-build/dev/questions.md",
+    "docs/requirements/REQ-0004-build/questions.md",
+    "docs/requirements/REQ-0004-build/dev/requirements.md",
     "docs/requirements/REQ-0004-build/status.json",
   ]));
   assert.throws(() => assertAllowedPatchPaths(current, "dev", ["apps/api/src/index.ts"]), /cannot modify/);
   assert.throws(() => assertAllowedPatchPaths(current, "design", [
     "docs/requirements/REQ-0004-build/design/20260717010101/prompt.md",
   ]), /cannot modify|execution history/);
+  assert.throws(() => assertAllowedPatchPaths(current, "design", [
+    "docs/requirements/REQ-0004-build/design/questions.md",
+  ]), /cannot modify/);
   assert.doesNotThrow(() => assertAllowedPatchPaths(current, "design", [
     "docs/requirements/REQ-0004-build/design/requirement.md",
   ]));
@@ -101,11 +107,73 @@ test("limits stage and final patches to their path scopes", () => {
     "docker/compose.yml", "docker/prod.env",
     "docs/requirements/REQ-0004-build/completion.md",
     "docs/requirements/REQ-0004-build/status.json",
+    "docs/requirements/REQ-0004-build/questions.md",
+    "docs/requirements/REQ-0004-build/patch/requirements.md",
   ]));
   assert.throws(() => assertAllowedPatchPaths(current, "dev", ["docs/requirements/REQ-0004-build/requirement.md"]), /cannot modify/);
   assert.throws(() => assertAllowedPatchPaths(current, "dev", ["docker/compose.yml"]), /cannot modify/);
   assert.throws(() => assertAllowedPatchPaths(current, "patch", ["apps/api/src/index.ts"]), /cannot modify/);
   assert.deepEqual(unappliedPatches(["a.patch", "b.patch"], ["a.patch"]), ["b.patch"]);
+});
+
+test("appends and overwrites stage requirements by created_at", async () => {
+  const root = mkdtempSync(path.join(WORKFLOW_ROOT, ".req-test-"));
+  const requirementDir = path.join(root, "REQ-0005-requirements");
+  const target = projectRelative(requirementDir);
+  try {
+    mkdirSync(requirementDir, { recursive: true });
+    writeFileSync(path.join(requirementDir, "requirement.md"), "# Requirement root fact\n");
+    const config = { ...DESIGN_CONFIG, module: "design", directory: "design", references: [] };
+    const issue = { number: 5, title: "Requirements test", url: "https://example/5", body: "Body", comments: [] };
+
+    const output1 = await runPromptStage(config, { target, requirement: "first requirement", issue, dependencies: [] });
+    const requirementsFile = path.join(requirementDir, "design", "requirements.md");
+    assert.ok(existsSync(requirementsFile), "requirements.md should be created when requirement is provided");
+    let content = readFileSync(requirementsFile, "utf8");
+    assert.match(content, /^# 阶段附加要求$/m);
+    assert.match(content, /first requirement/);
+
+    const output2 = await runPromptStage(config, { target, requirement: "second requirement", issue, dependencies: [] });
+    content = readFileSync(requirementsFile, "utf8");
+    assert.match(content, /first requirement/);
+    assert.match(content, /second requirement/);
+
+    await runPromptStage(config, { target, requirement: "", issue, dependencies: [] });
+    content = readFileSync(requirementsFile, "utf8");
+    assert.match(content, /first requirement/);
+    assert.match(content, /second requirement/);
+
+    const prompt = readFileSync(path.join(PROJECT_ROOT, output2), "utf8");
+    assert.ok(prompt.includes(`${target}/design/requirements.md`));
+    void output1;
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+});
+
+test("writeStageRequirement overwrites an existing created_at section", () => {
+  const directory = mkdtempSync(path.join(tmpdir(), "workflows-req-"));
+  try {
+    const file = path.join(directory, "design", "requirements.md");
+    writeStageRequirement(file, "20260720000000", "first");
+    let content = readFileSync(file, "utf8");
+    assert.match(content, /## 20260720000000[\s\S]*- first/);
+
+    writeStageRequirement(file, "20260720000000", "first updated");
+    content = readFileSync(file, "utf8");
+    assert.match(content, /## 20260720000000[\s\S]*- first updated/);
+    assert.doesNotMatch(content, /- first$/m);
+
+    writeStageRequirement(file, "20260720000001", "second");
+    content = readFileSync(file, "utf8");
+    assert.match(content, /- first updated/);
+    assert.match(content, /- second/);
+
+    const sections = content.split(/^## /m).filter((s) => /^\d{14}/.test(s));
+    assert.equal(sections.length, 2);
+  } finally {
+    rmSync(directory, { recursive: true, force: true });
+  }
 });
 
 test("validates the shared requirement tracking file", () => {

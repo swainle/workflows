@@ -6,7 +6,8 @@
 
 - `{{REQUIREMENT_DIR}}/test/report.md`；
 - 必要的 `{{REQUIREMENT_DIR}}/test/*.feature`；
-- `{{REQUIREMENT_DIR}}/test/questions.md`；
+- `{{REQUIREMENT_DIR}}/questions.md`；
+- `{{REQUIREMENT_DIR}}/test/requirements.md`；
 - `{{REQUIREMENT_DIR}}/status.json` 中 Test 状态与证据。
 
 不得修改源码、需求根层其他规范、全局文件、Dev/Patch 结果、`compose.yml`、环境文件或执行历史。实现或自动化测试代码错误返回 Dev；需求或规范错误返回 Design。

@@ -7,7 +7,8 @@
 ## 可修改文件范围
 
 - `{{REQUIREMENT_DIR}}/completion.md`；
-- `{{REQUIREMENT_DIR}}/patch/questions.md`；
+- `{{REQUIREMENT_DIR}}/questions.md`；
+- `{{REQUIREMENT_DIR}}/patch/requirements.md`；
 - `{{REQUIREMENT_DIR}}/status.json` 中 Patch 状态与证据；
 - 已注入且确需增量同步的 `docs/architecture/**`、`docs/contracts/**`、`docs/development/**`、`docker/**`、`packages/design-tokens/tokens/**`、根 `package.json`、`pnpm-workspace.yaml`、`turbo.json`。
 

@@ -9,12 +9,13 @@
 ## 可修改文件范围
 
 - 通用“设计文件规范”列出的需求根层文件；
-- `{{REQUIREMENT_DIR}}/design/questions.md`；
+- `{{REQUIREMENT_DIR}}/questions.md`；
+- `{{REQUIREMENT_DIR}}/design/requirements.md`；
 - `{{REQUIREMENT_DIR}}/status.json`。
 
 不得修改源码、全局文件、Dev/Test/Patch 结果或任何时间戳执行历史。只创建实际需要的契约和已选择平台文件。
 
-如果上下文存在旧的 `design/` 根层规范文件，将有效内容按通用“设计文件规范”迁移到需求根层，并在同一 Patch 删除对应旧文件；保留 `design/questions.md` 和所有时间戳执行历史，迁移后不得维持两套事实。
+如果上下文存在旧的 `design/` 根层规范文件，将有效内容按通用“设计文件规范”迁移到需求根层，并在同一 Patch 删除对应旧文件；保留 `questions.md` 和所有时间戳执行历史，迁移后不得维持两套事实。
 
 迁移映射：旧 `requirement.md` 拆入六个 requirement 文件；`process.md` → `all.process.md`；`backend.ddd.md` → `ddd.md`；`test-cases.md` → `requirement.acceptance.md`；契约、平台文件、Tokens、技术、架构和部署文件移到需求根层；三份旧 Compose 合并为一个 `compose.yml`，旧环境文件分别迁为 `dev.env`、`test.env`、`prod.env`。迁移保留所有稳定编号和语义。
 
