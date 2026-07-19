@@ -8,6 +8,7 @@ import { assertAllowedPatchPaths, parseWorkArguments, unappliedPatches } from ".
 import { STAGES } from "./tools/core/stages.mjs";
 import { PROJECT_ROOT } from "./tools/core/paths.mjs";
 import { sourceBaseline } from "./tools/core/prompt-stage.mjs";
+import { walkTextFiles } from "./tools/core/files.mjs";
 import { assertStageReady, clearMissingActiveStage, completeActiveStage, dependencyStages, findActiveResult, readWorkflowPlan, readWorkState, recordAppliedPatch, stageStatuses, startStage, validateWorkflowPlan } from "./tools/core/workflow.mjs";
 
 test("parses the simplified commands", () => {
@@ -59,11 +60,24 @@ test("captures the source baseline for direct development", () => {
   assert.match(unborn, /\?\? package\.json/);
 });
 
+test("reads named environment artifacts but skips local dotenv files", () => {
+  const directory = mkdtempSync(path.join(tmpdir(), "workflows-env-"));
+  try {
+    writeFileSync(path.join(directory, "production.env"), "NODE_ENV=production\n");
+    writeFileSync(path.join(directory, ".env"), "SECRET=hidden\n");
+    assert.deepEqual(walkTextFiles(directory).map((file) => path.basename(file)), ["production.env"]);
+  } finally {
+    rmSync(directory, { recursive: true, force: true });
+  }
+});
+
 test("limits stage and final patches to their path scopes", () => {
   const current = { requirementDir: path.join(PROJECT_ROOT, "docs/requirements/REQ-0004-build") };
   assert.doesNotThrow(() => assertAllowedPatchPaths(current, "design", [
     "docs/requirements/REQ-0004-build/design/requirement.md",
     "docs/requirements/REQ-0004-build/design/web.ui.yaml",
+    "docs/requirements/REQ-0004-build/design/development.compose.yml",
+    "docs/requirements/REQ-0004-build/design/development.env",
   ]));
   assert.doesNotThrow(() => assertAllowedPatchPaths(current, "dev", [
     "docs/requirements/REQ-0004-build/dev/development.md",
@@ -75,8 +89,10 @@ test("limits stage and final patches to their path scopes", () => {
   ]), /execution history/);
   assert.doesNotThrow(() => assertAllowedPatchPaths(current, "patch", [
     "docs/architecture/product.md", "packages/design-tokens/tokens/token.json",
+    "docker/production.compose.yml", "docker/production.env",
     "docs/requirements/REQ-0004-build/completion.md",
   ]));
+  assert.throws(() => assertAllowedPatchPaths(current, "dev", ["docker/development.compose.yml"]), /cannot modify/);
   assert.throws(() => assertAllowedPatchPaths(current, "patch", ["apps/api/src/index.ts"]), /cannot modify/);
   assert.deepEqual(unappliedPatches(["a.patch", "b.patch"], ["a.patch"]), ["b.patch"]);
 });

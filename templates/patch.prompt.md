@@ -6,6 +6,8 @@
 
 Design Tokens 只在本阶段同步：把 `design/design.token.json` 中确认且长期有效的变化增量合并到 `packages/design-tokens/tokens/token.json`；把 `design/<platform>.design.token.json` 合并到对应 `<platform>.token.json`。平台文件只保留平台新增或覆盖项，不复制公共 Token，不用当前需求文件整体覆盖全局文件。
 
+Docker 编排也只在本阶段同步：把 Design 中已经通过 Dev、Test 和 Deployment 验证的 `development.compose.yml`、`development.env`、`test.compose.yml`、`test.env`、`production.compose.yml`、`production.env` 同步到宿主项目 `docker/` 下的同名文件。不得同步包含密码、Token、证书、真实凭据或其他密钥的环境值。
+
 # 完成摘要
 
 `completion.md` 只包含以下结构：
@@ -47,6 +49,7 @@ status: completed
 - `docs/architecture/**`
 - `docs/contracts/**`
 - `docs/development/**`
+- `docker/**`
 - `packages/design-tokens/tokens/**`
 - `package.json`
 - `pnpm-workspace.yaml`

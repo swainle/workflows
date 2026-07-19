@@ -46,6 +46,7 @@
 6. 处理输入边界、错误、事务、并发、幂等、权限、数据一致性、加载、空、异常、无权限、重试、响应式和可访问性中实际适用的部分。
 7. 运行项目真实存在的 lint、类型检查、单元测试、集成测试和构建命令；没有相应脚本时明确记录，不得虚构通过结果。
 8. 发现会改变需求、契约、权限、数据兼容性或平台行为的问题时先对话确认；不能用实现细节静默改变 Design。
+9. 把 `{{REQUIREMENT_DIR}}/design/development.compose.yml` 和 `development.env` 作为开发环境编排事实，使用 `docker compose --project-directory .` 从宿主项目根目录执行；可以创建其引用的 Dockerfile 和源码，但不得直接修改这两个 Design 阶段文件或宿主项目 `docker/`。发现错误时返回 Design 修正。
 
 # 开发确认记录
 

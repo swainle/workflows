@@ -2,6 +2,7 @@ export const GLOBAL_PATHS = [
   "docs/architecture",
   "docs/contracts",
   "docs/development",
+  "docker",
   "packages/design-tokens/tokens",
   "package.json",
   "pnpm-workspace.yaml",

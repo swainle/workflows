@@ -6,5 +6,7 @@
 - 使用 `design.token.json` 表达跨平台共用样式，使用 `<platform>.design.token.json` 表达平台差异。
 - 平台 UI YAML 同时引用公共和自身 Token 文件，并使用稳定页面、组件、操作和状态 ID。
 - 使用 `verification.md` 追溯需求、验收、流程、平台、API、事件、权限和数据模型。
+- 在 `design/` 根层生成 development、test、production 各自的 `.compose.yml` 和 `.env`，作为后续阶段只读的环境编排事实。
+- Compose 路径以宿主项目根目录为基准；环境文件只包含可提交的非敏感配置，敏感值必须外部注入。
 - 增量设计只修改受影响内容，保留稳定编号、`operationId`、命名和无关内容。
 - 当前阶段不修改源码或全局产物。

@@ -29,8 +29,12 @@ class PromptTest(unittest.TestCase):
             "openapi.json", "asyncapi.json", "schema.dbml", "verification.md",
             "design.token.json", "web.design.token.json", "mini-program.design.token.json",
             "desktop.design.token.json", "mobile.design.token.json", "web.ui.yaml",
+            "development.compose.yml", "development.env", "test.compose.yml", "test.env",
+            "production.compose.yml", "production.env", "docker/",
         ):
             self.assertIn(text, prompt)
+        for text in ("development.compose.yml", "test.compose.yml", "production.compose.yml"):
+            self.assertIn(text, config)
         self.assertIn("githubIssues: true", config)
         self.assertIn('relatedStages: ["design"]', config)
         self.assertIn("关联需求 Design 根层稳定产物", defaults)
@@ -48,6 +52,7 @@ class PromptTest(unittest.TestCase):
         self.assertIn("directSourceChanges: true", config)
         self.assertIn('relatedStages: ["design", "dev"]', config)
         self.assertIn("不生成源码 Patch", defaults)
+        self.assertIn("development.compose.yml", prompt)
 
     def test_only_new_stages_are_registered(self):
         stages = (ROOT / "tools/core/stages.mjs").read_text(encoding="utf-8")
@@ -57,7 +62,7 @@ class PromptTest(unittest.TestCase):
         for name in ("issue", "process", "permission", "c4", "api", "database", "backend", "frontend"):
             self.assertFalse((ROOT / f"tools/prompt/{name}.mjs").exists(), name)
 
-    def test_patch_owns_global_token_sync(self):
+    def test_patch_owns_global_token_and_docker_sync(self):
         prompt = (ROOT / "templates/patch.prompt.md").read_text(encoding="utf-8")
         defaults = (ROOT / "config/stages/patch.md").read_text(encoding="utf-8")
         config = (ROOT / "tools/prompt/patch.mjs").read_text(encoding="utf-8")
@@ -65,6 +70,10 @@ class PromptTest(unittest.TestCase):
             self.assertIn(text, prompt)
             self.assertIn(text, defaults)
         self.assertIn('"packages/design-tokens/tokens"', config)
+        for text in ("development.compose.yml", "test.compose.yml", "production.compose.yml", "docker/"):
+            self.assertIn(text, prompt)
+        self.assertIn('"docker"', config)
+        self.assertIn('".env"', (ROOT / "tools/core/files.mjs").read_text(encoding="utf-8"))
         for name in ("token.json", "web.token.json", "mini-program.token.json", "desktop.token.json", "mobile.token.json"):
             self.assertTrue((ROOT / f"defaults/design-tokens/{name}").is_file(), name)
 

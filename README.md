@@ -178,6 +178,8 @@ pnpm -s work:patch
 
 Dev 是唯一可以直接修改业务源码的阶段；其他阶段通过 Git Patch 提交结果。
 
+Design 在需求的 `design/` 目录生成 development、test、production 各自的 `.compose.yml` 和 `.env`。Dev、Test、Deployment 只读使用对应环境文件；最终 Patch 才把确认后的文件同步到宿主项目 `docker/`。
+
 执行阶段后，把生成的 `prompt.md` 交给 AI。AI 返回结果后，应用当前阶段并开始下一阶段：
 
 ```bash
@@ -224,7 +226,7 @@ pnpm -s work:next
 
 | 分类 | 说明 |
 |---|---|
-| 全局产物 | 全项目长期有效的架构、契约、开发约定、Tokens 和项目配置 |
+| 全局产物 | 全项目长期有效的架构、契约、开发约定、Tokens、`docker/` 编排和项目配置 |
 | 阶段产物 | 当前需求各阶段确认后的稳定结论 |
 | 阶段提示词 | 某次阶段执行生成的 `prompt.md` |
 | 阶段补丁 | AI 提出的阶段结果或最终项目修改 |

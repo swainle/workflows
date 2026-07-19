@@ -2,6 +2,8 @@
 
 根据 Design 契约、Dev 实际实现和 Test 结论，记录当前需求的构建、发布、迁移、监控、恢复和回滚方案。复用项目现有工具，不重新定义业务行为，不直接修改部署源码或全局产物。
 
+把 `{{REQUIREMENT_DIR}}/design/production.compose.yml` 和 `production.env` 作为生产环境编排事实，验证命令从宿主项目根目录使用 `docker compose --project-directory .`。不得直接修改这两个 Design 阶段文件或宿主项目 `docker/`；发现错误时返回 Design 修正。
+
 覆盖：
 
 - 需要构建和发布的服务与平台；

@@ -5,4 +5,5 @@
 - 不把单次验收条件、待确认问题或实现过程写入全局文件。
 - 把 `design/design.token.json` 的长期变化合并到全局 `packages/design-tokens/tokens/token.json`。
 - 把 `design/<platform>.design.token.json` 的长期变化合并到对应全局 `<platform>.token.json`；平台文件只保存平台差异，不复制公共 Token。
+- 把 Design 中经后续阶段验证的三套 `.compose.yml` 和 `.env` 同步到宿主项目 `docker/` 下的同名文件；不得同步敏感值。
 - 不修改业务源码和其他需求目录。
