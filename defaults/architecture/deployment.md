@@ -1,17 +1,23 @@
-# 部署说明
+# 部署设计
 
-## 环境
+## Development
 
-- development
-- staging
-- production
+- 使用 `docker/development.compose.yml` 和 `docker/development.env`。
+- 支持本地构建、调试和开发数据初始化。
 
-## 发布
+## Test
 
-1. 安装锁定版本的依赖。
-2. 执行格式检查、类型检查、测试和构建。
-3. 在 staging 验收。
-4. 发布 production 并检查健康状态。
+- 使用 `docker/test.compose.yml` 和 `docker/test.env`。
+- 使用隔离数据执行集成、迁移和回归测试。
+
+## Production
+
+- 使用 `docker/production.compose.yml` 和 `docker/production.env`。
+- 部署锁定版本的镜像，并在发布后检查健康状态。
+
+## 迁移
+
+数据库和权限变化必须说明执行顺序、兼容窗口、备份、失败停止条件和恢复方法。
 
 ## 回滚
 

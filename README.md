@@ -178,7 +178,7 @@ pnpm -s work:patch
 
 Dev 是唯一可以直接修改业务源码的阶段；其他阶段通过 Git Patch 提交结果。
 
-Design 在需求的 `design/` 目录生成 development、test、production 各自的 `.compose.yml` 和 `.env`。Dev、Test、Deployment 只读使用对应环境文件；最终 Patch 才把确认后的文件同步到宿主项目 `docker/`。
+Design 在需求的 `design/` 目录生成需求、业务流程、后端时序、DDD、架构、技术选型、部署设计，以及 development、test、production 各自的 `.compose.yml` 和 `.env`。Dev、Test、Deployment 只读使用对应设计；最终 Patch 才把长期事实同步到宿主项目的 `docs/architecture/` 和 `docker/`。
 
 执行阶段后，把生成的 `prompt.md` 交给 AI。AI 返回结果后，应用当前阶段并开始下一阶段：
 

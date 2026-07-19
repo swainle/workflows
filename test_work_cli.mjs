@@ -88,7 +88,8 @@ test("limits stage and final patches to their path scopes", () => {
     "docs/requirements/REQ-0004-build/design/20260717010101/prompt.md",
   ]), /execution history/);
   assert.doesNotThrow(() => assertAllowedPatchPaths(current, "patch", [
-    "docs/architecture/product.md", "packages/design-tokens/tokens/token.json",
+    "docs/architecture/requirement.md", "docs/architecture/architecture.md",
+    "packages/design-tokens/tokens/token.json",
     "docker/production.compose.yml", "docker/production.env",
     "docs/requirements/REQ-0004-build/completion.md",
   ]));

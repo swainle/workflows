@@ -3,7 +3,7 @@ import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync
 import test from "node:test";
 import { tmpdir } from "node:os";
 import path from "node:path";
-import { installBranch, migrateDeploymentDocument, parseBranch, PROJECT_ROOT, WORKFLOW_ROOT } from "./install.mjs";
+import { installBranch, migrateArchitectureDocuments, migrateDeploymentDocument, parseBranch, PROJECT_ROOT, WORKFLOW_ROOT } from "./install.mjs";
 
 test("installs with selected branch", () => {
   const calls = [];
@@ -41,11 +41,18 @@ test("ships an OpenFGA playground compose file", () => {
 });
 
 test("ships Mermaid Markdown architecture defaults", () => {
-  const c4 = readFileSync(path.join(WORKFLOW_ROOT, "defaults/architecture/c4.md"), "utf8");
+  const architecture = readFileSync(path.join(WORKFLOW_ROOT, "defaults/architecture/architecture.md"), "utf8");
+  const backendDdd = readFileSync(path.join(WORKFLOW_ROOT, "defaults/architecture/backend.ddd.md"), "utf8");
+  const backendProcess = readFileSync(path.join(WORKFLOW_ROOT, "defaults/architecture/process/backend.process.md"), "utf8");
+  const requirement = readFileSync(path.join(WORKFLOW_ROOT, "defaults/architecture/requirement.md"), "utf8");
   const process = readFileSync(path.join(WORKFLOW_ROOT, "defaults/architecture/process/overview.md"), "utf8");
-  assert.match(c4, /```mermaid\s+C4Container/);
+  assert.match(architecture, /```mermaid\s+C4Container/);
+  assert.match(backendDdd, /# 后端领域设计/);
+  assert.match(backendProcess, /```mermaid\s+sequenceDiagram/);
+  assert.match(requirement, /# 全局需求/);
   assert.match(process, /```mermaid\s+flowchart/);
-  assert.equal(existsSync(path.join(WORKFLOW_ROOT, "defaults/architecture/c4.puml")), false);
+  assert.equal(existsSync(path.join(WORKFLOW_ROOT, "defaults/architecture/c4.md")), false);
+  assert.equal(existsSync(path.join(WORKFLOW_ROOT, "defaults/architecture/product.md")), false);
   assert.equal(existsSync(path.join(WORKFLOW_ROOT, "defaults/architecture/process/overview.puml")), false);
 });
 
@@ -80,6 +87,27 @@ test("moves the existing deployment document into architecture", () => {
     assert.equal(migrateDeploymentDocument(projectRoot), true);
     assert.equal(existsSync(source), false);
     assert.equal(readFileSync(target, "utf8"), "deployment\n");
+  } finally {
+    rmSync(projectRoot, { recursive: true, force: true });
+  }
+});
+
+test("renames legacy global architecture documents", () => {
+  const projectRoot = mkdtempSync(path.join(tmpdir(), "workflows-architecture-"));
+  const architecture = path.join(projectRoot, "docs/architecture");
+  mkdirSync(architecture, { recursive: true });
+  writeFileSync(path.join(architecture, "product.md"), "requirement\n");
+  writeFileSync(path.join(architecture, "c4.md"), "architecture\n");
+
+  try {
+    assert.deepEqual(migrateArchitectureDocuments(projectRoot), [
+      ["docs/architecture/product.md", "docs/architecture/requirement.md"],
+      ["docs/architecture/c4.md", "docs/architecture/architecture.md"],
+    ]);
+    assert.equal(readFileSync(path.join(architecture, "requirement.md"), "utf8"), "requirement\n");
+    assert.equal(readFileSync(path.join(architecture, "architecture.md"), "utf8"), "architecture\n");
+    assert.equal(existsSync(path.join(architecture, "product.md")), false);
+    assert.equal(existsSync(path.join(architecture, "c4.md")), false);
   } finally {
     rmSync(projectRoot, { recursive: true, force: true });
   }

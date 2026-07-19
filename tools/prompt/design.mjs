@@ -9,7 +9,8 @@ export default {
   ],
   template: "design.prompt.md",
   artifacts: [
-    "design/requirement.md", "design/process.md", "design/architecture.md",
+    "design/requirement.md", "design/process.md", "design/backend.process.md", "design/backend.ddd.md",
+    "design/architecture.md", "design/technology.md", "design/deployment.md",
     "design/authorization.fga", "design/openapi.json", "design/asyncapi.json",
     "design/schema.dbml", "design/design.token.json", "design/<platform>.design.token.json",
     "design/<platform>.md", "design/<platform>.ui.yaml", "design/verification.md",

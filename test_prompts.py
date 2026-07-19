@@ -31,9 +31,13 @@ class PromptTest(unittest.TestCase):
             "desktop.design.token.json", "mobile.design.token.json", "web.ui.yaml",
             "development.compose.yml", "development.env", "test.compose.yml", "test.env",
             "production.compose.yml", "production.env", "docker/",
+            "technology.md", "deployment.md", "docs/architecture/technology.md",
+            "docs/architecture/deployment.md",
+            "backend.process.md", "backend.ddd.md", "BSEQ-xxx", "sequenceDiagram",
+            "Bounded Context", "Aggregate Root", "docs/architecture/backend.ddd.md",
         ):
             self.assertIn(text, prompt)
-        for text in ("development.compose.yml", "test.compose.yml", "production.compose.yml"):
+        for text in ("development.compose.yml", "test.compose.yml", "production.compose.yml", "backend.process.md", "backend.ddd.md"):
             self.assertIn(text, config)
         self.assertIn("githubIssues: true", config)
         self.assertIn('relatedStages: ["design"]', config)
@@ -71,6 +75,8 @@ class PromptTest(unittest.TestCase):
             self.assertIn(text, defaults)
         self.assertIn('"packages/design-tokens/tokens"', config)
         for text in ("development.compose.yml", "test.compose.yml", "production.compose.yml", "docker/"):
+            self.assertIn(text, prompt)
+        for text in ("design/requirement.md", "design/architecture.md", "design/process.md", "design/backend.process.md", "design/backend.ddd.md", "design/technology.md", "design/deployment.md"):
             self.assertIn(text, prompt)
         self.assertIn('"docker"', config)
         self.assertIn('".env"', (ROOT / "tools/core/files.mjs").read_text(encoding="utf-8"))

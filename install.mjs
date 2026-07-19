@@ -152,16 +152,28 @@ export function migrateDeploymentDocument(projectRoot = PROJECT_ROOT) {
   return migrateFile(projectRoot, "docs/operations/deployment.md", "docs/architecture/deployment.md");
 }
 
+export function migrateArchitectureDocuments(projectRoot = PROJECT_ROOT) {
+  const migrations = [
+    ["docs/architecture/product.md", "docs/architecture/requirement.md"],
+    ["docs/architecture/c4.md", "docs/architecture/architecture.md"],
+  ];
+  const moved = migrations.filter(([source, target]) => migrateFile(projectRoot, source, target));
+  if (migrateDeploymentDocument(projectRoot)) {
+    moved.push(["docs/operations/deployment.md", "docs/architecture/deployment.md"]);
+  }
+  return moved;
+}
+
 export async function main() {
   try {
     const branch = parseBranch();
     requireMountLocation();
     if (!process.argv.includes(UPDATED_FLAG)) return installBranch(branch);
     updatePackageJson();
-    const migratedDeployment = migrateDeploymentDocument();
+    const migrations = migrateArchitectureDocuments();
     const created = copyDefaults();
     console.log(`Installed ${Object.keys(SCRIPTS).length} pnpm commands.`);
-    if (migratedDeployment) console.log("Moved docs/operations/deployment.md to docs/architecture/deployment.md.");
+    for (const [source, target] of migrations) console.log(`Moved ${source} to ${target}.`);
     console.log(`Created ${created.length} missing default files.`);
     console.log("Existing project documents were not overwritten.");
     return 0;
