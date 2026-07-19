@@ -32,6 +32,20 @@ class PromptTest(unittest.TestCase):
             for heading in ("## 目标（最重要）", "## 可修改文件范围", "## 专家团", "## 专家团协作流程", "## 上下文要求", "## 执行状态"):
                 self.assertIn(heading, prompt, stage)
 
+    def test_backend_http_api_requires_swagger_ui_endpoint(self):
+        base = (ROOT / "templates/base.prompt.md").read_text(encoding="utf-8")
+        design = (ROOT / "templates/design.prompt.md").read_text(encoding="utf-8")
+        dev = (ROOT / "templates/dev.prompt.md").read_text(encoding="utf-8")
+        test = (ROOT / "templates/test.prompt.md").read_text(encoding="utf-8")
+        for text in ("Swagger UI", "`/docs`", "`/openapi.json`"):
+            self.assertIn(text, base)
+        self.assertIn("只在 development 环境启用", base)
+        self.assertIn("test 和 production 环境不得暴露", base)
+        self.assertIn("默认使用 `pnpm`", base)
+        self.assertIn("Swagger UI", design)
+        self.assertIn("Swagger UI", dev)
+        self.assertIn("Swagger UI", test)
+
     def test_design_owns_root_specs_and_status(self):
         prompt = (ROOT / "templates/design.prompt.md").read_text(encoding="utf-8")
         config = (ROOT / "tools/prompt/design.mjs").read_text(encoding="utf-8")

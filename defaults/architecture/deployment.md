@@ -1,5 +1,7 @@
 # 部署设计
 
+应用的启动、停止、迁移、构建和发布命令默认使用 `pnpm`；宿主项目已有其他包管理器时沿用现状。
+
 ## Development
 
 - 使用 `docker/compose.yml` 和 `docker/dev.env`。
