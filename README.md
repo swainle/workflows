@@ -1,8 +1,123 @@
 # AI Project Workflows
 
-以一个 GitHub Issue 为一个需求开发目录，通过 `design → dev → test → deployment → patch` 把初步想法推进为设计、源码、验证、部署方案和全局项目事实。
+基于 Turborepo 的 AI 项目开发工作流。以一个 GitHub Issue 为一个需求，通过 `design → dev → test → deployment → patch` 推进设计、开发、验证、部署和全局项目事实。
 
-## 安装
+## 环境要求
+
+- Git
+- Node.js 20+
+- pnpm 9+
+- GitHub CLI `gh`
+
+登录 GitHub：
+
+```bash
+gh auth login
+```
+
+## 创建远程仓库
+
+新项目可以先创建并克隆 GitHub 仓库：
+
+```bash
+gh repo create <仓库名称> --private --clone
+cd <仓库名称>
+```
+
+将 `--private` 改为 `--public` 可创建公开仓库。已有本地或远程仓库时跳过本节。
+
+## 初始化本地仓库
+
+如果当前目录还不是 Git 仓库：
+
+```bash
+git init
+```
+
+如果还没有 `package.json`：
+
+```bash
+pnpm init
+```
+
+已有仓库直接进入仓库根目录，不覆盖现有的 Git 和 `package.json` 配置。
+
+## 安装 monorepo
+
+创建 `pnpm-workspace.yaml`：
+
+```yaml
+packages:
+  - "apps/*"
+  - "packages/*"
+```
+
+创建 `turbo.json`：
+
+```json
+{
+  "$schema": "https://turborepo.dev/schema.json",
+  "tasks": {
+    "build": {
+      "dependsOn": ["^build"],
+      "outputs": ["dist/**"]
+    },
+    "dev": {
+      "cache": false,
+      "persistent": true
+    },
+    "lint": {
+      "dependsOn": ["^lint"]
+    },
+    "test": {
+      "dependsOn": ["^test"]
+    }
+  }
+}
+```
+
+安装 Turborepo：
+
+```bash
+pnpm add turbo --save-dev --workspace-root
+```
+
+在根目录 `package.json` 中添加统一命令，保留已有脚本：
+
+```json
+{
+  "scripts": {
+    "build": "turbo run build",
+    "dev": "turbo run dev",
+    "lint": "turbo run lint",
+    "test": "turbo run test"
+  }
+}
+```
+
+将缓存和依赖目录加入 `.gitignore`：
+
+```gitignore
+node_modules
+.turbo
+```
+
+不要在已有文件的仓库中执行 `pnpm dlx create-turbo@latest .`。当目录中已有 `docs/`、`packages/` 或 `package.json` 时，脚手架会因文件冲突停止。
+
+## 创建子项目（可选）
+
+根据目标平台创建应用：
+
+- [Web](reference/web.md)
+- [小程序](reference/mini-program.md)
+- [桌面端](reference/desktop.md)
+- [移动端](reference/mobile.md)
+
+应用放在 `apps/<应用名>`，共享包放在 `packages/<包名>`。每个工作区项目必须包含自己的 `package.json`。
+
+## 安装 workflows
+
+在项目根目录执行：
 
 ```bash
 git submodule add -b main https://github.com/swainle/workflows.git docs/workflows
@@ -10,168 +125,99 @@ node docs/workflows/install.mjs
 pnpm -s work:check
 ```
 
-使用 `develop` 分支时：
+需要使用 `develop` 分支时：
 
 ```bash
 git submodule add -b develop https://github.com/swainle/workflows.git docs/workflows
 node docs/workflows/install.mjs --branch develop
+pnpm -s work:check
 ```
 
-安装器写入 `work:*` scripts，创建缺失的全局示例文件，不覆盖已有项目文档。详细安装说明见 [`install.md`](install.md)。
+安装器会添加 `work:*` scripts，并创建缺失的架构、契约和开发约定文件；已有文件不会被覆盖。
 
-## 开始需求
-
-先创建 GitHub Issue，然后在宿主项目根目录执行：
+更新 workflows：
 
 ```bash
-pnpm -s work:req --issue 36
+node docs/workflows/install.mjs
+```
+
+## 提交 Issue
+
+开始需求开发前，在 GitHub 创建 Issue：
+
+```bash
+gh issue create --title "<需求标题>" --body "<目标、范围和验收结果>"
+```
+
+也可以运行 `gh issue create` 交互式填写，或在 GitHub 网页中创建。项目初始化时可以暂不提交 Issue，但开始 workflows 需求时必须提供一个已有的 Issue 编号。
+
+## 开始需求开发
+
+选择 Issue 并开始设计：
+
+```bash
+pnpm -s work:req --issue <Issue 编号>
 pnpm -s work:design
 ```
 
-首次选择 Issue 时输入英文短名称，例如 `order-export`，工作流创建：
+首次选择 Issue 时输入英文短名称。工作流在 `docs/requirements/REQ-<编号>-<名称>/` 创建需求目录，并按以下固定阶段执行：
 
 ```text
-docs/requirements/REQ-0036-order-export/
+design → dev → test → deployment → patch
 ```
 
-当前需求保存在 Git metadata，不污染提交。每个阶段生成的 Prompt 位于该需求的阶段时间戳目录。
+对应命令：
 
-## 固定阶段
-
-```mermaid
-flowchart TD
-    A["GitHub Issue"] --> B["design"]
-    B --> C["dev"]
-    C --> D["test"]
-    D --> E["deployment"]
-    E --> F["patch"]
+```bash
+pnpm -s work:design
+pnpm -s work:dev
+pnpm -s work:test
+pnpm -s work:deployment
+pnpm -s work:patch
 ```
 
-| 阶段 | 作用 |
-|---|---|
-| `design` | 对话补齐需求，多专家统一完成流程、平台、架构、权限、API、数据和 Tokens 设计 |
-| `dev` | 对话选择 Backend 和目标平台，直接修改源码并记录开发结果与确认事项 |
-| `test` | 根据 Design 和 Dev 形成验收、契约、权限、迁移与回归验证 |
-| `deployment` | 形成发布、迁移、监控、恢复和回滚方案 |
-| `patch` | 把当前需求中长期有效的事实同步到全局产物，并生成 `completion.md` |
+Dev 是唯一可以直接修改业务源码的阶段；其他阶段通过 Git Patch 提交结果。
 
-## 阶段命令
+执行阶段后，把生成的 `prompt.md` 交给 AI。AI 返回结果后，应用当前阶段并开始下一阶段：
+
+```bash
+pnpm -s work:next <下一阶段>
+```
+
+例如：
+
+```bash
+pnpm -s work:next dev
+pnpm -s work:next test
+pnpm -s work:next deployment
+```
+
+查看当前状态和阶段配置：
 
 ```bash
 pnpm -s work:status
-pnpm -s work:design --list
-pnpm -s work:dev --require "实现 Backend 和 Web"
-pnpm -s work:test --list
-pnpm -s work:next test
-pnpm -s work:deployment
+pnpm -s work:<阶段> --list
+```
+
+执行阶段时可以添加本次约束：
+
+```bash
+pnpm -s work:<阶段> --require "<约束>"
+```
+
+所有固定阶段完成后生成并应用最终项目变更：
+
+```bash
 pnpm -s work:patch
 pnpm -s work:next
 ```
 
-`--require` 是本次 Prompt 的附加要求，优先于阶段默认配置，但不能突破安全、路径和输出边界。`--list` 显示阶段默认配置、执行角色、只读全局输入和稳定阶段产物。
+最终结果记录在需求目录的 `completion.md`，可作为 Pull Request 描述。
 
-## Prompt 与结果
-
-执行阶段命令后会生成：
-
-```text
-<stage>/<timestamp>/
-├── prompt.md
-├── prompt.01.git.patch
-└── prompt.01.git.patch.md
-```
-
-把 `prompt.md` 交给 AI。同一 Prompt 再次尝试时使用 `.02`、`.03`，不得覆盖旧结果；重新执行阶段时创建新的时间戳目录并从 `.01` 开始。所有历史 Prompt、Patch 和分析永久保留。
-
-Design、Test、Deployment 和 Patch AI 不直接修改目标产物，只在当前执行目录生成 Git Patch。`work:next` 检查路径、执行 `git apply --check`、展示结果并在人工确认后应用。
-
-Dev 是唯一可以直接修改业务源码的阶段。Dev AI：
-
-- 通过对话确认 Backend、Web、Mini Program、Desktop、Mobile 或组合；
-- 直接修改源码、迁移、测试和必要的非敏感配置；
-- 保留开始前已有的用户修改；
-- 运行项目真实存在的检查、测试和构建命令；
-- 通过阶段 Patch 更新 `dev/development.md` 和 `dev/questions.md`，源码 Diff 不放入阶段 Patch。
-
-## Design 稳定产物
-
-所有完整设计都位于当前需求的 `design/` 根层：
-
-```text
-design/
-├── requirement.md
-├── process.md
-├── architecture.md
-├── authorization.fga
-├── openapi.json
-├── asyncapi.json
-├── schema.dbml
-├── design.token.json
-├── design.web.token.json
-├── design.mini-program.token.json
-├── design.desktop.token.json
-├── design.mobile.token.json
-├── web.md
-├── web.ui.yaml
-├── mini-program.md
-├── mini-program.ui.yaml
-├── desktop.md
-├── desktop.ui.yaml
-├── mobile.md
-├── mobile.ui.yaml
-└── verification.md
-```
-
-只创建需求实际需要的契约和已选择平台文件。平台 UI YAML 引用公共 `design.token.json` 和自身 `design.<platform>.token.json`；平台文件只存差异，不复制公共 Token。
-
-Design 读取当前 Issue 明确引用的关联需求 `design/` 根层稳定产物作为参考，不读取关联需求时间戳目录，也不扫描未引用需求。
-
-## 增量修改
-
-已完成阶段可以重新执行：
-
-```bash
-pnpm -s work:design --require "增加邮件通知，仅支持 Web"
-pnpm -s work:dev --require "实现已确认的 Web 邮件通知"
-```
-
-重新执行某阶段会使它及之后阶段失效，旧稳定产物和历史执行记录保留。Design 只更新受影响的设计；Dev 复用当前需求及关联需求中仍适用的已确认问题，避免重复询问。
-
-## 关联 Issue
-
-当前 GitHub Issue 正文或评论可以明确引用其他 Issue，例如 `Depends on #12`。工作流只注入关联需求被允许的根层稳定产物：
-
-- Design 阶段读取关联需求的 Design 稳定产物；
-- Dev 阶段读取关联需求的 Design、`dev/development.md` 和 `dev/questions.md`；
-- 不读取关联需求 Prompt、Patch、分析或其他时间戳记录；
-- 当前对话、当前 Issue、当前设计和当前源码始终优先。
-
-## 产物分类
-
-| 分类 | 路径 | 说明 |
-|---|---|---|
-| 全局产物 | `docs/architecture/**`、`docs/contracts/**`、`docs/development/**`、`packages/design-tokens/tokens/**` 和项目级配置 | 全项目长期有效，只由 `patch` 阶段同步 |
-| 阶段产物 | `<requirement>/<stage>/*.*` | 当前需求稳定结论，供后续阶段和明确关联的其他需求读取 |
-| 阶段提示词 | `<stage>/<timestamp>/prompt.md` | 某次执行交给 AI 的完整提示词 |
-| 阶段补丁 | `<stage>/<timestamp>/prompt.NN.git.patch` | AI 提出的稳定阶段产物或最终全局修改 |
-| 阶段补丁分析 | `<stage>/<timestamp>/prompt.NN.git.patch.md` | 引用、影响文件、角色和验证记录 |
-
-`completion.md` 是 Patch 阶段产物，位于当前需求根目录，可以直接作为 Pull Request 描述；不是全局产物。
-
-## 全局产物
-
-安装器默认创建：
-
-```text
-docs/architecture/
-docs/contracts/
-docs/development/
-packages/design-tokens/tokens/
-├── token.json
-├── web.token.json
-├── mini-program.token.json
-├── desktop.token.json
-└── mobile.token.json
-```
-
-Design Token 在需求完成前是 Design 阶段增量，最终 Patch 阶段才合并到全局公共和平台文件。Patch 还允许按已确认的长期变化更新 `package.json`、`pnpm-workspace.yaml` 和 `turbo.json`。
+| 分类 | 说明 |
+|---|---|
+| 全局产物 | 全项目长期有效的架构、契约、开发约定、Tokens 和项目配置 |
+| 阶段产物 | 当前需求各阶段确认后的稳定结论 |
+| 阶段提示词 | 某次阶段执行生成的 `prompt.md` |
+| 阶段补丁 | AI 提出的阶段结果或最终项目修改 |
+| 阶段补丁分析 | Patch 的引用、影响文件、角色和验证记录 |
