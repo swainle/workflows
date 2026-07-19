@@ -22,7 +22,13 @@ function language(file) {
 
 export function sourceBaseline(config, { projectRoot = PROJECT_ROOT, runner = execFileSync } = {}) {
   if (!config.directSourceChanges) return "不适用。";
-  const commit = runner("git", ["rev-parse", "HEAD"], { cwd: projectRoot, encoding: "utf8" }).trim();
+  let commit;
+  try {
+    commit = runner("git", ["rev-parse", "--verify", "--quiet", "HEAD"], { cwd: projectRoot, encoding: "utf8" }).trim();
+  } catch (error) {
+    if (error.status !== 1) throw error;
+    commit = "无（仓库尚无提交）";
+  }
   const changes = runner("git", ["status", "--short"], { cwd: projectRoot, encoding: "utf8" }).trim();
   return [`- 开始 Commit：\`${commit}\``, "- 开始前已有工作树变化：", changes ? `\n\`\`\`text\n${changes}\n\`\`\`` : "  无。"].join("\n");
 }

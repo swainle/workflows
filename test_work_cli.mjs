@@ -47,6 +47,16 @@ test("captures the source baseline for direct development", () => {
   const baseline = sourceBaseline({ directSourceChanges: true }, { projectRoot: "C:/project", runner });
   assert.match(baseline, /开始 Commit：`abc123`/);
   assert.match(baseline, /M apps\/web\/page\.tsx/);
+
+  const unbornRunner = (_command, args) => {
+    if (args[0] !== "rev-parse") return "?? package.json\n";
+    const error = new Error("no HEAD");
+    error.status = 1;
+    throw error;
+  };
+  const unborn = sourceBaseline({ directSourceChanges: true }, { projectRoot: "C:/project", runner: unbornRunner });
+  assert.match(unborn, /开始 Commit：`无（仓库尚无提交）`/);
+  assert.match(unborn, /\?\? package\.json/);
 });
 
 test("limits stage and final patches to their path scopes", () => {
