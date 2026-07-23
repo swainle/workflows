@@ -1,8 +1,0 @@
-- 以需求根层规范和当前源码为事实，不依赖 Commit。
-- 直接修改本需求源码、迁移、自动化测试和必要非敏感应用配置。
-- 有 HTTP API 时使用现有框架能力启用设计指定的 Swagger UI 与 OpenAPI 文档端点，且只在 development 环境启用。
-- 不修改需求根层规范或全局文件；需要调整规范时重新执行 Design。
-- 运行真实 lint、类型检查、测试和构建，不虚构结果。
-- 使用根层 `compose.yml` 与 `dev.env`，不得修改它们。
-- 在 `dev/development.md` 记录实现映射、命令、结果、限制和影响文件。
-- 只更新 `status.json` 的 Dev 状态与证据。

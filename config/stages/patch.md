@@ -1,6 +1,0 @@
-- Patch 是唯一可以修改全局文件的阶段。
-- 只有 Design、Dev、Test 对全部 active 项闭环后才能执行。
-- 把需求根层长期规范增量合并到全局架构、契约、流程、Tokens、Docker 和必要项目配置。
-- 同步唯一 `compose.yml` 与 `dev.env`、`test.env`、`prod.env`，不得同步密钥。
-- 生成 `completion.md`，只更新 `status.json` 的 Patch 状态与证据。
-- 不修改业务源码、需求设计语义、其他需求或历史执行记录。

@@ -1,52 +1,23 @@
 #!/usr/bin/env node
-/** Install AI project workflow commands and default documents into a host repo. */
+/** Update the workflows submodule and install its AGENTS.md into the host root. */
 
 import { spawnSync } from "node:child_process";
 import {
-  chmodSync,
-  copyFileSync,
   existsSync,
-  mkdirSync,
   readFileSync,
-  readdirSync,
   renameSync,
-  statSync,
-  utimesSync,
+  rmSync,
   writeFileSync,
 } from "node:fs";
 import path from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
-import { STAGE_NAMES } from "./tools/core/stages.mjs";
 
 export const WORKFLOW_ROOT = path.dirname(fileURLToPath(import.meta.url));
 export const PROJECT_ROOT = path.resolve(WORKFLOW_ROOT, "../..");
-const PACKAGE_FILE = path.join(PROJECT_ROOT, "package.json");
-
-const SCRIPTS = Object.fromEntries([
-  ["work:check", "node docs/workflows/tools/check.mjs"],
-  ["work:req", "node docs/workflows/tools/work.mjs req"],
-  ["work:status", "node docs/workflows/tools/work.mjs status"],
-  ["work:patch", "node docs/workflows/tools/work.mjs patch"],
-  ...STAGE_NAMES.map((stage) => [`work:${stage}`, `node docs/workflows/tools/work.mjs ${stage}`]),
-]);
-const LEGACY_SCRIPTS = new Set([
-  "prompt:check", "prompt:req", "prompt:flow", "prompt:issue", "prompt:process", "prompt:c4",
-  "prompt:api", "prompt:database", "prompt:backend", "prompt:permission", "prompt:frontend",
-  "prompt:test", "prompt:deployment",
-  "work:frontend",
-  "work:next", "work:deployment",
-  "work:issue", "work:process", "work:permission", "work:c4", "work:api", "work:database", "work:backend",
-  "work:frontend:web", "work:frontend:mobile", "work:frontend:mini-program", "work:frontend:desktop",
-]);
-
-const DEFAULT_TARGETS = {
-  architecture: path.join(PROJECT_ROOT, "docs/architecture"),
-  contracts: path.join(PROJECT_ROOT, "docs/contracts"),
-  development: path.join(PROJECT_ROOT, "docs/development"),
-  "design-tokens": path.join(PROJECT_ROOT, "packages/design-tokens/tokens"),
-};
 const UPDATED_FLAG = "--workflows-updated";
 const DEFAULT_BRANCH = "main";
+const START = "<!-- workflows:begin -->";
+const END = "<!-- workflows:end -->";
 
 function run(command, args, options = {}, runner = spawnSync) {
   return runner(command, args, { stdio: "inherit", ...options });
@@ -69,7 +40,7 @@ function requireMountLocation() {
 export function parseBranch(args = process.argv.slice(2)) {
   args = args.filter((arg) => arg !== UPDATED_FLAG);
   if (!args.length) return DEFAULT_BRANCH;
-  if (args.length === 2 && args[0] === "--branch" && !args[1].startsWith("-")) return args[1];
+  if (args.length === 2 && args[0] === "--branch" && args[1] && !args[1].startsWith("-")) return args[1];
   throw new Error("Usage: install.mjs [--branch <branch>]");
 }
 
@@ -78,9 +49,7 @@ export function installBranch(branch, runner = spawnSync) {
   runChecked("git", ["fetch", "origin", `refs/heads/${branch}:refs/remotes/origin/${branch}`], { cwd: WORKFLOW_ROOT }, runner);
   const local = run("git", ["show-ref", "--verify", "--quiet", `refs/heads/${branch}`], { cwd: WORKFLOW_ROOT }, runner);
   if (local.error) throw local.error;
-  const switchArgs = local.status === 0
-    ? ["switch", branch]
-    : ["switch", "-c", branch, `origin/${branch}`];
+  const switchArgs = local.status === 0 ? ["switch", branch] : ["switch", "-c", branch, `origin/${branch}`];
   runChecked("git", switchArgs, { cwd: WORKFLOW_ROOT }, runner);
   runChecked("git", ["merge", "--ff-only", `origin/${branch}`], { cwd: WORKFLOW_ROOT }, runner);
   runChecked("git", ["submodule", "set-branch", "--branch", branch, "docs/workflows"], { cwd: PROJECT_ROOT }, runner);
@@ -89,79 +58,50 @@ export function installBranch(branch, runner = spawnSync) {
   return result.status ?? 1;
 }
 
-function updatePackageJson() {
-  if (!existsSync(PACKAGE_FILE)) throw new Error(`host package.json not found: ${PACKAGE_FILE}`);
-  const data = JSON.parse(readFileSync(PACKAGE_FILE, "utf8"));
-  if (!data || typeof data !== "object" || Array.isArray(data)) {
-    throw new Error(`host package.json must contain an object: ${PACKAGE_FILE}`);
-  }
-  data.scripts ??= {};
-  if (!data.scripts || typeof data.scripts !== "object" || Array.isArray(data.scripts)) {
-    throw new Error(`host package.json scripts must be an object: ${PACKAGE_FILE}`);
-  }
-  for (const name of Object.keys(data.scripts)) {
-    if (name.startsWith("docs:workflows:") || LEGACY_SCRIPTS.has(name)) delete data.scripts[name];
-  }
-  Object.assign(data.scripts, SCRIPTS);
-  const temporary = `${PACKAGE_FILE}.tmp`;
-  writeFileSync(temporary, `${JSON.stringify(data, null, 2)}\n`, "utf8");
-  renameSync(temporary, PACKAGE_FILE);
+function count(text, value) {
+  return text.split(value).length - 1;
 }
 
-function filesUnder(directory) {
-  if (!existsSync(directory)) return [];
-  return readdirSync(directory, { withFileTypes: true })
-    .sort((a, b) => a.name.localeCompare(b.name))
-    .flatMap((entry) => {
-      const item = path.join(directory, entry.name);
-      return entry.isDirectory() ? filesUnder(item) : entry.isFile() ? [item] : [];
-    });
+export function mergeAgents(existing, template) {
+  const starts = count(existing, START);
+  const ends = count(existing, END);
+  if (starts !== ends || starts > 1) throw new Error("Root AGENTS.md has invalid workflows markers.");
+
+  const newline = existing.includes("\r\n") ? "\r\n" : "\n";
+  const body = template.replace(/\r?\n/g, newline).trim();
+  const block = [
+    START,
+    "<!-- Managed by docs/workflows/install.mjs; edit docs/workflows/AGENTS.md instead. -->",
+    body,
+    END,
+  ].join(newline);
+
+  if (!starts) return `${existing.trimEnd()}${existing.trim() ? newline.repeat(2) : ""}${block}${newline}`;
+
+  const start = existing.indexOf(START);
+  const end = existing.indexOf(END);
+  if (end < start) throw new Error("Root AGENTS.md has invalid workflows marker order.");
+  return `${existing.slice(0, start)}${block}${existing.slice(end + END.length)}`;
 }
 
-function copyDefaults() {
-  const created = [];
-  const defaults = path.join(WORKFLOW_ROOT, "defaults");
-  for (const [sourceName, targetDir] of Object.entries(DEFAULT_TARGETS)) {
-    const sourceDir = path.join(defaults, sourceName);
-    mkdirSync(targetDir, { recursive: true });
-    for (const source of filesUnder(sourceDir)) {
-      const target = path.join(targetDir, path.relative(sourceDir, source));
-      mkdirSync(path.dirname(target), { recursive: true });
-      if (existsSync(target)) continue;
-      copyFileSync(source, target);
-      const info = statSync(source);
-      chmodSync(target, info.mode);
-      utimesSync(target, info.atime, info.mtime);
-      created.push(target);
-    }
+export function installAgents({
+  projectRoot = PROJECT_ROOT,
+  workflowRoot = WORKFLOW_ROOT,
+} = {}) {
+  const source = path.join(workflowRoot, "AGENTS.md");
+  const target = path.join(projectRoot, "AGENTS.md");
+  const existing = existsSync(target) ? readFileSync(target, "utf8") : "";
+  const content = mergeAgents(existing, readFileSync(source, "utf8"));
+  if (content === existing) return "unchanged";
+
+  const temporary = `${target}.${process.pid}.tmp`;
+  try {
+    writeFileSync(temporary, content, "utf8");
+    renameSync(temporary, target);
+  } finally {
+    rmSync(temporary, { force: true });
   }
-  mkdirSync(path.join(PROJECT_ROOT, "docs/requirements"), { recursive: true });
-  return created;
-}
-
-function migrateFile(projectRoot, sourceRelative, targetRelative) {
-  const source = path.join(projectRoot, sourceRelative);
-  const target = path.join(projectRoot, targetRelative);
-  if (!existsSync(source) || existsSync(target)) return false;
-  mkdirSync(path.dirname(target), { recursive: true });
-  renameSync(source, target);
-  return true;
-}
-
-export function migrateDeploymentDocument(projectRoot = PROJECT_ROOT) {
-  return migrateFile(projectRoot, "docs/operations/deployment.md", "docs/architecture/deployment.md");
-}
-
-export function migrateArchitectureDocuments(projectRoot = PROJECT_ROOT) {
-  const migrations = [
-    ["docs/architecture/product.md", "docs/architecture/requirement.md"],
-    ["docs/architecture/c4.md", "docs/architecture/architecture.md"],
-  ];
-  const moved = migrations.filter(([source, target]) => migrateFile(projectRoot, source, target));
-  if (migrateDeploymentDocument(projectRoot)) {
-    moved.push(["docs/operations/deployment.md", "docs/architecture/deployment.md"]);
-  }
-  return moved;
+  return existing ? "updated" : "created";
 }
 
 export async function main() {
@@ -169,13 +109,9 @@ export async function main() {
     const branch = parseBranch();
     requireMountLocation();
     if (!process.argv.includes(UPDATED_FLAG)) return installBranch(branch);
-    updatePackageJson();
-    const migrations = migrateArchitectureDocuments();
-    const created = copyDefaults();
-    console.log(`Installed ${Object.keys(SCRIPTS).length} pnpm commands.`);
-    for (const [source, target] of migrations) console.log(`Moved ${source} to ${target}.`);
-    console.log(`Created ${created.length} missing default files.`);
-    console.log("Existing project documents were not overwritten.");
+    const result = installAgents();
+    console.log(`${result === "unchanged" ? "Root AGENTS.md is already up to date" : `${result === "created" ? "Created" : "Updated"} root AGENTS.md`}.`);
+    console.log(`Workflows branch: ${branch}`);
     return 0;
   } catch (error) {
     console.error(`Installation failed: ${error.message}`);

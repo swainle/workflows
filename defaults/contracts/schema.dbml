@@ -1,9 +1,0 @@
-Project project {
-  database_type: "PostgreSQL"
-}
-
-Table users {
-  id uuid [pk]
-  email varchar [not null, unique]
-  created_at timestamp [not null]
-}
