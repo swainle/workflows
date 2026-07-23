@@ -172,7 +172,6 @@ REQ-<三位Issue编号>-<类型>-<三位序号>
 ```text
 docs/requirements/REQ-001-<slug>/
 ├─ requirement.md
-├─ traceability.md
 ├─ business.md
 ├─ acceptance.md
 ├─ permission.md       # 涉及权限时创建
@@ -185,9 +184,9 @@ docs/requirements/REQ-001-<slug>/
 
 ### FR
 
-写入 `requirement.md`：
+写入 `requirement.md`。每条 FR 正文后紧跟该 FR 的局部关系图：
 
-```md
+````md
 ## 功能需求
 
 <a id="req-001-fr-001"></a>
@@ -204,18 +203,8 @@ docs/requirements/REQ-001-<slug>/
   - REQ-001-FLOW-001
   - REQ-001-AC-001
   - REQ-001-TC-001
-```
 
-### 需求关系图
-
-独立写入 `traceability.md`：
-
-````md
-# REQ-001 需求关系图
-
-每个功能需求使用一张独立关系图；点击节点打开对应定义。
-
-## REQ-001-FR-001 创建预约
+#### 需求关系图
 
 ```mermaid
 flowchart LR
@@ -252,7 +241,7 @@ flowchart LR
 
 关系图规则：
 
-- 每个需求目录必须包含一个 `traceability.md`；每个 FR 按 `requirement.md` 中的顺序使用一个二级标题和一张独立关系图。
+- 关系图必须位于 `requirement.md` 对应 FR 正文之后、下一个 FR 或 `## 非功能需求` 之前。
 - 每张图只能有一个 FR 核心节点，只展示与该 FR 存在真实关系的编号；不适用的类型直接省略。
 - 节点 ID 使用类型和序号，如 `FR001`，节点文字使用完整编号和简短标题；同一编号影响多个 FR 时允许出现在多张局部图中。
 - 每个节点必须使用 `click` 指向其定义；Markdown 定义指向显式锚点，TC 指向同编号 `.feature` 文件。
@@ -261,7 +250,7 @@ flowchart LR
 - MIG -.-> FR 表示条件性的“上线依赖”，仅在不完成迁移就无法交付该 FR 时绘制。
 - FR → FLOW 表示“展开”，FR → AC 表示“验收”，AC → TC 表示“验证”；存在其他真实关系时可以增加。
 - 图中的边必须与各条目的 `关联` 和 `.feature` Tag 一致。新增、删除或调整编号及关系时同步更新关系图。
-- 不创建总体关系图或需求跟踪矩阵。
+- 不创建独立关系图文件、总体关系图或需求跟踪矩阵。
 
 ### NFR
 
@@ -431,7 +420,7 @@ Feature: <业务能力>
 6. 读取相关 `docs/**`、源码和测试作为上下文，但只修改目标需求目录。
 7. 按对话规则确认需求。
 8. 创建或增量修改需要的需求文件，保持既有编号稳定。
-9. 检查 `traceability.md` 为每个 FR 提供独立关系图、每个节点的跳转目标存在、图与正文关联一致，且每个 FR 至少关联 FLOW、AC 和 TC。
+9. 检查 `requirement.md` 中每个 FR 正文后都有独立关系图、每个节点的跳转目标存在、图与正文关联一致，且每个 FR 至少关联 FLOW、AC 和 TC。
 10. 不修改组件规范、全局契约、源码或其他需求。
 
 ## `[<组件>]` 规范工作流
