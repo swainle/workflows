@@ -58,14 +58,15 @@ export function installBranch(branch, runner = spawnSync) {
   return result.status ?? 1;
 }
 
-function count(text, value) {
-  return text.split(value).length - 1;
+function markerMatches(text, marker) {
+  const escaped = marker.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  return [...text.matchAll(new RegExp(`^${escaped}\\r?$`, "gm"))];
 }
 
 export function mergeAgents(existing, template) {
-  const starts = count(existing, START);
-  const ends = count(existing, END);
-  if (starts !== ends || starts > 1) throw new Error("Root AGENTS.md has invalid workflows markers.");
+  const starts = markerMatches(existing, START);
+  const ends = markerMatches(existing, END);
+  if (starts.length !== ends.length || starts.length > 1) throw new Error("Root AGENTS.md has invalid workflows markers.");
 
   const newline = existing.includes("\r\n") ? "\r\n" : "\n";
   const body = template.replace(/\r?\n/g, newline).trim();
@@ -76,12 +77,12 @@ export function mergeAgents(existing, template) {
     END,
   ].join(newline);
 
-  if (!starts) return `${existing.trimEnd()}${existing.trim() ? newline.repeat(2) : ""}${block}${newline}`;
+  if (!starts.length) return `${existing.trimEnd()}${existing.trim() ? newline.repeat(2) : ""}${block}${newline}`;
 
-  const start = existing.indexOf(START);
-  const end = existing.indexOf(END);
+  const start = starts[0].index;
+  const end = ends[0].index;
   if (end < start) throw new Error("Root AGENTS.md has invalid workflows marker order.");
-  return `${existing.slice(0, start)}${block}${existing.slice(end + END.length)}`;
+  return `${existing.slice(0, start)}${block}${existing.slice(end + ends[0][0].length)}`;
 }
 
 export function installAgents({

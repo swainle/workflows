@@ -45,14 +45,26 @@ test("creates, appends, updates, and preserves a managed block", () => {
   assert.equal(mergeAgents(updated, "# Workflow v2\n"), updated);
 });
 
+test("ignores marker examples inside managed content", () => {
+  const template = [
+    "# Workflow",
+    "",
+    "The installer uses `<!-- workflows:begin -->` and `<!-- workflows:end -->` markers.",
+    "",
+  ].join("\n");
+  const installed = mergeAgents("", template);
+  assert.equal(mergeAgents(installed, template), installed);
+  assert.match(mergeAgents(installed, `${template}Updated.\n`), /Updated\./);
+});
+
 test("rejects damaged or duplicated managed markers", () => {
   assert.throws(() => mergeAgents("<!-- workflows:begin -->\n", "# Workflow\n"), /invalid workflows markers/);
   assert.throws(() => mergeAgents("<!-- workflows:end -->\n", "# Workflow\n"), /invalid workflows markers/);
   assert.throws(() => mergeAgents(
-    "<!-- workflows:begin --><!-- workflows:end --><!-- workflows:begin --><!-- workflows:end -->",
+    "<!-- workflows:begin -->\n<!-- workflows:end -->\n<!-- workflows:begin -->\n<!-- workflows:end -->\n",
     "# Workflow\n",
   ), /invalid workflows markers/);
-  assert.throws(() => mergeAgents("<!-- workflows:end --><!-- workflows:begin -->", "# Workflow\n"), /marker order/);
+  assert.throws(() => mergeAgents("<!-- workflows:end -->\n<!-- workflows:begin -->\n", "# Workflow\n"), /marker order/);
 });
 
 test("installs AGENTS.md idempotently without changing host rules", () => {
