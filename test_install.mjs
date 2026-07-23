@@ -3,7 +3,14 @@ import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "nod
 import { tmpdir } from "node:os";
 import path from "node:path";
 import test from "node:test";
-import { WORKFLOW_ROOT, installAgents, installBranch, mergeAgents, parseBranch } from "./install.mjs";
+import {
+  WORKFLOW_ROOT,
+  installAgents,
+  installBranch,
+  mergeAgents,
+  parseBranch,
+  validateStageReferences,
+} from "./install.mjs";
 
 test("parses the selected branch", () => {
   assert.equal(parseBranch([]), "main");
@@ -65,6 +72,29 @@ test("rejects damaged or duplicated managed markers", () => {
     "# Workflow\n",
   ), /invalid workflows markers/);
   assert.throws(() => mergeAgents("<!-- workflows:end -->\n<!-- workflows:begin -->\n", "# Workflow\n"), /marker order/);
+});
+
+test("validates routed stage files", () => {
+  const root = mkdtempSync(path.join(tmpdir(), "workflows-stages-"));
+  try {
+    const template = "Read `docs/workflows/stages/requirement.md`.\n";
+    assert.throws(() => validateStageReferences(template, root), /Missing stage file/);
+
+    mkdirSync(path.join(root, "stages"), { recursive: true });
+    writeFileSync(path.join(root, "stages", "requirement.md"), "# Requirement\n", "utf8");
+    assert.equal(validateStageReferences(template, root), 1);
+    assert.throws(
+      () => validateStageReferences("Read `docs/workflows/stages/../outside.md`.\n", root),
+      /Invalid stage reference/,
+    );
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+});
+
+test("repository AGENTS routes every stage file", () => {
+  const template = readFileSync(path.join(WORKFLOW_ROOT, "AGENTS.md"), "utf8");
+  assert.equal(validateStageReferences(template), 8);
 });
 
 test("installs AGENTS.md idempotently without changing host rules", () => {

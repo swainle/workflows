@@ -18,6 +18,7 @@ const UPDATED_FLAG = "--workflows-updated";
 const DEFAULT_BRANCH = "main";
 const START = "<!-- workflows:begin -->";
 const END = "<!-- workflows:end -->";
+const STAGE_REFERENCE = /`(docs\/workflows\/stages\/[^`\r\n]+\.md)`/g;
 
 function run(command, args, options = {}, runner = spawnSync) {
   return runner(command, args, { stdio: "inherit", ...options });
@@ -85,14 +86,33 @@ export function mergeAgents(existing, template) {
   return `${existing.slice(0, start)}${block}${existing.slice(end + ends[0][0].length)}`;
 }
 
+export function validateStageReferences(template, workflowRoot = WORKFLOW_ROOT) {
+  const stageRoot = path.resolve(workflowRoot, "stages");
+  const references = new Set([...template.matchAll(STAGE_REFERENCE)].map((match) => match[1]));
+
+  for (const reference of references) {
+    const relative = reference.slice("docs/workflows/".length);
+    const target = path.resolve(workflowRoot, ...relative.split("/"));
+    const outside = path.relative(stageRoot, target);
+    if (outside === ".." || outside.startsWith(`..${path.sep}`) || path.isAbsolute(outside)) {
+      throw new Error(`Invalid stage reference: ${reference}`);
+    }
+    if (!existsSync(target)) throw new Error(`Missing stage file: ${reference}`);
+  }
+
+  return references.size;
+}
+
 export function installAgents({
   projectRoot = PROJECT_ROOT,
   workflowRoot = WORKFLOW_ROOT,
 } = {}) {
   const source = path.join(workflowRoot, "AGENTS.md");
   const target = path.join(projectRoot, "AGENTS.md");
+  const template = readFileSync(source, "utf8");
+  validateStageReferences(template, workflowRoot);
   const existing = existsSync(target) ? readFileSync(target, "utf8") : "";
-  const content = mergeAgents(existing, readFileSync(source, "utf8"));
+  const content = mergeAgents(existing, template);
   if (content === existing) return "unchanged";
 
   const temporary = `${target}.${process.pid}.tmp`;
