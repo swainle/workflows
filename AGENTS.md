@@ -204,8 +204,6 @@ docs/requirements/REQ-001-<slug>/
   - REQ-001-AC-001
   - REQ-001-TC-001
 
-#### 需求关系图
-
 ```mermaid
 flowchart LR
     BR001["REQ-001-BR-001<br/>时间段不可重复占用"]
@@ -241,7 +239,7 @@ flowchart LR
 
 关系图规则：
 
-- 关系图必须位于 `requirement.md` 对应 FR 正文之后、下一个 FR 或 `## 非功能需求` 之前。
+- Mermaid 图必须直接紧跟 `requirement.md` 中对应 FR 的正文，位于下一个 FR 或 `## 非功能需求` 之前。
 - 每张图只能有一个 FR 核心节点，只展示与该 FR 存在真实关系的编号；不适用的类型直接省略。
 - 节点 ID 使用类型和序号，如 `FR001`，节点文字使用完整编号和简短标题；同一编号影响多个 FR 时允许出现在多张局部图中。
 - 每个节点必须使用 `click` 指向其定义；Markdown 定义指向显式锚点，TC 指向同编号 `.feature` 文件。
