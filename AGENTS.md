@@ -172,11 +172,12 @@ REQ-<三位Issue编号>-<类型>-<三位序号>
 ```text
 docs/requirements/REQ-001-<slug>/
 ├─ requirement.md
+├─ traceability.md
 ├─ business.md
 ├─ acceptance.md
 ├─ permission.md       # 涉及权限时创建
 ├─ migration.md        # 涉及迁移时创建
-└─ *.feature           # 存在可执行端到端场景时创建
+└─ REQ-001-TC-*.feature # 存在可执行端到端场景时创建
 ```
 
 不创建空文件，也不创建 `status.json`、`decisions.md`、
@@ -184,18 +185,12 @@ docs/requirements/REQ-001-<slug>/
 
 ### FR
 
-写入 `requirement.md`。`## 功能需求` 标题后的第一项必须是总体需求跟踪矩阵，每个 FR 一行：
+写入 `requirement.md`：
 
 ```md
 ## 功能需求
 
-### 需求跟踪矩阵
-
-| 功能需求 | 业务规则 | 业务流程 | 验收条件 | 测试用例 | 权限规则 | 非功能需求 | 迁移需求 |
-|---|---|---|---|---|---|---|---|
-| REQ-001-FR-001 | REQ-001-BR-001 | REQ-001-FLOW-001 | REQ-001-AC-001<br>REQ-001-AC-002 | REQ-001-TC-001<br>REQ-001-TC-002 | REQ-001-PERM-001 | REQ-001-NFR-001 | REQ-001-MIG-001 |
-| REQ-001-FR-002 | REQ-001-BR-002 | REQ-001-FLOW-002 | REQ-001-AC-003 | REQ-001-TC-003 | 不适用 | 不适用 | 不适用 |
-
+<a id="req-001-fr-001"></a>
 ### REQ-001-FR-001 <功能名称>
 
 - 来源：<Issue URL 或用户确认>
@@ -211,15 +206,53 @@ docs/requirements/REQ-001-<slug>/
   - REQ-001-TC-001
 ```
 
-矩阵规则：
+### 需求关系图
 
-- 矩阵必须紧跟 `## 功能需求`，位于各 FR 正文之前。
-- 每个 FR 恰好占一行，使用完整稳定编号。
-- 同一单元格有多个编号时使用 `<br>` 分隔。
-- 没有适用项时写 `不适用`，不得留空。
-- 矩阵必须与各需求项的 `关联` 字段及 `.feature` Tag 一致。
-- 新增、删除或调整关联时同步更新矩阵。
-- 不再创建总体 Mermaid 需求关系图。
+独立写入 `traceability.md`：
+
+````md
+# REQ-001 需求关系图
+
+点击节点打开对应定义。
+
+```mermaid
+flowchart LR
+    BR001["REQ-001-BR-001<br/>时间段不可重复占用"]
+    PERM001["REQ-001-PERM-001<br/>客户只能管理自己的预约"]
+    NFR001["REQ-001-NFR-001<br/>并发预约一致性"]
+    MIG001["REQ-001-MIG-001<br/>创建预约数据表"]
+    FR001["REQ-001-FR-001<br/>创建预约"]
+    FLOW001["REQ-001-FLOW-001<br/>创建预约流程"]
+    AC001["REQ-001-AC-001<br/>成功创建预约"]
+    TC001["REQ-001-TC-001<br/>创建预约成功"]
+
+    BR001 -->|"约束"| FR001
+    PERM001 -->|"授权"| FR001
+    NFR001 -->|"质量约束"| FR001
+    MIG001 -->|"迁移支持"| FR001
+    FR001 -->|"展开"| FLOW001
+    FR001 -->|"验收"| AC001
+    AC001 -->|"验证"| TC001
+
+    click BR001 "./business.md#req-001-br-001" "查看 REQ-001-BR-001"
+    click PERM001 "./permission.md#req-001-perm-001" "查看 REQ-001-PERM-001"
+    click NFR001 "./requirement.md#req-001-nfr-001" "查看 REQ-001-NFR-001"
+    click MIG001 "./migration.md#req-001-mig-001" "查看 REQ-001-MIG-001"
+    click FR001 "./requirement.md#req-001-fr-001" "查看 REQ-001-FR-001"
+    click FLOW001 "./business.md#req-001-flow-001" "查看 REQ-001-FLOW-001"
+    click AC001 "./acceptance.md#req-001-ac-001" "查看 REQ-001-AC-001"
+    click TC001 "./REQ-001-TC-001.feature" "查看 REQ-001-TC-001"
+```
+````
+
+关系图规则：
+
+- 每个需求目录必须包含一个 `traceability.md`，只展示该需求内的实际编号和关系。
+- 每个编号恰好对应一个节点；节点 ID 使用类型和序号，如 `FR001`，节点文字使用完整编号和简短标题。
+- 每个节点必须使用 `click` 指向其定义；Markdown 定义指向显式锚点，TC 指向同编号 `.feature` 文件。
+- 基本关系为 BR → FR“约束”、PERM → FR“授权”、NFR → FR“质量约束”、MIG → FR“迁移支持”、FR → FLOW“展开”、FR → AC“验收”、AC → TC“验证”；存在其他真实关系时可以增加。
+- 图中的边必须与各条目的 `关联` 和 `.feature` Tag 一致。新增、删除或调整编号及关系时同步更新关系图。
+- 不创建需求跟踪矩阵。
 
 ### NFR
 
@@ -228,6 +261,7 @@ docs/requirements/REQ-001-<slug>/
 ```md
 ## 非功能需求
 
+<a id="req-001-nfr-001"></a>
 ### REQ-001-NFR-001 <非功能需求名称>
 
 - 来源：<来源>
@@ -250,6 +284,7 @@ docs/requirements/REQ-001-<slug>/
 写入 `business.md`：
 
 ```md
+<a id="req-001-br-001"></a>
 ## REQ-001-BR-001 <规则名称>
 
 - 来源：<来源>
@@ -268,6 +303,7 @@ docs/requirements/REQ-001-<slug>/
 写入 `business.md`：
 
 ````md
+<a id="req-001-flow-001"></a>
 ## REQ-001-FLOW-001 <流程名称>
 
 - 来源：<来源>
@@ -294,6 +330,7 @@ flowchart TD
 写入 `acceptance.md`：
 
 ```md
+<a id="req-001-ac-001"></a>
 ## REQ-001-AC-001 <验收名称>
 
 - 来源：<来源>
@@ -310,7 +347,7 @@ flowchart TD
 
 ### TC
 
-写入业务对应的 `.feature`：
+每个 TC 写入同编号的 `REQ-001-TC-001.feature`：
 
 ```gherkin
 @REQ-001-TC-001
@@ -324,13 +361,14 @@ Feature: <业务能力>
     Then <可验证结果>
 ```
 
-一个 Scenario 对应一个 TC；第一条 Tag 必须是 TC 编号。
+每个文件只包含一个 Scenario；第一条 Tag 必须是与文件名相同的 TC 编号。
 
 ### PERM
 
 写入 `permission.md`：
 
 ```md
+<a id="req-001-perm-001"></a>
 ## REQ-001-PERM-001 <权限规则名称>
 
 - 来源：<来源>
@@ -352,6 +390,7 @@ Feature: <业务能力>
 写入 `migration.md`：
 
 ```md
+<a id="req-001-mig-001"></a>
 ## REQ-001-MIG-001 <迁移名称>
 
 - 来源：<来源>
@@ -383,7 +422,7 @@ Feature: <业务能力>
 6. 读取相关 `docs/**`、源码和测试作为上下文，但只修改目标需求目录。
 7. 按对话规则确认需求。
 8. 创建或增量修改需要的需求文件，保持既有编号稳定。
-9. 检查需求跟踪矩阵覆盖全部 FR、所有引用编号存在，且 FR 至少关联 FLOW、AC 和 TC。
+9. 检查 `traceability.md` 覆盖全部编号、每个节点的跳转目标存在、图与正文关联一致，且每个 FR 至少关联 FLOW、AC 和 TC。
 10. 不修改组件规范、全局契约、源码或其他需求。
 
 ## `[<组件>]` 规范工作流
