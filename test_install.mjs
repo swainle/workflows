@@ -94,7 +94,7 @@ test("validates routed stage files", () => {
 
 test("repository AGENTS routes every stage file", () => {
   const template = readFileSync(path.join(WORKFLOW_ROOT, "AGENTS.md"), "utf8");
-  assert.equal(validateStageReferences(template), 9);
+  assert.equal(validateStageReferences(template), 8);
 });
 
 test("installs AGENTS.md idempotently without changing host rules", () => {

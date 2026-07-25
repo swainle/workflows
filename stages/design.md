@@ -27,7 +27,6 @@ docs/component/design/design-token.json
 docs/requirements/**
 docs/system/**
 docs/component/design/** 之外的 docs/component/**
-docs/contracts/**
 docs/deployment/**
 apps/**
 .github/workflows/**

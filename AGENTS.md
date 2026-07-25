@@ -66,14 +66,14 @@ Issue #123 → docs/requirements/REQ-123-<slug>/
 [web dev] 调整登录按钮圆角
 [web test] 验证登录页面
 [web deploy] 准备测试环境部署
-[api] 讨论预约接口
-[api dev] 实现创建预约接口
+[booking-api] 讨论预约接口
+[booking-api dev] 实现创建预约接口
 [design] 确立整体视觉风格
 ```
 
-`<组件>` 必须对应已存在的 `apps/<组件>/` 或
-`docs/component/<组件>/`。不得自行创造组件；创建新组件先使用
-`[system]` 确认全局架构。`design` 是保留的独立规范组件，不受此存在性限制。
+`<组件>` 必须对应 `docs/system/architecture.md` 组件清单中已声明的名称。
+不得在组件任务中自行创造组件；新增或拆分组件先使用 `[system]` 确认全局架构。
+`design` 是保留的独立规范组件，不受组件清单限制。
 
 保留目标：
 
@@ -92,7 +92,6 @@ Issue #123 → docs/requirements/REQ-123-<slug>/
 | 指令 | 必读阶段文件 |
 |---|---|
 | `[<编号>]` | `docs/workflows/stages/requirement.md` |
-| `[api]` | `docs/workflows/stages/api.md` |
 | `[design]` | `docs/workflows/stages/design.md` |
 | `[<组件>]` | `docs/workflows/stages/component.md` |
 | `[<组件> dev]` | `docs/workflows/stages/development.md` |
@@ -105,7 +104,7 @@ Issue #123 → docs/requirements/REQ-123-<slug>/
 
 阶段文件中的“允许修改”是当前任务的写入白名单。“职责”“文件作用”“执行步骤”和“完成检查”均为强制规则。
 
-`[api]` 和 `[design]` 优先匹配各自专用阶段，不使用通用组件规范阶段。`[api dev]`、`[api test]` 和 `[api deploy]` 分别使用通用开发、测试和组件部署阶段，其中 `<组件>` 为 `api`。
+`[design]` 优先匹配设计专用阶段，不使用通用组件规范阶段。前端、后端、任务处理器等其他组件统一使用组件阶段；系统可以声明多个后端组件。
 
 用户明确给出多个阶段时，分别完整读取对应阶段文件；写入范围只合并用户明确列出的阶段，不自动扩大到相关阶段或其他组件。
 
@@ -126,7 +125,7 @@ Git                       文件历史
 
 ## 对话确认规则
 
-适用于 `[<编号>]`、`[<组件>]`、`[api]`、`[design]` 和 `[system]`：
+适用于 `[<编号>]`、`[<组件>]`、`[design]` 和 `[system]`：
 
 1. 读取当前阶段文件要求的 Issue、需求、规范、契约、源码和测试上下文。
 2. 自动判断是否存在无法理解、相互冲突、关键缺失或会产生不同结果的合理选择。

@@ -33,7 +33,6 @@ docs/deployment/prod.env
 docs/requirements/**
 docs/system/**
 docs/component/**
-docs/contracts/**
 apps/**
 ```
 

@@ -4,7 +4,7 @@
 
 读取对应 GitHub Issue 及相关本地事实，通过对话确认需求，只维护该 Issue 对应的需求目录。
 
-不负责技术选型、组件规范、全局契约、源码、测试实现或部署配置。
+不负责技术选型、组件规范、组件契约、源码、测试实现或部署配置。
 
 ## 操作边界
 
@@ -24,7 +24,6 @@ docs/requirements/REQ-<三位Issue编号>-*/**
 ```text
 docs/system/**
 docs/component/**
-docs/contracts/**
 docs/deployment/**
 apps/**
 .github/workflows/**
@@ -33,7 +32,7 @@ apps/**
 
 ### 越界处理
 
-需要修改越界文件时停止，说明目标文件以及应切换到的 `[system]`、`[api]` 或组件阶段。
+需要修改越界文件时停止，说明目标文件以及应切换到的 `[system]` 或对应组件阶段。
 
 ## 专家
 

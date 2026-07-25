@@ -30,7 +30,6 @@ docs/deployment/**
 docs/requirements/**
 docs/system/**
 docs/component/**
-docs/contracts/**
 apps/<组件>/Dockerfile 和 apps/<组件>/deploy/** 之外的 apps/**
 .github/workflows/**
 ```
