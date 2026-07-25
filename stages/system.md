@@ -58,19 +58,20 @@ apps/**
 
 ## 组件清单
 
-`architecture.md` 使用稳定的组件名称登记系统实际需要的前端、后端、任务处理器和其他部署单元：
+`architecture.md` 使用稳定的组件名称和目录登记系统实际需要的前端、后端、任务处理器和其他部署单元：
 
 ```md
 ## 组件清单
 
-| 名称 | 类型 | 职责 | 实现路径 |
-|---|---|---|---|
-| `booking-api` | 后端 | 预约领域和接口 | `apps/booking-api/` |
-| `billing-api` | 后端 | 计费领域和接口 | `apps/billing-api/` |
-| `web` | 前端 | Web 用户界面 | `apps/web/` |
+| 组件 | 组件应用目录 | 组件设计目录 |
+|---|---|---|
+| `booking-api` | `apps/booking-api/` | `docs/component/booking-api/` |
+| `billing-api` | `apps/billing-api/` | `docs/component/billing-api/` |
+| `web` | `apps/web/` | `docs/component/web/` |
 ```
 
-组件名称对应 `[<组件>]` 指令、`apps/<组件>/` 和 `docs/component/<组件>/`。
+“组件”对应 `[<组件>]` 指令。组件应用目录必须位于 `apps/`，组件设计目录必须位于
+`docs/component/`；路径使用仓库相对路径，不包含 `..`，各组件之间不得重复。
 一次 `[system]` 可以设立多个组件，但只登记架构中真实需要的组件。
 
 ## 流程分类
@@ -103,5 +104,6 @@ apps/**
 
 - 实际修改只位于明确列出的全局文件。
 - 没有修改需求、组件规范、契约、源码或部署。
+- 组件清单只包含“组件”“组件应用目录”“组件设计目录”，路径合法且不重复。
 - 架构、技术栈、流程分类和安全规则相互一致。
 - JSON 和 Mermaid 已验证。

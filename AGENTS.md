@@ -71,7 +71,8 @@ Issue #123 → docs/requirements/REQ-123-<slug>/
 [design] 确立整体视觉风格
 ```
 
-`<组件>` 必须对应 `docs/system/architecture.md` 组件清单中已声明的名称。
+`<组件>` 必须对应 `docs/system/architecture.md` 组件清单中已声明的组件。
+组件任务使用该行声明的组件应用目录和组件设计目录，不根据组件名称猜测路径。
 不得在组件任务中自行创造组件；新增或拆分组件先使用 `[system]` 确认全局架构。
 `design` 是保留的独立规范组件，不受组件清单限制。
 
@@ -111,11 +112,11 @@ Issue #123 → docs/requirements/REQ-123-<slug>/
 ## 本地事实来源
 
 ```text
-docs/**                   需求、规范、契约和部署方式
-apps/**                   当前实际实现
-apps/<组件>/test/**       自动化测试实现
-Git                       文件历史
-测试和 CI 输出            执行证据
+docs/**                        需求、规范、契约和部署方式
+apps/**                        当前实际实现
+<组件应用目录>/test/**         自动化测试实现
+Git                            文件历史
+测试和 CI 输出                 执行证据
 ```
 
 - 规范任务以当前 `docs/**` 为基线。

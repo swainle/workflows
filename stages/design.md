@@ -48,7 +48,7 @@ apps/**
 ## Design Token 规则
 
 - 保存跨组件复用的语义 Token，不保存具体页面的一次性数值。
-- `docs/component/<组件>/<组件>.design-token.json` 只保存平台差异和覆盖，不复制全局值。
+- `<组件设计目录>/<组件>.design-token.json` 只保存平台差异和覆盖，不复制全局值。
 - 没有平台差异时不创建组件覆盖。
 
 ## 执行步骤

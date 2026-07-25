@@ -11,14 +11,14 @@
 ### 允许读取
 
 - `docs/**`
-- `apps/<组件>/**`
+- `<组件应用目录>/**`
 - 当前部署环境信息、构建和 CI 输出
 
 ### 允许修改
 
 ```text
-apps/<组件>/Dockerfile
-apps/<组件>/deploy/**
+<组件应用目录>/Dockerfile
+<组件应用目录>/deploy/**
 docs/deployment/**
 ```
 
@@ -30,7 +30,7 @@ docs/deployment/**
 docs/requirements/**
 docs/system/**
 docs/component/**
-apps/<组件>/Dockerfile 和 apps/<组件>/deploy/** 之外的 apps/**
+<组件应用目录>/Dockerfile 和 <组件应用目录>/deploy/** 之外的 apps/**
 .github/workflows/**
 ```
 
@@ -42,8 +42,8 @@ apps/<组件>/Dockerfile 和 apps/<组件>/deploy/** 之外的 apps/**
 
 | 文件或路径 | 作用 | 可修改内容 |
 |---|---|---|
-| `apps/<组件>/Dockerfile` | 当前组件镜像构建 | 构建阶段、运行时和健康检查 |
-| `apps/<组件>/deploy/**` | 当前组件部署资源 | 当前组件清单、脚本和配置模板 |
+| `<组件应用目录>/Dockerfile` | 当前组件镜像构建 | 构建阶段、运行时和健康检查 |
+| `<组件应用目录>/deploy/**` | 当前组件部署资源 | 当前组件清单、脚本和配置模板 |
 | `docs/deployment/deployment.md` | 部署方式 | 当前组件相关章节 |
 | `docs/deployment/runbook.md` | 运维与恢复 | 当前组件相关章节 |
 
@@ -55,11 +55,12 @@ apps/<组件>/Dockerfile 和 apps/<组件>/deploy/** 之外的 apps/**
 
 ## 执行步骤
 
-1. 读取组件、部署规范、实际配置和目标环境信息。
-2. 检查构建、环境变量、迁移、健康检查、备份、恢复和回滚中的适用项。
-3. 默认只准备并验证部署。
-4. 真实外部部署必须由用户明确指定环境并要求立即执行。
-5. Production 部署、迁移、资源删除和回滚必须在执行前再次确认。
+1. 从 `docs/system/architecture.md` 组件清单解析当前组件的应用目录和设计目录。
+2. 读取组件、部署规范、实际配置和目标环境信息。
+3. 检查构建、环境变量、迁移、健康检查、备份、恢复和回滚中的适用项。
+4. 默认只准备并验证部署。
+5. 真实外部部署必须由用户明确指定环境并要求立即执行。
+6. Production 部署、迁移、资源删除和回滚必须在执行前再次确认。
 
 ## 完成检查
 

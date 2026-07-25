@@ -11,13 +11,13 @@
 ### 允许读取
 
 - `docs/**`
-- `apps/<组件>/**`
+- `<组件应用目录>/**`
 - 当前组件测试和 CI 输出
 
 ### 允许修改
 
 ```text
-docs/component/<组件>/**
+<组件设计目录>/**
 ```
 
 ### 禁止修改
@@ -28,7 +28,7 @@ docs/system/**
 docs/deployment/**
 apps/**
 .github/workflows/**
-docs/component/<其他组件>/**
+<其他组件设计目录>/**
 ```
 
 ### 越界处理
@@ -42,7 +42,7 @@ docs/component/<其他组件>/**
 ## 文件作用
 
 ```text
-docs/component/<组件>/
+<组件设计目录>/
 ├─ component.md
 ├─ ddd.md
 ├─ process.md
@@ -134,7 +134,7 @@ accessibility:
 
 ## 执行步骤
 
-1. 确认组件名称已在 `docs/system/architecture.md` 的组件清单中声明。
+1. 从 `docs/system/architecture.md` 组件清单解析当前组件的应用目录和设计目录。
 2. 读取相关需求、当前组件规范、契约、源码和测试。
 3. 自动识别需要确认的组件边界、行为、契约和平台限制。
 4. 按根 `AGENTS.md` 的对话确认规则完成确认。
@@ -142,7 +142,7 @@ accessibility:
 
 ## 完成检查
 
-- 实际修改全部位于 `docs/component/<组件>/**`。
+- 实际修改全部位于组件清单声明的当前组件设计目录。
 - 没有修改源码、其他组件、需求、系统规范或部署文件。
 - 引用的需求编号、权限编号、`operationId` 和 Token 均存在。
 - JSON、YAML、DBML、FGA 和 Mermaid 使用项目已有工具或标准解析器验证。
