@@ -145,7 +145,7 @@ Git                       文件历史
 | 目的 | 图类型 |
 |---|---|
 | 全局架构 | `architecture-beta` 或 `C4Container` |
-| 业务和组件流程 | `flowchart` |
+| 业务、工程和组件流程 | `flowchart` |
 | 状态转换 | `stateDiagram-v2` |
 | 调用顺序 | `sequenceDiagram` |
 | 数据关系 | `erDiagram` |
