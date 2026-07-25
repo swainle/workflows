@@ -1,4 +1,4 @@
-# `[system deploy]` 全局部署
+# `[deploy]` 全局部署
 
 ## 职责
 
@@ -18,12 +18,12 @@
 ### 允许修改
 
 ```text
-docs/deployment/deployment.md
-docs/deployment/runbook.md
-docs/deployment/compose.yml
-docs/deployment/dev.env
-docs/deployment/test.env
-docs/deployment/prod.env
+docs/deploy/deployment.md
+docs/deploy/runbook.md
+docs/deploy/compose.yml
+docs/deploy/dev.env
+docs/deploy/test.env
+docs/deploy/prod.env
 .github/workflows/**
 ```
 

@@ -19,10 +19,10 @@
 ```text
 <组件应用目录>/Dockerfile
 <组件应用目录>/deploy/**
-docs/deployment/**
+docs/deploy/**
 ```
 
-`docs/deployment/**` 只修改当前组件实际使用的部分。
+`docs/deploy/**` 只修改当前组件实际使用的部分。
 
 ### 禁止修改
 
@@ -36,7 +36,7 @@ docs/component/**
 
 ### 越界处理
 
-需要全局编排或 CI/CD 时切换 `[system deploy]`；需要业务代码时切换 `[<组件> dev]`。
+需要全局编排或 CI/CD 时切换 `[deploy]`；需要业务代码时切换 `[<组件> dev]`。
 
 ## 文件作用
 
@@ -44,8 +44,8 @@ docs/component/**
 |---|---|---|
 | `<组件应用目录>/Dockerfile` | 当前组件镜像构建 | 构建阶段、运行时和健康检查 |
 | `<组件应用目录>/deploy/**` | 当前组件部署资源 | 当前组件清单、脚本和配置模板 |
-| `docs/deployment/deployment.md` | 部署方式 | 当前组件相关章节 |
-| `docs/deployment/runbook.md` | 运维与恢复 | 当前组件相关章节 |
+| `docs/deploy/deployment.md` | 部署方式 | 当前组件相关章节 |
+| `docs/deploy/runbook.md` | 运维与恢复 | 当前组件相关章节 |
 
 不得提交密钥、令牌、证书或真实凭据。
 

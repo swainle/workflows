@@ -24,7 +24,7 @@ docs/requirements/REQ-<三位Issue编号>-*/**
 ```text
 docs/system/**
 docs/component/**
-docs/deployment/**
+docs/deploy/**
 apps/**
 .github/workflows/**
 其他需求目录

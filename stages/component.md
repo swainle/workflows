@@ -25,7 +25,7 @@
 ```text
 docs/requirements/**
 docs/system/**
-docs/deployment/**
+docs/deploy/**
 apps/**
 .github/workflows/**
 <其他组件设计目录>/**

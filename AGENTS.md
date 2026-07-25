@@ -81,7 +81,7 @@ Issue #123 → docs/requirements/REQ-123-<slug>/
 ```text
 [system]         全局架构、技术和开发约定
 [design]         整体视觉风格和全局 Design Token
-[system deploy]  全局编排、CI/CD、发布和回滚
+[deploy]         全局编排、CI/CD、发布和回滚
 ```
 
 未知方括号指令或普通自然语言任务不套用本工作流，按宿主项目规则处理。
@@ -99,7 +99,7 @@ Issue #123 → docs/requirements/REQ-123-<slug>/
 | `[<组件> test]` | `docs/workflows/stages/testing.md` |
 | `[<组件> deploy]` | `docs/workflows/stages/component-deployment.md` |
 | `[system]` | `docs/workflows/stages/system.md` |
-| `[system deploy]` | `docs/workflows/stages/system-deployment.md` |
+| `[deploy]` | `docs/workflows/stages/deploy.md` |
 
 阶段文件不存在或无法完整读取时停止，不修改任何文件。
 
