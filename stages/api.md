@@ -25,9 +25,7 @@ docs/contracts/**
 
 ```text
 docs/requirements/**
-docs/architecture/**
-docs/development/**
-docs/design-tokens/**
+docs/system/**
 docs/deployment/**
 docs/component/<非api组件>/**
 apps/**

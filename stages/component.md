@@ -26,9 +26,7 @@ docs/component/<组件>/**
 
 ```text
 docs/requirements/**
-docs/architecture/**
-docs/development/**
-docs/design-tokens/**
+docs/system/**
 docs/contracts/**
 docs/deployment/**
 apps/**
@@ -38,7 +36,7 @@ docs/component/<其他组件>/**
 
 ### 越界处理
 
-需要全局规范时切换 `[system]`；需要 API 契约时切换 `[api]`；需要源码时切换 `[<组件> dev]`。
+需要全局规范时切换 `[system]`；需要整体风格或全局 Token 时切换 `[design]`；需要 API 契约时切换 `[api]`；需要源码时切换 `[<组件> dev]`。
 
 ## 专家
 
@@ -62,7 +60,7 @@ docs/component/<组件>/
 | `process.md` | 组件内部业务流程 | 存在稳定流程 | 当前组件流程 |
 | `state.md` | 页面或组件状态转换 | 存在稳定状态模型 | 当前组件状态 |
 | `sequence.md` | 多方交互时序 | 存在多方调用 | 当前组件时序 |
-| `<组件>.design-token.json` | 平台差异和全局 Token 覆盖 | 存在平台差异 | 当前组件差异，不复制全局值 |
+| `<组件>.design-token.json` | 平台差异和全局 Token 覆盖 | 存在平台差异 | 当前组件差异，不复制 `docs/component/design/design-token.json` 中的全局值 |
 | `*.ui.yml` | 稳定页面或视图的交互契约 | 存在页面规范 | 当前组件页面结构、动作和状态 |
 
 只创建项目实际需要的文件。

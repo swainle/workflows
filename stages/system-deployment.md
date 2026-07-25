@@ -31,9 +31,7 @@ docs/deployment/prod.env
 
 ```text
 docs/requirements/**
-docs/architecture/**
-docs/development/**
-docs/design-tokens/**
+docs/system/**
 docs/component/**
 docs/contracts/**
 apps/**

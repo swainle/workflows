@@ -1,0 +1,67 @@
+# `[design]` 全局设计规范
+
+## 职责
+
+通过对话确认产品的整体视觉风格、设计原则和全局语义 Design Token。
+
+不负责具体组件界面、需求、系统架构、源码、测试实现或部署。
+
+## 操作边界
+
+### 允许读取
+
+- `docs/**`
+- `apps/**`
+- 现有界面、测试、构建和 CI 输出
+
+### 允许修改
+
+```text
+docs/component/design/design.md
+docs/component/design/design-token.json
+```
+
+### 禁止修改
+
+```text
+docs/requirements/**
+docs/system/**
+docs/component/design/** 之外的 docs/component/**
+docs/contracts/**
+docs/deployment/**
+apps/**
+.github/workflows/**
+```
+
+### 越界处理
+
+具体组件规范切换 `[<组件>]`；全局架构或技术约定切换 `[system]`；实现切换 `[<组件> dev]`。
+
+## 文件作用
+
+| 文件 | 作用 | 创建条件 | 可修改内容 |
+|---|---|---|---|
+| `design.md` | 整体风格和跨组件设计原则 | 始终 | 品牌气质、视觉方向、排版、色彩、动效和可访问性原则 |
+| `design-token.json` | 跨组件语义 Token | 存在 UI 组件 | 全局颜色、间距、字体、圆角和动效等语义变量 |
+
+只创建项目实际需要的文件。
+
+## Design Token 规则
+
+- 保存跨组件复用的语义 Token，不保存具体页面的一次性数值。
+- `docs/component/<组件>/<组件>.design-token.json` 只保存平台差异和覆盖，不复制全局值。
+- 没有平台差异时不创建组件覆盖。
+
+## 执行步骤
+
+1. 读取相关需求、现有设计规范、组件界面、源码和 Token。
+2. 自动识别整体风格、视觉原则和 Token 中会产生不同结果的选择。
+3. 按根 `AGENTS.md` 的对话确认规则逐项确认，并在最终确认后写入规范。
+4. 只增量更新长期有效的整体设计规范和全局 Token。
+
+## 完成检查
+
+- 实际修改只位于 `docs/component/design/` 的两个允许文件。
+- 没有修改组件专用规范、源码、需求、系统规范、契约或部署。
+- 整体风格、设计原则和 Token 相互一致。
+- JSON 已使用标准解析器验证。

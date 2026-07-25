@@ -2,9 +2,9 @@
 
 ## 职责
 
-确认并维护系统架构、技术栈、跨组件流程、安全、可观测性、Git 工作流和全局 Design Token。
+确认并维护系统架构、技术栈、跨组件流程、安全、可观测性和 Git 工作流。
 
-不负责具体需求、组件规范、API 契约、源码、测试实现或部署。
+不负责具体需求、设计规范、组件规范、API 契约、源码、测试实现或部署。
 
 ## 操作边界
 
@@ -17,13 +17,12 @@
 ### 允许修改
 
 ```text
-docs/architecture/architecture.md
-docs/architecture/technology.md
-docs/architecture/process.md
-docs/architecture/security.md
-docs/architecture/observability.md
-docs/development/gitflow.md
-docs/design-tokens/**
+docs/system/architecture.md
+docs/system/technology.md
+docs/system/process.md
+docs/system/security.md
+docs/system/observability.md
+docs/system/gitflow.md
 ```
 
 ### 禁止修改
@@ -39,7 +38,7 @@ apps/**
 
 ### 越界处理
 
-组件规范切换 `[<组件>]`；API 契约切换 `[api]`；实现切换 `[<组件> dev]`；部署切换 `[system deploy]`。
+整体风格和全局 Token 切换 `[design]`；组件规范切换 `[<组件>]`；API 契约切换 `[api]`；实现切换 `[<组件> dev]`；部署切换 `[system deploy]`。
 
 ## 专家
 
@@ -55,16 +54,8 @@ apps/**
 | `security.md` | 身份、信任边界和安全原则 | 存在安全要求 | 全局安全规则 |
 | `observability.md` | 日志、指标、追踪和告警 | 存在运行要求 | 全局可观测性 |
 | `gitflow.md` | 分支、提交、评审和发布流程 | 始终 | Git 开发约定 |
-| `docs/design-tokens/design-token.json` | 跨平台语义 Token | 存在 UI 组件 | 全局颜色、间距、字体、圆角等语义变量 |
 
 只创建项目实际需要的文件。
-
-## Design Token 规则
-
-- 全局文件保存跨平台语义 Token。
-- `docs/component/<平台>/<平台>.design-token.json` 由对应组件规范阶段维护，只保存平台差异和覆盖。
-- 没有平台差异时不创建平台覆盖。
-- 单个页面的一次性视觉微调不强制新增全局 Token。
 
 ## 执行步骤
 

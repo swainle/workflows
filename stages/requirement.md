@@ -22,9 +22,7 @@ docs/requirements/REQ-<三位Issue编号>-*/**
 ### 禁止修改
 
 ```text
-docs/architecture/**
-docs/development/**
-docs/design-tokens/**
+docs/system/**
 docs/component/**
 docs/contracts/**
 docs/deployment/**
