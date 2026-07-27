@@ -6,36 +6,23 @@
 
 不负责具体需求、设计规范、组件规范、组件契约、源码、测试实现或部署。
 
-## 操作边界
+## 操作权限
 
-### 允许读取
+| 路径模式 | 创建 | 读取 | 修改 | 删除 |
+|---|---|---|---|---|
+| `docs/**` | 禁止 | 允许 | 禁止 | 禁止 |
+| `apps/**` | 禁止 | 允许 | 禁止 | 禁止 |
+| `docs/system/c4.md` | 允许 | 允许 | 允许 | 允许 |
+| `docs/system/technology.md` | 允许 | 允许 | 允许 | 允许 |
+| `docs/system/process.md` | 允许 | 允许 | 允许 | 允许 |
+| `docs/system/security.md` | 允许 | 允许 | 允许 | 允许 |
+| `docs/system/observability.md` | 允许 | 允许 | 允许 | 允许 |
+| `docs/system/gitflow.md` | 允许 | 允许 | 允许 | 允许 |
+| `.github/workflows/**` | 禁止 | 禁止 | 禁止 | 禁止 |
 
-- `docs/**`
-- `apps/**`
-- 测试、构建和 CI 输出
+允许读取测试、构建和 CI 输出。
 
-### 允许修改
-
-```text
-docs/system/c4.md
-docs/system/technology.md
-docs/system/process.md
-docs/system/security.md
-docs/system/observability.md
-docs/system/gitflow.md
-```
-
-### 禁止修改
-
-```text
-docs/requirements/**
-docs/component/**
-docs/deploy/**
-apps/**
-.github/workflows/**
-```
-
-### 越界处理
+## 越界处理
 
 整体风格和全局 Token 切换 `[design]`；组件规范及其契约切换 `[<组件>]`；实现切换 `[<组件> dev]`；部署切换 `[deploy]`。
 

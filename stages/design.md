@@ -6,33 +6,19 @@
 
 不负责具体组件界面、需求、系统架构、源码、测试实现或部署。
 
-## 操作边界
+## 操作权限
 
-### 允许读取
+| 路径模式 | 创建 | 读取 | 修改 | 删除 |
+|---|---|---|---|---|
+| `docs/**` | 禁止 | 允许 | 禁止 | 禁止 |
+| `apps/**` | 禁止 | 允许 | 禁止 | 禁止 |
+| `docs/component/design/design.md` | 允许 | 允许 | 允许 | 允许 |
+| `docs/component/design/design-token.json` | 允许 | 允许 | 允许 | 允许 |
+| `.github/workflows/**` | 禁止 | 禁止 | 禁止 | 禁止 |
 
-- `docs/**`
-- `apps/**`
-- 现有界面、测试、构建和 CI 输出
+允许读取现有界面、测试、构建和 CI 输出。
 
-### 允许修改
-
-```text
-docs/component/design/design.md
-docs/component/design/design-token.json
-```
-
-### 禁止修改
-
-```text
-docs/requirements/**
-docs/system/**
-docs/component/design/** 之外的 docs/component/**
-docs/deploy/**
-apps/**
-.github/workflows/**
-```
-
-### 越界处理
+## 越界处理
 
 具体组件规范切换 `[<组件>]`；全局架构或技术约定切换 `[system]`；实现切换 `[<组件> dev]`。
 

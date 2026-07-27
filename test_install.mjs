@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { mkdirSync, mkdtempSync, readdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import test from "node:test";
@@ -94,13 +94,24 @@ test("validates routed stage files", () => {
 
 test("repository AGENTS routes every stage file", () => {
   const template = readFileSync(path.join(WORKFLOW_ROOT, "AGENTS.md"), "utf8");
-  assert.equal(validateStageReferences(template), 8);
+  assert.equal(validateStageReferences(template), 7);
+});
+
+test("defines one CRUD permission matrix per stage", () => {
+  const stageRoot = path.join(WORKFLOW_ROOT, "stages");
+  const files = readdirSync(stageRoot).filter((file) => file.endsWith(".md"));
+  assert.equal(files.length, 7);
+  for (const file of files) {
+    const content = readFileSync(path.join(stageRoot, file), "utf8");
+    assert.equal(content.match(/^## 操作权限$/gm)?.length, 1, file);
+    assert.equal(content.match(/^\| 路径模式 \| 创建 \| 读取 \| 修改 \| 删除 \|$/gm)?.length, 1, file);
+    assert.doesNotMatch(content, /^### (允许读取|允许修改|禁止修改)$/m, file);
+  }
 });
 
 test("uses c4.md for system architecture", () => {
   const files = [
     "AGENTS.md",
-    "stages/component-deployment.md",
     "stages/component.md",
     "stages/development.md",
     "stages/system.md",

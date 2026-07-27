@@ -2,48 +2,38 @@
 
 ## 职责
 
-维护全局环境、编排、CI/CD、发布、运维和回滚规范。
+维护组件构建、全局环境、编排、CI/CD、发布、运维和回滚规范。
 
 不负责业务需求、架构技术选型、组件规范、契约或业务源码。
 
-## 操作边界
+## 操作权限
 
-### 允许读取
+| 路径模式 | 创建 | 读取 | 修改 | 删除 |
+|---|---|---|---|---|
+| `docs/**` | 禁止 | 允许 | 禁止 | 禁止 |
+| `apps/**` | 禁止 | 允许 | 禁止 | 禁止 |
+| `apps/*/Dockerfile` | 允许 | 允许 | 允许 | 允许 |
+| `apps/*/deploy/**` | 允许 | 允许 | 允许 | 允许 |
+| `docs/deploy/deployment.md` | 允许 | 允许 | 允许 | 允许 |
+| `docs/deploy/runbook.md` | 允许 | 允许 | 允许 | 允许 |
+| `docs/deploy/compose.yml` | 允许 | 允许 | 允许 | 允许 |
+| `docs/deploy/dev.env` | 允许 | 允许 | 允许 | 允许 |
+| `docs/deploy/test.env` | 允许 | 允许 | 允许 | 允许 |
+| `docs/deploy/prod.env` | 允许 | 允许 | 允许 | 允许 |
+| `.github/workflows/**` | 允许 | 允许 | 允许 | 允许 |
 
-- `docs/**`
-- `apps/**`
-- `.github/workflows/**`
-- 目标环境信息、构建和 CI 输出
+允许读取目标环境信息、构建和 CI 输出。
 
-### 允许修改
+## 越界处理
 
-```text
-docs/deploy/deployment.md
-docs/deploy/runbook.md
-docs/deploy/compose.yml
-docs/deploy/dev.env
-docs/deploy/test.env
-docs/deploy/prod.env
-.github/workflows/**
-```
-
-### 禁止修改
-
-```text
-docs/requirements/**
-docs/system/**
-docs/component/**
-apps/**
-```
-
-### 越界处理
-
-组件专用部署切换 `[<组件> deploy]`；源码缺陷切换 `[<组件> dev]`；架构或技术栈变化切换 `[system]`。
+源码缺陷切换 `[<组件> dev]`；架构或技术栈变化切换 `[system]`。
 
 ## 文件作用
 
 | 文件 | 作用 | 创建条件 | 可修改内容 |
 |---|---|---|---|
+| `apps/*/Dockerfile` | 组件镜像构建 | 组件使用容器镜像 | 构建阶段、运行时和健康检查 |
+| `apps/*/deploy/**` | 组件部署资源 | 组件存在专用部署资源 | 组件清单、脚本和配置模板 |
 | `deployment.md` | 开发、测试和生产环境部署方式 | 始终 | 环境、发布和部署流程 |
 | `runbook.md` | 运维、故障处理、恢复和回滚 | 存在运行环境 | 可执行运维步骤 |
 | `compose.yml` | 服务编排 | 使用 Compose | 服务、网络、卷和健康检查 |
