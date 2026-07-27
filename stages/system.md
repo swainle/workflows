@@ -17,7 +17,7 @@
 ### 允许修改
 
 ```text
-docs/system/architecture.md
+docs/system/c4.md
 docs/system/technology.md
 docs/system/process.md
 docs/system/security.md
@@ -47,7 +47,7 @@ apps/**
 
 | 文件 | 作用 | 创建条件 | 可修改内容 |
 |---|---|---|---|
-| `architecture.md` | 系统结构、组件清单、组件边界和依赖方向 | 始终 | 全局架构决策和组件设立 |
+| `c4.md` | 系统上下文、容器、组件清单和通信关系 | 始终 | 用户、外部系统、组件设立、主要技术栈和容器通信 |
 | `technology.md` | 语言、框架、数据库和版本策略 | 始终 | 全局技术选型 |
 | `process.md` | 分类维护跨组件业务与工程流程 | 存在跨组件流程 | 全局流程、组件协作关系和时序图 |
 | `security.md` | 身份、信任边界和安全原则 | 存在安全要求 | 全局安全规则 |
@@ -58,7 +58,7 @@ apps/**
 
 ## 组件清单
 
-`architecture.md` 使用稳定的组件名称和目录登记系统实际需要的前端、后端、任务处理器和其他部署单元：
+`c4.md` 使用稳定的组件名称和目录登记系统实际需要的前端、后端、任务处理器和其他部署单元：
 
 ```md
 ## 组件清单
@@ -74,12 +74,12 @@ apps/**
 `docs/component/`；路径使用仓库相对路径，不包含 `..`，各组件之间不得重复。
 一次 `[system]` 可以设立多个组件，但只登记架构中真实需要的组件。
 
-## 架构文件格式
+## C4 文件格式
 
-`architecture.md` 使用以下结构，只保存长期有效的全局结构、组件边界和依赖方向：
+`c4.md` 使用以下结构，只保存长期有效的系统上下文、容器、组件边界和依赖方向：
 
-```md
-# 系统架构
+````md
+# C4 架构
 
 ## 概述
 
@@ -88,16 +88,49 @@ apps/**
 | 组件 | 组件应用目录 | 组件设计目录 |
 |---|---|---|
 
-## 架构图
+## 系统上下文图
+
+```mermaid
+C4Context
+    title 系统上下文
+    Person(user, "用户", "使用系统的人")
+    System(system, "系统", "系统职责")
+    System_Ext(external, "外部系统", "外部系统职责")
+
+    Rel(user, system, "使用")
+    Rel(system, external, "交互", "协议")
+```
+
+## 容器图
+
+```mermaid
+C4Container
+    title 容器图
+    Person(user, "用户", "使用系统的人")
+    System_Ext(external, "外部系统", "外部系统职责")
+
+    System_Boundary(system, "系统") {
+        Container(web, "Web 应用", "主要技术栈", "容器职责")
+        Container(api, "API 服务", "主要技术栈", "容器职责")
+        ContainerDb(database, "数据库", "主要技术栈", "数据职责")
+    }
+
+    Rel(user, web, "使用", "HTTPS")
+    Rel(web, api, "调用", "HTTPS/JSON")
+    Rel(api, database, "读写", "数据库协议")
+    Rel(api, external, "调用", "协议")
+```
 
 ## 组件边界
 
 ## 依赖方向
-```
+````
 
-- “组件清单”始终存在且只有规定的三列；其他章节没有实际内容时不创建空章节。
-- 架构图存在复杂关系时使用 `C4Container` 或 `architecture-beta`，同一通信或依赖关系不再用文本图重复表达。
-- 语言、框架、数据库和版本放入 `technology.md`。
+- “组件清单”始终存在且只有规定的三列。
+- “系统上下文图”始终使用 `C4Context`，展示系统边界、用户或角色、交互的外部系统及其关系，不展示内部容器。
+- “容器图”始终使用 `C4Container`，展示系统内的容器、各容器的主要技术栈，以及容器之间和容器与外部系统之间的通信方式。
+- 组件清单、容器图和正文中的组件名称保持一致；同一关系不再用文本图重复表达。
+- 容器图可以标注主要语言、框架和数据库；具体选型约束和版本策略放入 `technology.md`。
 - 跨组件业务或工程步骤放入 `process.md`。
 - 认证原则和信任边界放入 `security.md`。
 - 路由、中间件、源码目录、数据表和接口契约放入对应组件设计目录。
@@ -271,7 +304,7 @@ gitGraph
 - 实际修改只位于明确列出的全局文件。
 - 没有修改需求、组件规范、契约、源码或部署。
 - 组件清单只包含“组件”“组件应用目录”“组件设计目录”，路径合法且不重复。
-- `architecture.md` 没有组件内部实现、技术版本、部署内容或重复关系图。
+- `c4.md` 包含 `C4Context` 系统上下文图和 `C4Container` 容器图，没有组件内部实现、技术版本、部署内容或重复关系图。
 - `process.md` 的每个流程都有 `sequenceDiagram`，参与者名称与组件清单一致。
 - `gitflow.md`、`technology.md`、`security.md` 和 `observability.md` 符合固定格式且没有空章节。
 - 架构、技术栈、流程分类和安全规则相互一致。

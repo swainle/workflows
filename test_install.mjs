@@ -97,6 +97,22 @@ test("repository AGENTS routes every stage file", () => {
   assert.equal(validateStageReferences(template), 8);
 });
 
+test("uses c4.md for system architecture", () => {
+  const files = [
+    "AGENTS.md",
+    "stages/component-deployment.md",
+    "stages/component.md",
+    "stages/development.md",
+    "stages/system.md",
+    "stages/testing.md",
+  ];
+  const content = files.map((file) => readFileSync(path.join(WORKFLOW_ROOT, file), "utf8")).join("\n");
+  assert.doesNotMatch(content, /docs\/system\/architecture\.md|`architecture\.md`/);
+  assert.match(content, /docs\/system\/c4\.md/);
+  assert.match(content, /C4Context/);
+  assert.match(content, /C4Container/);
+});
+
 test("installs AGENTS.md idempotently without changing host rules", () => {
   const root = mkdtempSync(path.join(tmpdir(), "workflows-install-"));
   const workflowRoot = path.join(root, "docs", "workflows");

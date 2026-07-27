@@ -71,7 +71,7 @@ Issue #123 → docs/requirements/REQ-123-<slug>/
 [design] 确立整体视觉风格
 ```
 
-`<组件>` 必须对应 `docs/system/architecture.md` 组件清单中已声明的组件。
+`<组件>` 必须对应 `docs/system/c4.md` 组件清单中已声明的组件。
 组件任务使用该行声明的组件应用目录和组件设计目录，不根据组件名称猜测路径。
 不得在组件任务中自行创造组件；新增或拆分组件先使用 `[system]` 确认全局架构。
 `design` 是保留的独立规范组件，不受组件清单限制。
@@ -145,14 +145,16 @@ Git                            文件历史
 
 | 目的 | 图类型 |
 |---|---|
-| 全局架构 | `architecture-beta` 或 `C4Container` |
+| 系统上下文 | `C4Context` |
+| 系统容器 | `C4Container` |
 | 跨组件流程和调用顺序 | `sequenceDiagram` |
 | 组件内部业务流程 | `flowchart` |
 | 状态转换 | `stateDiagram-v2` |
 | 数据关系 | `erDiagram` |
 | Git 工作流 | `gitGraph` |
 
-一个图只回答一个主要问题；没有复杂关系时不为形式创建图。
+一个图只回答一个主要问题。`docs/system/c4.md` 始终包含系统上下文图和容器图；
+其他场景没有复杂关系时不为形式创建图。
 
 ## 完成标准
 
