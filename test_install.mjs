@@ -97,6 +97,15 @@ test("repository AGENTS routes every stage file", () => {
   assert.equal(validateStageReferences(template), 6);
 });
 
+test("defines bilingual message ending controls", () => {
+  const template = readFileSync(path.join(WORKFLOW_ROOT, "AGENTS.md"), "utf8");
+  assert.match(template, /最后一个字符/);
+  assert.match(template, /\| `\?` 或 `？` \|[^|]+不修改文件 \|/);
+  assert.match(template, /\| `!` 或 `！` \|[^|]+提交并推送[^|]+ \|/);
+  assert.match(template, /\| `,` 或 `，` \|[^|]+直至完全理解需求 \|/);
+  assert.match(template, /\| `\.` 或 `。` \|[^|]+不自动提交或推送 \|/);
+});
+
 test("defines one CRUD permission matrix per stage", () => {
   const stageRoot = path.join(WORKFLOW_ROOT, "stages");
   const files = readdirSync(stageRoot).filter((file) => file.endsWith(".md"));
