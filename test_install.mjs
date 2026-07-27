@@ -152,13 +152,15 @@ test("stores numbered requirement items in separate files", () => {
 test("separates runtime and development technology selections", () => {
   const system = readFileSync(path.join(WORKFLOW_ROOT, "stages/system.md"), "utf8");
   assert.match(system, /### 运行组件/);
-  assert.match(system, /\| 组件 \| 来源 \| 技术或框架 \| 版本 \| 容器镜像 Tag \| 说明 \|/);
+  assert.match(system, /\| 组件 \| 来源 \| 技术或框架 \| 版本 \| 容器镜像 Tag \| 文档链接 \| 说明 \|/);
   assert.match(system, /### 开发组件/);
-  assert.match(system, /\| 组件 \| 范围 \| 技术 \| 版本策略 \| 用途 \| 约束 \|/);
+  assert.match(system, /\| 组件 \| 范围 \| 技术 \| 版本策略 \| 文档链接 \| 用途 \| 约束 \|/);
   assert.match(system, /<repo>:<组件>-v<version>/);
   assert.match(system, /测试、生产及其他环境的运行组件必须全部容器化/);
   assert.match(system, /优先选择带管理界面的方案/);
   assert.match(system, /允许 `<主版本>\.x`/);
+  assert.match(system, /对应版本的官方文档/);
+  assert.match(system, /不使用博客、搜索结果或非官方教程/);
 });
 
 test("uses c4.md for system architecture", () => {
