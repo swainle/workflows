@@ -118,10 +118,26 @@ test("defines one CRUD permission matrix per stage", () => {
   }
 });
 
-test("keeps deployment guidance in runbook.md", () => {
+test("separates stable runbook guidance from generated update plans", () => {
+  const agents = readFileSync(path.join(WORKFLOW_ROOT, "AGENTS.md"), "utf8");
   const deploy = readFileSync(path.join(WORKFLOW_ROOT, "stages/deploy.md"), "utf8");
   assert.doesNotMatch(deploy, /docs\/deploy\/deployment\.md|`deployment\.md`/);
   assert.match(deploy, /`runbook\.md`/);
+  assert.match(agents, /\[deploy\] update <升级内容>/);
+  assert.match(deploy, /\| `docs\/deploy\/update\/\*\.md` \| 允许 \| 允许 \| 允许 \| 禁止 \|/);
+  assert.match(deploy, /<YYYYMMDDHHmmss>_<升级主题>\.md/);
+  assert.match(deploy, /一次系统升级只生成一份文件/);
+  assert.match(deploy, /普通 `\[deploy\]` 指令不得创建 `update\/\*\.md`/);
+  for (const heading of ["部署检查", "顺序"]) {
+    assert.match(deploy, new RegExp(`## ${heading}`));
+  }
+  assert.match(deploy, /## 开发配置/);
+  assert.match(deploy, /<组件自身开发命令>/);
+  assert.match(deploy, /\| 环境 \| 编排文件 \| 环境变量模板 \| 其他依赖文件 \|/);
+  assert.match(deploy, /v<主版本>\.<次版本>\.<修订版本>/);
+  assert.match(deploy, /v1\.2\.3-alpha\.1/);
+  assert.match(deploy, /v1\.2\.3-rc\.1/);
+  assert.match(deploy, /备份、迁移、部署、回滚和恢复是同级操作/);
 });
 
 test("stores numbered requirement items in separate files", () => {
