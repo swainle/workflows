@@ -147,7 +147,8 @@ Git                            文件历史
 |---|---|
 | 系统上下文 | `C4Context` |
 | 系统容器 | `C4Container` |
-| 跨组件流程和调用顺序 | `sequenceDiagram` |
+| 跨组件业务流程和调用顺序 | `sequenceDiagram` |
+| 构建流程 | `flowchart` |
 | 组件内部业务流程 | `flowchart` |
 | 状态转换 | `stateDiagram-v2` |
 | 数据关系 | `erDiagram` |

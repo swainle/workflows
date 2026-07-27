@@ -113,6 +113,16 @@ test("uses c4.md for system architecture", () => {
   assert.match(content, /C4Container/);
 });
 
+test("groups business processes by role and uses flowcharts for builds", () => {
+  const agents = readFileSync(path.join(WORKFLOW_ROOT, "AGENTS.md"), "utf8");
+  const system = readFileSync(path.join(WORKFLOW_ROOT, "stages/system.md"), "utf8");
+  assert.match(agents, /\| 构建流程 \| `flowchart` \|/);
+  assert.match(system, /### <用户角色>/);
+  assert.match(system, /### 通用/);
+  assert.match(system, /### 系统/);
+  assert.match(system, /构建流程使用 `flowchart`/);
+});
+
 test("installs AGENTS.md idempotently without changing host rules", () => {
   const root = mkdtempSync(path.join(tmpdir(), "workflows-install-"));
   const workflowRoot = path.join(root, "docs", "workflows");
