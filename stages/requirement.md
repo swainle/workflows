@@ -53,23 +53,27 @@ REQ-<三位Issue编号>-<类型>-<三位序号>
 ```text
 docs/requirements/REQ-001-<slug>/
 ├─ requirement.md
-├─ business.md
-├─ acceptance.md
-├─ permission.md          # 涉及权限时创建
-├─ migration.md           # 涉及迁移时创建
-└─ REQ-001-TC-*.feature  # 存在可执行端到端场景时创建
+└─ items/
+   ├─ REQ-001-BR-001.md
+   ├─ REQ-001-FLOW-001.md
+   ├─ REQ-001-AC-001.md
+   ├─ REQ-001-PERM-001.md
+   ├─ REQ-001-MIG-001.md
+   └─ REQ-001-TC-001.feature
 ```
 
 | 文件 | 作用 | 创建条件 | 可修改内容 |
 |---|---|---|---|
 | `requirement.md` | 角色索引、功能、质量要求及 FR 局部关系图 | 始终 | 当前需求的角色、FR、NFR 和关系图 |
-| `business.md` | 业务规则和流程 | 存在 BR 或 FLOW | 当前需求的 BR、FLOW |
-| `acceptance.md` | 验收条件 | 始终 | 当前需求的 AC |
-| `permission.md` | 权限规则 | 涉及访问控制 | 当前需求的 PERM |
-| `migration.md` | 迁移方案 | 涉及迁移 | 当前需求的 MIG |
-| `REQ-001-TC-001.feature` | 单条端到端场景 | 存在可执行场景 | 与文件编号一致的一个 TC |
+| `items/REQ-001-BR-001.md` | 单条业务规则 | 存在该 BR | 与文件编号一致的一个 BR |
+| `items/REQ-001-FLOW-001.md` | 单条业务流程 | 存在该 FLOW | 与文件编号一致的一个 FLOW |
+| `items/REQ-001-AC-001.md` | 单条验收条件 | 存在该 AC | 与文件编号一致的一个 AC |
+| `items/REQ-001-PERM-001.md` | 单条权限规则 | 存在该 PERM | 与文件编号一致的一个 PERM |
+| `items/REQ-001-MIG-001.md` | 单条迁移需求 | 存在该 MIG | 与文件编号一致的一个 MIG |
+| `items/REQ-001-TC-001.feature` | 单条端到端场景 | 存在该 TC | 与文件编号一致的一个 TC |
 
-不创建空文件，也不创建状态、讨论、开发或验证记录文件。
+`items/` 中每个文件只定义一个与文件名相同的编号，不在文件名追加标题或 slug。
+不创建空文件、空目录，也不创建状态、讨论、开发或验证记录文件。
 
 ## 固定格式
 
@@ -128,14 +132,14 @@ flowchart LR
     classDef focus fill:#2563eb,color:#fff,stroke:#1d4ed8,stroke-width:2px
     class FR001 focus
 
-    click BR001 "./business.md#req-001-br-001" "查看 REQ-001-BR-001"
-    click PERM001 "./permission.md#req-001-perm-001" "查看 REQ-001-PERM-001"
+    click BR001 "./items/REQ-001-BR-001.md" "查看 REQ-001-BR-001"
+    click PERM001 "./items/REQ-001-PERM-001.md" "查看 REQ-001-PERM-001"
     click NFR001 "./requirement.md#req-001-nfr-001" "查看 REQ-001-NFR-001"
-    click MIG001 "./migration.md#req-001-mig-001" "查看 REQ-001-MIG-001"
+    click MIG001 "./items/REQ-001-MIG-001.md" "查看 REQ-001-MIG-001"
     click FR001 "./requirement.md#req-001-fr-001" "查看 REQ-001-FR-001"
-    click FLOW001 "./business.md#req-001-flow-001" "查看 REQ-001-FLOW-001"
-    click AC001 "./acceptance.md#req-001-ac-001" "查看 REQ-001-AC-001"
-    click TC001 "./REQ-001-TC-001.feature" "查看 REQ-001-TC-001"
+    click FLOW001 "./items/REQ-001-FLOW-001.md" "查看 REQ-001-FLOW-001"
+    click AC001 "./items/REQ-001-AC-001.md" "查看 REQ-001-AC-001"
+    click TC001 "./items/REQ-001-TC-001.feature" "查看 REQ-001-TC-001"
 ```
 ````
 
@@ -145,11 +149,12 @@ flowchart LR
 - 所有主体、协作角色和影响角色都必须出现在角色索引中，名称保持一致。
 - FR 按主要执行者分组；系统自动执行的功能归入“系统”。
 - 一个 FR 只归入一个主体分组；多角色参与时使用“协作角色”和“影响角色”，不复制 FR。
-- 角色分类不替代 `permission.md` 中的权限规则。
+- 角色分类不替代 `items/REQ-*-PERM-*.md` 中的权限规则。
 - 每张图只能有一个 FR 核心节点，只展示与该 FR 存在真实关系的编号；不适用类型直接省略。
 - 节点 ID 使用类型和序号，如 `FR001`；节点文字使用完整编号和简短标题。
 - 同一编号影响多个 FR 时允许出现在多张局部图中。
-- 每个节点必须使用 `click` 指向其定义；Markdown 定义指向显式锚点，TC 指向同编号 `.feature` 文件。
+- 每个节点必须使用 `click` 指向其定义；FR 和 NFR 指向 `requirement.md` 中的显式锚点，
+  其他类型直接指向 `items/` 中的同编号文件。
 - BR → FR 表示行为约束；PERM → FR 表示访问控制，只限制具体步骤时改为 PERM → FLOW。
 - NFR → FR 表示质量要求；作用于整个系统的 NFR 不在每张局部图重复。
 - MIG -.-> FR 表示条件性上线依赖，仅在不完成迁移就无法交付该 FR 时绘制。
@@ -183,11 +188,10 @@ flowchart LR
 
 ### BR
 
-写入 `business.md`：
+每个 BR 写入 `items/` 中的同编号 `.md` 文件：
 
 ```md
-<a id="req-001-br-001"></a>
-## REQ-001-BR-001 <规则名称>
+# REQ-001-BR-001 <规则名称>
 
 - 来源：<来源>
 - 适用条件：<何时应用>
@@ -202,11 +206,10 @@ flowchart LR
 
 ### FLOW
 
-写入 `business.md`：
+每个 FLOW 写入 `items/` 中的同编号 `.md` 文件：
 
 ````md
-<a id="req-001-flow-001"></a>
-## REQ-001-FLOW-001 <流程名称>
+# REQ-001-FLOW-001 <流程名称>
 
 - 来源：<来源>
 - 参与者：<参与者>
@@ -229,11 +232,10 @@ flowchart TD
 
 ### AC
 
-写入 `acceptance.md`：
+每个 AC 写入 `items/` 中的同编号 `.md` 文件：
 
 ```md
-<a id="req-001-ac-001"></a>
-## REQ-001-AC-001 <验收名称>
+# REQ-001-AC-001 <验收名称>
 
 - 来源：<来源>
 - 前置条件：<验收前提>
@@ -249,7 +251,7 @@ flowchart TD
 
 ### TC
 
-每个 TC 写入同编号的 `REQ-001-TC-001.feature`：
+每个 TC 写入 `items/` 中的同编号 `.feature` 文件：
 
 ```gherkin
 @REQ-001-TC-001
@@ -267,11 +269,10 @@ Feature: <业务能力>
 
 ### PERM
 
-写入 `permission.md`：
+每个 PERM 写入 `items/` 中的同编号 `.md` 文件：
 
 ```md
-<a id="req-001-perm-001"></a>
-## REQ-001-PERM-001 <权限规则名称>
+# REQ-001-PERM-001 <权限规则名称>
 
 - 来源：<来源>
 - 主体：<角色或主体类型>
@@ -289,11 +290,10 @@ Feature: <业务能力>
 
 ### MIG
 
-写入 `migration.md`：
+每个 MIG 写入 `items/` 中的同编号 `.md` 文件：
 
 ```md
-<a id="req-001-mig-001"></a>
-## REQ-001-MIG-001 <迁移名称>
+# REQ-001-MIG-001 <迁移名称>
 
 - 来源：<来源>
 - 迁移对象：<数据、接口、配置或基础设施>
@@ -332,5 +332,6 @@ Feature: <业务能力>
 - 主体、协作角色和影响角色与角色索引、权限规则中的名称一致。
 - 每个 FR 正文后直接跟随一张局部 Mermaid 图。
 - 每个 FR 至少关联 FLOW、AC 和 TC。
+- `items/` 中每个文件只定义一个编号，文件名、标题和内容编号一致。
 - 所有编号、锚点、点击目标、引用和 `.feature` Tag 均存在且一致。
 - 没有创建空文件或过程记录。

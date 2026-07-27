@@ -115,6 +115,15 @@ test("keeps deployment guidance in runbook.md", () => {
   assert.match(deploy, /`runbook\.md`/);
 });
 
+test("stores numbered requirement items in separate files", () => {
+  const requirement = readFileSync(path.join(WORKFLOW_ROOT, "stages/requirement.md"), "utf8");
+  assert.doesNotMatch(requirement, /`(business|acceptance|permission|migration)\.md`/);
+  for (const type of ["BR", "FLOW", "AC", "PERM", "MIG"]) {
+    assert.match(requirement, new RegExp(`items/REQ-001-${type}-001\\.md`));
+  }
+  assert.match(requirement, /items\/REQ-001-TC-001\.feature/);
+});
+
 test("uses c4.md for system architecture", () => {
   const files = [
     "AGENTS.md",
