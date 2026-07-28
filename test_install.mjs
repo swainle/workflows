@@ -304,22 +304,37 @@ test("lists C2 components by type with development endpoints", () => {
   assert.match(system, /测试、生产及其他环境由 `\[deploy\]` 维护/);
 });
 
-test("defines C3 component and C4 code diagrams", () => {
+test("defines single-purpose component documents and adaptive code diagrams", () => {
   const agents = readFileSync(path.join(WORKFLOW_ROOT, "templates/AGENTS.template.md"), "utf8");
   const component = readFileSync(path.join(WORKFLOW_ROOT, "stages/component.md"), "utf8");
+  assert.match(component, /\| `component\.md` \| 组件概述和主要目录结构 \| 始终 \|/);
   assert.match(component, /\| `c3\.md` \|[^|\r\n]+ \| 始终 \|/);
-  assert.match(component, /\| `c4\.md` \|[^|\r\n]+ \| 始终 \|/);
+  assert.match(component, /\| `c4\.md` \|[^|\r\n]+ \| 存在需要长期维护的代码结构 \|/);
+  assert.match(component, /\| `ddd\.md` \| 领域语义、聚合规则和建模决策 \| 存在领域模型 \|/);
+  assert.match(component, /`component\.md` 不保存领域模型、流程、状态、时序或契约内容/);
+  assert.match(component, /目录结构只列稳定的一级目录和必要的二级目录/);
+  assert.match(component, /一个事实只由一个文件维护/);
   assert.match(component, /`c3\.md` 使用 `C4Component`/);
-  assert.match(component, /`c4\.md` 使用 `classDiagram`/);
-  assert.match(component, /上游调用方 → 接入或中间件层 → 路由或业务入口层 → 服务与数据访问层 → 基础设施层 → 下游消费者/);
-  assert.match(component, /同一层级组件连续声明并水平排列/);
+  assert.match(component, /# C3 组件图\r?\n\r?\n```mermaid\r?\nC4Component/);
+  assert.match(component, /`c3\.md` 只包含一级标题和一个 `C4Component` Mermaid 代码块/);
+  assert.match(component, /`c4\.md` 根据实际代码形态使用 `classDiagram` 或 `flowchart`/);
+  assert.match(component, /函数、前端组件、Hook、Store 或模块依赖使用 `flowchart`/);
+  assert.match(component, /C4 中按实际情况标注 `ApplicationService`、`AggregateRoot`/);
+  assert.match(component, /`ddd\.md` 只保存图无法完整表达的领域语义和决策/);
+  assert.match(component, /没有领域模型的展示页面、薄网关、简单任务或 CRUD 组件不创建 `ddd\.md`/);
+  assert.match(component, /Boundary\(entry_layer, "接入层"\)/);
+  assert.match(component, /Boundary\(capability_layer, "核心能力层"\)/);
+  assert.match(component, /Boundary\(adapter_layer, "适配层"\)/);
+  assert.match(component, /Boundary\(infrastructure, "基础设施"\)/);
+  assert.match(component, /基础设施使用独立的兄弟 `Boundary`/);
+  assert.match(component, /`c4BoundaryInRow` 固定使用 `1`/);
   assert.match(component, /异步链路按“生产者 → 队列或消息代理 → 消费者”排列/);
   assert.match(component, /Rel_D\(caller, entry,/);
   assert.match(component, /Rel_D\(queue, consumer,/);
-  assert.match(component, /UpdateLayoutConfig\(\$c4ShapeInRow="2", \$c4BoundaryInRow="1"\)/);
+  assert.match(component, /UpdateLayoutConfig\(\$c4ShapeInRow="5", \$c4BoundaryInRow="1"\)/);
   assert.match(component, /不使用 Mermaid C4 尚未支持的 `Lay_D`、`Lay_R`/);
   assert.match(agents, /\| 组件内部结构 \| `C4Component` \|/);
-  assert.match(agents, /\| 组件代码结构 \| `classDiagram` \|/);
+  assert.match(agents, /\| 组件代码结构 \| 面向对象或领域模型使用 `classDiagram`；函数、前端组件或模块依赖使用 `flowchart` \|/);
 });
 
 test("groups business processes by role and uses flowcharts for builds", () => {

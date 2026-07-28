@@ -181,7 +181,7 @@ Git                            文件历史
 | 系统上下文 | `C4Context` |
 | 系统容器 | `C4Container` |
 | 组件内部结构 | `C4Component` |
-| 组件代码结构 | `classDiagram` |
+| 组件代码结构 | 面向对象或领域模型使用 `classDiagram`；函数、前端组件或模块依赖使用 `flowchart` |
 | 跨组件业务流程和调用顺序 | `sequenceDiagram` |
 | 构建流程 | `flowchart` |
 | 组件内部业务流程 | `flowchart` |
