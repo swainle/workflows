@@ -270,24 +270,28 @@ test("stores numbered requirement items in separate files", () => {
   assert.match(requirement, /items\/REQ-001-TC-001\.feature/);
 });
 
-test("supports the DDD component design modifier", () => {
+test("supports frontend and backend component design modes", () => {
   const agents = readFileSync(path.join(WORKFLOW_ROOT, "templates/AGENTS.template.md"), "utf8");
   const component = readFileSync(path.join(WORKFLOW_ROOT, "stages/component.md"), "utf8");
   const readme = readFileSync(path.join(WORKFLOW_ROOT, "README.md"), "utf8");
 
-  assert.match(agents, /\[<组件>\] ddd <DDD设计任务>/);
-  assert.match(agents, /`ddd` 只能作为 `\[<组件>\]` 后的第一个任务词/);
-  assert.match(agents, /不得写成 `\[<组件> ddd\]`/);
-  assert.match(component, /## DDD 组件设计模式/);
-  assert.match(component, /当组件任务使用 `\[<组件>\] ddd <任务>` 时启用本模式/);
-  assert.match(component, /先识别业务不变量、状态生命周期和事务边界，再确定聚合根、实体和值对象/);
-  assert.match(component, /业务模块按内聚的业务能力或限界上下文划分，不按 URL、数据库表或技术类型划分/);
-  assert.match(component, /领域层不得依赖框架、ORM、HTTP、UI、Schema 校验、身份令牌、授权引擎、消息队列或其他基础设施/);
-  assert.match(component, /简单 CRUD、纯查询和数据转换不强制创建聚合/);
-  assert.match(component, /`modules\/<业务能力>\/`/);
-  assert.match(component, /### DDD 模式完成检查/);
-  assert.match(component, /启用时先执行“DDD 组件设计模式”的建模顺序和规则/);
-  assert.match(readme, /\[api\] ddd 设计组件/);
+  assert.match(agents, /\[<组件>\] frontend <前端设计任务>/);
+  assert.match(agents, /\[<组件>\] backend <后端设计任务>/);
+  assert.match(agents, /`frontend` 和 `backend` 只能作为 `\[<组件>\]` 后的第一个任务词/);
+  assert.match(agents, /不得写入方括号，也不适用于 `dev` 或 `test` 任务/);
+  assert.doesNotMatch(agents, /\[<组件>\] ddd <DDD设计任务>/);
+  assert.match(component, /## 完整组件设计模式/);
+  assert.match(component, /### Frontend 模式/);
+  assert.match(component, /### Backend 模式/);
+  assert.match(component, /当任务使用 `\[<组件>\] backend <任务>` 时默认采用 DDD/);
+  assert.match(component, /`authentication\.md`：身份来源、凭据、Session、Token、轮换、撤销和重放防护/);
+  assert.match(component, /`authorization\.md`：角色、关系、所有权、数据范围、默认拒绝和权限执行点/);
+  assert.match(component, /`process\.md`：组件内部业务流程、参与方、分支和失败路径/);
+  assert.match(component, /`configuration\.md`：配置来源、默认值、覆盖规则和启动校验/);
+  assert.match(component, /`secrets\.md`：敏感级别、密钥来源、轮换和泄漏防护/);
+  assert.match(component, /Frontend 和 Backend 模式逐项检查各自列出的全部设计关注点/);
+  assert.match(readme, /\[web\] frontend 设计组件/);
+  assert.match(readme, /\[api\] backend 设计组件/);
 });
 
 test("plans the component test structure before implementing tests", () => {
@@ -396,11 +400,13 @@ test("lists C2 components by type with development endpoints", () => {
 test("defines single-purpose component documents and horizontal-first code diagrams", () => {
   const agents = readFileSync(path.join(WORKFLOW_ROOT, "templates/AGENTS.template.md"), "utf8");
   const component = readFileSync(path.join(WORKFLOW_ROOT, "stages/component.md"), "utf8");
-  assert.match(component, /\| `component\.md` \| 组件概述和完整文件结构 \| 始终 \|/);
+  assert.match(component, /\| `component\.md` \| 组件入口文档 \| 始终 \| 概述、设计架构文件索引和完整受版本控制文件结构 \|/);
   assert.match(component, /\| `c3\.md` \|[^|\r\n]+ \| 始终 \|/);
   assert.match(component, /\| `c4\.md` \|[^|\r\n]+ \| 存在需要长期维护的代码结构 \|/);
-  assert.match(component, /\| `ddd\.md` \| 领域语义、聚合规则和建模决策 \| 存在领域模型 \|/);
-  assert.match(component, /`component\.md` 不保存领域模型、流程、状态、时序或契约内容/);
+  assert.match(component, /\| `ddd\.md` \| 领域设计 \| Backend 模式 \|/);
+  assert.match(component, /# <组件>\r?\n\r?\n## 概述[\s\S]*## 设计架构[\s\S]*\| 文件 \| 作用 \|[\s\S]*## 目录结构/);
+  assert.match(component, /“设计架构”表格逐个列出当前组件设计目录内实际存在的全部文件及其唯一作用/);
+  assert.match(component, /`component\.md` 除概述、设计架构索引和完整应用文件结构外，不保存其他设计内容/);
   assert.match(component, /目录结构递归列出组件目录内所有应受版本控制的目录和文件/);
   assert.match(component, /不列出依赖目录、构建产物、缓存、日志、临时文件、密钥或其他运行时生成内容/);
   assert.match(component, /一个事实只由一个文件维护/);
@@ -425,7 +431,7 @@ test("defines single-purpose component documents and horizontal-first code diagr
   assert.match(component, /C4 节点按实际情况标注 `ApplicationService`、`AggregateRoot`/);
   assert.doesNotMatch(component, /classDiagram/);
   assert.match(component, /`ddd\.md` 只保存图无法完整表达的领域语义和决策/);
-  assert.match(component, /没有领域模型的展示页面、薄网关、简单任务或 CRUD 组件不创建 `ddd\.md`/);
+  assert.match(component, /Backend 中简单 CRUD 或纯查询仍在 `ddd\.md` 说明统一语言/);
   assert.match(component, /Boundary\(entry_layer, "接入层"\)/);
   assert.match(component, /Boundary\(capability_layer, "核心能力层"\)/);
   assert.match(component, /Boundary\(adapter_layer, "适配层"\)/);
