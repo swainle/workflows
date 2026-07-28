@@ -75,16 +75,34 @@
 C4Component
     title <组件> 组件图
 
+    Container_Ext(caller, "上游调用方", "调用当前组件")
+
     Container_Boundary(component, "<组件>") {
-        Component(entry, "入口", "技术", "接收请求或事件")
-        Component(core, "核心服务", "技术", "执行业务规则")
+        Component(entry, "接入层", "技术", "认证、授权和请求校验")
+
+        Component(route_a, "业务入口 A", "技术", "接收一类业务请求")
+        Component(route_b, "业务入口 B", "技术", "接收另一类业务请求")
+
+        Component(service, "核心服务", "技术", "执行业务规则")
         Component(repository, "数据访问", "技术", "访问持久化数据")
     }
 
-    Container_Ext(external, "外部组件", "依赖方")
-    Rel(entry, core, "调用")
-    Rel(core, repository, "调用")
-    Rel(core, external, "调用", "协议")
+    ContainerDb_Ext(queue, "队列或缓存", "基础设施")
+    ContainerDb_Ext(database, "数据库", "基础设施")
+
+    Container_Ext(consumer, "下游消费者", "消费异步任务")
+
+    Rel_D(caller, entry, "调用", "协议")
+    Rel_D(entry, route_a, "分发")
+    Rel_D(entry, route_b, "分发")
+    Rel_D(route_a, service, "调用")
+    Rel_D(route_b, repository, "读写")
+    Rel_D(service, repository, "读写")
+    Rel_D(service, queue, "生产任务", "消息协议")
+    Rel_D(repository, database, "读写", "数据库协议")
+    Rel_D(queue, consumer, "交付任务", "消息协议")
+
+    UpdateLayoutConfig($c4ShapeInRow="2", $c4BoundaryInRow="1")
 ```
 ````
 
@@ -117,6 +135,10 @@ classDiagram
 ````
 
 - `c3.md` 只展示当前组件内部的主要模块、职责、依赖方向和必要的外部组件，不展开类和函数。
+- C3 整体按“上游调用方 → 接入或中间件层 → 路由或业务入口层 → 服务与数据访问层 → 基础设施层 → 下游消费者”自上而下排列；不存在的层级直接省略，不为排版虚构模块。
+- 同一层级组件连续声明并水平排列；跨层关系按实际方向使用 `Rel_D` 或 `Rel_U`，同层关系使用 `Rel_R` 或 `Rel_L`。
+- 外部组件按实际交互层级声明，不把所有外部依赖集中放在图的顶部；异步链路按“生产者 → 队列或消息代理 → 消费者”排列。
+- `UpdateLayoutConfig` 的 `c4ShapeInRow` 设置为同一层级需要容纳的最大组件数，`c4BoundaryInRow` 使用 `1`；不使用 Mermaid C4 尚未支持的 `Lay_D`、`Lay_R` 等布局语句。
 - `c4.md` 只展示理解设计所需的关键类、接口及关系，不罗列所有源码文件、字段和方法。
 - C3、C4、`component.md` 和契约中的名称及依赖方向保持一致。
 - 跨组件业务调用顺序放入系统 `process.md`；组件内部业务流程和多方时序分别放入当前组件的 `process.md` 和 `sequence.md`。
@@ -198,7 +220,7 @@ accessibility:
 
 - 实际修改全部位于组件清单声明的当前组件设计目录。
 - 没有修改源码、其他组件、需求、系统规范或部署文件。
-- `c3.md` 使用 `C4Component`，只包含当前组件的主要内部模块和必要外部依赖。
+- `c3.md` 使用 `C4Component`，只包含当前组件的主要内部模块和必要外部依赖；层级整体垂直排列，同层组件水平排列。
 - `c4.md` 使用 `classDiagram`，只包含关键类、接口和代码依赖。
 - 引用的需求编号、权限编号、`operationId` 和 Token 均存在。
 - JSON、YAML、DBML、FGA 和 Mermaid 使用项目已有工具或标准解析器验证。

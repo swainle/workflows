@@ -311,6 +311,13 @@ test("defines C3 component and C4 code diagrams", () => {
   assert.match(component, /\| `c4\.md` \|[^|\r\n]+ \| 始终 \|/);
   assert.match(component, /`c3\.md` 使用 `C4Component`/);
   assert.match(component, /`c4\.md` 使用 `classDiagram`/);
+  assert.match(component, /上游调用方 → 接入或中间件层 → 路由或业务入口层 → 服务与数据访问层 → 基础设施层 → 下游消费者/);
+  assert.match(component, /同一层级组件连续声明并水平排列/);
+  assert.match(component, /异步链路按“生产者 → 队列或消息代理 → 消费者”排列/);
+  assert.match(component, /Rel_D\(caller, entry,/);
+  assert.match(component, /Rel_D\(queue, consumer,/);
+  assert.match(component, /UpdateLayoutConfig\(\$c4ShapeInRow="2", \$c4BoundaryInRow="1"\)/);
+  assert.match(component, /不使用 Mermaid C4 尚未支持的 `Lay_D`、`Lay_R`/);
   assert.match(agents, /\| 组件内部结构 \| `C4Component` \|/);
   assert.match(agents, /\| 组件代码结构 \| `classDiagram` \|/);
 });
