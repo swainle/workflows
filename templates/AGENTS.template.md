@@ -34,11 +34,13 @@
 在宿主项目根目录执行：
 
 ```bash
-node docs/workflows/install.mjs --branch develop
+node docs/workflows/install.mjs
 ```
 
-安装器把本文件同步到宿主根 `AGENTS.md` 的
+安装器把 `templates/AGENTS.template.md` 同步到宿主根 `AGENTS.md` 的
 `<!-- workflows:begin -->` 与 `<!-- workflows:end -->` 托管区块，保留区块外的宿主规则。不要手动修改托管区块。
+不传 `--branch` 时使用子模块当前检出的分支或 Tag；需要切换并更新分支时使用
+`node docs/workflows/install.mjs --branch <分支>`。
 
 阶段文件保留在 `docs/workflows/stages/`，安装器会检查路由引用的阶段文件是否存在。
 
@@ -83,8 +85,8 @@ Issue #123 → docs/requirements/REQ-123-<slug>/
 [booking-api dev] 实现创建预约接口
 ```
 
-`<组件>` 必须对应 `docs/system/c4.md` 组件清单中已声明的组件。
-组件任务使用该行声明的组件应用目录和组件设计目录，不根据组件名称猜测路径。
+`<组件>` 必须对应 `docs/system/c2.md` 组件清单中已声明的组件。
+组件任务使用该组件章节声明的组件应用目录和组件设计目录，不根据组件名称猜测路径。
 不得在组件任务中自行创造组件；新增或拆分组件先使用 `[system]` 确认全局架构。
 保留目标：
 
@@ -173,6 +175,8 @@ Git                            文件历史
 |---|---|
 | 系统上下文 | `C4Context` |
 | 系统容器 | `C4Container` |
+| 组件内部结构 | `C4Component` |
+| 组件代码结构 | `classDiagram` |
 | 跨组件业务流程和调用顺序 | `sequenceDiagram` |
 | 构建流程 | `flowchart` |
 | 组件内部业务流程 | `flowchart` |
@@ -180,7 +184,8 @@ Git                            文件历史
 | 数据关系 | `erDiagram` |
 | Git 工作流 | `gitGraph` |
 
-一个图只回答一个主要问题。`docs/system/c4.md` 始终包含系统上下文图和容器图；
+一个图只回答一个主要问题。`docs/system/c1.md` 始终包含系统上下文图，
+`docs/system/c2.md` 始终包含容器图；
 其他场景没有复杂关系时不为形式创建图。
 
 ## 完成标准

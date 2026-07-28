@@ -31,6 +31,8 @@
 ```text
 <组件设计目录>/
 ├─ component.md
+├─ c3.md
+├─ c4.md
 ├─ ddd.md
 ├─ process.md
 ├─ state.md
@@ -46,6 +48,8 @@
 | 文件 | 作用 | 创建条件 | 可修改内容 |
 |---|---|---|---|
 | `component.md` | 组件职责、边界和公共行为 | 始终 | 当前组件长期规范 |
+| `c3.md` | 组件内部结构和依赖关系 | 始终 | 当前组件的模块、职责和调用方向 |
+| `c4.md` | 关键类、接口和代码依赖 | 始终 | 当前组件的主要代码结构 |
 | `ddd.md` | 领域、聚合、实体和值对象 | 存在领域模型 | 当前组件领域设计 |
 | `process.md` | 组件内部业务流程 | 存在稳定流程 | 当前组件流程 |
 | `state.md` | 页面或组件状态转换 | 存在稳定状态模型 | 当前组件状态 |
@@ -59,12 +63,78 @@
 
 只创建项目实际需要的文件。契约由提供它的组件维护，消费方只能引用。
 
+## C3 和 C4 文件格式
+
+`c3.md` 使用 `C4Component` 描述当前组件内部的长期结构：
+
+````md
+# C3 组件
+
+## 概述
+
+## 组件图
+
+```mermaid
+C4Component
+    title <组件> 组件图
+
+    Container_Boundary(component, "<组件>") {
+        Component(entry, "入口", "技术", "接收请求或事件")
+        Component(core, "核心服务", "技术", "执行业务规则")
+        Component(repository, "数据访问", "技术", "访问持久化数据")
+    }
+
+    Container_Ext(external, "外部组件", "依赖方")
+    Rel(entry, core, "调用")
+    Rel(core, repository, "调用")
+    Rel(core, external, "调用", "协议")
+```
+````
+
+`c4.md` 使用 `classDiagram` 描述关键类、接口及代码依赖：
+
+````md
+# C4 代码
+
+## 概述
+
+## 代码图
+
+```mermaid
+classDiagram
+    class Entry {
+        +handle()
+    }
+    class CoreService {
+        <<interface>>
+        +execute()
+    }
+    class Repository {
+        <<interface>>
+        +save()
+    }
+
+    Entry --> CoreService
+    CoreService --> Repository
+```
+````
+
+- `c3.md` 只展示当前组件内部的主要模块、职责、依赖方向和必要的外部组件，不展开类和函数。
+- `c4.md` 只展示理解设计所需的关键类、接口及关系，不罗列所有源码文件、字段和方法。
+- C3、C4、`component.md`、契约和源码中的名称及依赖方向保持一致。
+- 跨组件业务调用顺序放入系统 `process.md`；组件内部业务流程和多方时序分别放入当前组件的 `process.md` 和 `sequence.md`。
+
 ## 契约规则
 
 - OpenAPI 使用稳定 `operationId`，Schema、示例和实际接口保持一致。
 - 没有异步事件不创建 AsyncAPI。
 - 没有非公开操作不创建 OpenFGA。
 - 没有数据模型变化不创建 DBML。
+- 对外提供的 Swagger UI、OpenAPI 和 AsyncAPI 必须通过 HTTP(S) API 暴露，并以
+  完整 URL 登记在 `docs/system/c2.md` 对应组件章节；登记缺失或不一致时切换
+  `[system]` 更新。
+- `openapi.json` 和 `asyncapi.json` 是提供方维护的契约源文件；其他组件通过 C2
+  登记的 URL 读取，不直接依赖提供方的仓库文件路径。
 - 契约说明适用的错误、权限、事务、并发、幂等、兼容和迁移。
 - JSON 使用标准解析器验证；其他契约使用项目已有工具验证。
 
@@ -121,7 +191,7 @@ accessibility:
 
 ## 执行步骤
 
-1. 从 `docs/system/c4.md` 组件清单解析当前组件的应用目录和设计目录。
+1. 从 `docs/system/c2.md` 组件清单的当前组件章节解析应用目录和设计目录。
 2. 读取相关需求、当前组件规范、契约、源码和测试。
 3. 自动识别需要确认的组件边界、行为、契约和平台限制。
 4. 按根 `AGENTS.md` 的对话确认规则完成确认。
@@ -131,5 +201,7 @@ accessibility:
 
 - 实际修改全部位于组件清单声明的当前组件设计目录。
 - 没有修改源码、其他组件、需求、系统规范或部署文件。
+- `c3.md` 使用 `C4Component`，只包含当前组件的主要内部模块和必要外部依赖。
+- `c4.md` 使用 `classDiagram`，只包含关键类、接口和代码依赖。
 - 引用的需求编号、权限编号、`operationId` 和 Token 均存在。
 - JSON、YAML、DBML、FGA 和 Mermaid 使用项目已有工具或标准解析器验证。

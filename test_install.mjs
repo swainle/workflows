@@ -12,8 +12,8 @@ import {
   validateStageReferences,
 } from "./install.mjs";
 
-test("parses the selected branch", () => {
-  assert.equal(parseBranch([]), "main");
+test("parses the optional selected branch", () => {
+  assert.equal(parseBranch([]), undefined);
   assert.equal(parseBranch(["--branch", "develop"]), "develop");
   assert.equal(parseBranch(["--workflows-updated", "--branch", "develop"]), "develop");
   assert.throws(() => parseBranch(["--branch"]));
@@ -92,13 +92,13 @@ test("validates routed stage files", () => {
   }
 });
 
-test("repository AGENTS routes every stage file", () => {
-  const template = readFileSync(path.join(WORKFLOW_ROOT, "AGENTS.md"), "utf8");
+test("repository AGENTS template routes every stage file", () => {
+  const template = readFileSync(path.join(WORKFLOW_ROOT, "templates/AGENTS.template.md"), "utf8");
   assert.equal(validateStageReferences(template), 6);
 });
 
 test("defines bilingual message ending controls", () => {
-  const template = readFileSync(path.join(WORKFLOW_ROOT, "AGENTS.md"), "utf8");
+  const template = readFileSync(path.join(WORKFLOW_ROOT, "templates/AGENTS.template.md"), "utf8");
   assert.match(template, /最后一个字符/);
   assert.match(template, /\| `\?` 或 `？` \|[^|]+不修改文件 \|/);
   assert.match(template, /\| `!` 或 `！` \|[^|]+提交并推送[^|]+ \|/);
@@ -119,7 +119,7 @@ test("defines one CRUD permission matrix per stage", () => {
 });
 
 test("separates stable runbook guidance from generated update plans", () => {
-  const agents = readFileSync(path.join(WORKFLOW_ROOT, "AGENTS.md"), "utf8");
+  const agents = readFileSync(path.join(WORKFLOW_ROOT, "templates/AGENTS.template.md"), "utf8");
   const deploy = readFileSync(path.join(WORKFLOW_ROOT, "stages/deploy.md"), "utf8");
   assert.doesNotMatch(deploy, /docs\/deploy\/deployment\.md|`deployment\.md`/);
   assert.match(deploy, /`runbook\.md`/);
@@ -163,23 +163,53 @@ test("separates runtime and development technology selections", () => {
   assert.match(system, /不使用博客、搜索结果或非官方教程/);
 });
 
-test("uses c4.md for system architecture", () => {
+test("separates C1 context and C2 container architecture", () => {
   const files = [
-    "AGENTS.md",
+    "templates/AGENTS.template.md",
     "stages/component.md",
     "stages/development.md",
     "stages/system.md",
     "stages/testing.md",
   ];
   const content = files.map((file) => readFileSync(path.join(WORKFLOW_ROOT, file), "utf8")).join("\n");
-  assert.doesNotMatch(content, /docs\/system\/architecture\.md|`architecture\.md`/);
-  assert.match(content, /docs\/system\/c4\.md/);
+  assert.doesNotMatch(content, /docs\/system\/(?:architecture|c4)\.md|`architecture\.md`/);
+  assert.match(content, /docs\/system\/c1\.md/);
+  assert.match(content, /docs\/system\/c2\.md/);
   assert.match(content, /C4Context/);
   assert.match(content, /C4Container/);
 });
 
+test("lists C2 components as sections with external documentation", () => {
+  const system = readFileSync(path.join(WORKFLOW_ROOT, "stages/system.md"), "utf8");
+  assert.doesNotMatch(system, /\| 组件 \| 组件应用目录 \| 组件设计目录 \|/);
+  assert.doesNotMatch(system, /^## (?:概述|组件边界|依赖方向)$/m);
+  assert.match(system, /### `<组件>`/);
+  assert.match(system, /组件应用目录：/);
+  assert.match(system, /组件设计目录：/);
+  assert.match(system, /对外文档：/);
+  for (const type of ["Swagger UI", "OpenAPI", "AsyncAPI"]) {
+    assert.match(system, new RegExp(`\`${type}\`：`));
+  }
+  assert.match(system, /`OpenAPI`：`http:\/\/localhost:3000\/api\/v1\/openapi\.json`/);
+  assert.match(system, /`AsyncAPI`：`http:\/\/localhost:3000\/api\/v1\/asyncapi\.json`/);
+  assert.match(system, /完整 HTTP\(S\) URL/);
+  assert.doesNotMatch(system, /`(?:OpenAPI|AsyncAPI)`：`docs\/component\//);
+  assert.match(system, /没有时写“无”/);
+});
+
+test("defines C3 component and C4 code diagrams", () => {
+  const agents = readFileSync(path.join(WORKFLOW_ROOT, "templates/AGENTS.template.md"), "utf8");
+  const component = readFileSync(path.join(WORKFLOW_ROOT, "stages/component.md"), "utf8");
+  assert.match(component, /\| `c3\.md` \|[^|\r\n]+ \| 始终 \|/);
+  assert.match(component, /\| `c4\.md` \|[^|\r\n]+ \| 始终 \|/);
+  assert.match(component, /`c3\.md` 使用 `C4Component`/);
+  assert.match(component, /`c4\.md` 使用 `classDiagram`/);
+  assert.match(agents, /\| 组件内部结构 \| `C4Component` \|/);
+  assert.match(agents, /\| 组件代码结构 \| `classDiagram` \|/);
+});
+
 test("groups business processes by role and uses flowcharts for builds", () => {
-  const agents = readFileSync(path.join(WORKFLOW_ROOT, "AGENTS.md"), "utf8");
+  const agents = readFileSync(path.join(WORKFLOW_ROOT, "templates/AGENTS.template.md"), "utf8");
   const system = readFileSync(path.join(WORKFLOW_ROOT, "stages/system.md"), "utf8");
   assert.match(agents, /\| 构建流程 \| `flowchart` \|/);
   assert.match(system, /### <用户角色>/);
@@ -192,8 +222,8 @@ test("installs AGENTS.md idempotently without changing host rules", () => {
   const root = mkdtempSync(path.join(tmpdir(), "workflows-install-"));
   const workflowRoot = path.join(root, "docs", "workflows");
   try {
-    mkdirSync(workflowRoot, { recursive: true });
-    writeFileSync(path.join(workflowRoot, "AGENTS.md"), "# Workflow\n", "utf8");
+    mkdirSync(path.join(workflowRoot, "templates"), { recursive: true });
+    writeFileSync(path.join(workflowRoot, "templates", "AGENTS.template.md"), "# Workflow\n", "utf8");
     writeFileSync(path.join(root, "AGENTS.md"), "# Host rules\n", "utf8");
 
     assert.equal(installAgents({ projectRoot: root, workflowRoot }), "updated");

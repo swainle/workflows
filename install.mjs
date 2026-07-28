@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-/** Update the workflows submodule and install its AGENTS.md into the host root. */
+/** Optionally update the workflows submodule and install its AGENTS.md template into the host root. */
 
 import { spawnSync } from "node:child_process";
 import {
@@ -15,7 +15,6 @@ import { fileURLToPath, pathToFileURL } from "node:url";
 export const WORKFLOW_ROOT = path.dirname(fileURLToPath(import.meta.url));
 export const PROJECT_ROOT = path.resolve(WORKFLOW_ROOT, "../..");
 const UPDATED_FLAG = "--workflows-updated";
-const DEFAULT_BRANCH = "main";
 const START = "<!-- workflows:begin -->";
 const END = "<!-- workflows:end -->";
 const STAGE_REFERENCE = /`(docs\/workflows\/stages\/[^`\r\n]+\.md)`/g;
@@ -40,7 +39,7 @@ function requireMountLocation() {
 
 export function parseBranch(args = process.argv.slice(2)) {
   args = args.filter((arg) => arg !== UPDATED_FLAG);
-  if (!args.length) return DEFAULT_BRANCH;
+  if (!args.length) return undefined;
   if (args.length === 2 && args[0] === "--branch" && args[1] && !args[1].startsWith("-")) return args[1];
   throw new Error("Usage: install.mjs [--branch <branch>]");
 }
@@ -73,7 +72,7 @@ export function mergeAgents(existing, template) {
   const body = template.replace(/\r?\n/g, newline).trim();
   const block = [
     START,
-    "<!-- Managed by docs/workflows/install.mjs; edit docs/workflows/AGENTS.md instead. -->",
+    "<!-- Managed by docs/workflows/install.mjs; edit docs/workflows/templates/AGENTS.template.md instead. -->",
     body,
     END,
   ].join(newline);
@@ -107,7 +106,7 @@ export function installAgents({
   projectRoot = PROJECT_ROOT,
   workflowRoot = WORKFLOW_ROOT,
 } = {}) {
-  const source = path.join(workflowRoot, "AGENTS.md");
+  const source = path.join(workflowRoot, "templates", "AGENTS.template.md");
   const target = path.join(projectRoot, "AGENTS.md");
   const template = readFileSync(source, "utf8");
   validateStageReferences(template, workflowRoot);
@@ -129,10 +128,10 @@ export async function main() {
   try {
     const branch = parseBranch();
     requireMountLocation();
-    if (!process.argv.includes(UPDATED_FLAG)) return installBranch(branch);
+    if (branch && !process.argv.includes(UPDATED_FLAG)) return installBranch(branch);
     const result = installAgents();
     console.log(`${result === "unchanged" ? "Root AGENTS.md is already up to date" : `${result === "created" ? "Created" : "Updated"} root AGENTS.md`}.`);
-    console.log(`Workflows branch: ${branch}`);
+    console.log(branch ? `Workflows branch: ${branch}` : "Workflows ref: current checkout");
     return 0;
   } catch (error) {
     console.error(`Installation failed: ${error.message}`);
