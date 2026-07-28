@@ -203,12 +203,35 @@ test("separates stable runbook guidance from generated update plans", () => {
     assert.match(deploy, new RegExp(`## ${heading}`));
   }
   assert.match(deploy, /## 开发配置/);
-  assert.match(deploy, /<组件自身开发命令>/);
+  assert.match(deploy, /cd docs\/deploy/);
+  assert.match(deploy, /cp dev\.env <组件应用目录相对docs\/deploy的路径>\/\.env/);
+  assert.match(deploy, /cp dev\.env \.env/);
+  assert.match(deploy, /docker compose up -d <依赖服务名>/);
+  assert.match(deploy, /docker compose up -d <初始化服务名>/);
+  assert.match(deploy, /pnpm --dir <组件应用目录相对docs\/deploy的路径> dev/);
   assert.match(deploy, /\| 环境 \| 编排文件 \| 环境变量模板 \| 其他依赖文件 \|/);
   assert.match(deploy, /v<主版本>\.<次版本>\.<修订版本>/);
   assert.match(deploy, /v1\.2\.3-alpha\.1/);
   assert.match(deploy, /v1\.2\.3-rc\.1/);
   assert.match(deploy, /备份、迁移、部署、回滚和恢复是同级操作/);
+});
+
+test("configures component development infrastructure with deploy targets", () => {
+  const agents = readFileSync(path.join(WORKFLOW_ROOT, "templates/AGENTS.template.md"), "utf8");
+  const deploy = readFileSync(path.join(WORKFLOW_ROOT, "stages/deploy.md"), "utf8");
+  const readme = readFileSync(path.join(WORKFLOW_ROOT, "README.md"), "utf8");
+
+  assert.match(agents, /\[deploy\] <组件>  当前组件的开发基础设施、初始化和启动说明/);
+  assert.match(agents, /组件名必须精确匹配 `docs\/system\/c2\.md` 组件清单/);
+  assert.match(deploy, /\| `init\/\*\*` \| 开发基础设施初始化 \|/);
+  assert.match(deploy, /`\[deploy\] <组件>` 只新增或更新该组件的 `### <组件>`/);
+  assert.match(deploy, /Compose 使用默认的\s+`\.env` 和 `compose\.yml`/);
+  assert.match(deploy, /JavaScript 和 TypeScript 组件默认使用 `pnpm`/);
+  assert.match(deploy, /名称优先为 `<基础设施>-init`/);
+  assert.match(deploy, /使用 `restart: "no"`/);
+  assert.match(deploy, /不执行其中的启动或初始化命令/);
+  assert.match(readme, /`\[deploy\] <组件>` 维护该组件的开发基础设施配置/);
+  assert.match(readme, /JavaScript 和 TypeScript 组件默认使用 `pnpm`/);
 });
 
 test("stores numbered requirement items in separate files", () => {

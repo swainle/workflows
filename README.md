@@ -55,6 +55,7 @@ Tag）时无法更新“当前分支”，需要通过 `--branch` 指定要切�
 [api] ddd 设计组件
 [web dev] 调整登录按钮圆角
 [web test] 验证登录页面
+[deploy] api
 [deploy] 检查生产部署配置
 [deploy] update 升级数据库
 ```
@@ -76,6 +77,9 @@ Tag）时无法更新“当前分支”，需要通过 `--branch` 指定要切�
 组件任务在组件名后使用 `ddd` 可以显式启用 DDD 设计模式，例如
 `[api] ddd 设计组件`；该模式先识别业务能力、统一语言、业务不变量和事务边界，
 再设计领域模型、完整文件结构、C3、C4 及相关契约。
+`[deploy] <组件>` 维护该组件的开发基础设施配置，例如 `[deploy] api` 会更新
+Runbook 中的 `### api`，并按实际需要维护 Compose、`dev.env` 和首次初始化配置；
+Runbook 命令从 `docs/deploy/` 执行，JavaScript 和 TypeScript 组件默认使用 `pnpm`。
 
 消息最后一个字符决定执行方式：
 

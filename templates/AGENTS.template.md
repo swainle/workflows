@@ -100,7 +100,11 @@ Issue #123 → docs/requirements/REQ-123-<slug>/
 ```text
 [system]         全局架构、技术和开发约定
 [deploy]         组件构建、全局编排、CI/CD、发布和回滚
+[deploy] <组件>  当前组件的开发基础设施、初始化和启动说明
 ```
+
+`[deploy] <组件>` 中的组件名必须精确匹配 `docs/system/c2.md` 组件清单；
+该指令按 `stages/deploy.md` 更新组件开发配置，不是生产部署，也不创建升级方案。
 
 部署升级方案使用：
 
