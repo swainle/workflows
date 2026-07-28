@@ -58,6 +58,13 @@ export function installBranch(branch, runner = spawnSync) {
   return result.status ?? 1;
 }
 
+export function updateCurrentBranch(runner = spawnSync) {
+  runChecked("git", ["pull", "--ff-only"], { cwd: WORKFLOW_ROOT }, runner);
+  const result = run(process.execPath, [path.join(WORKFLOW_ROOT, "install.mjs"), UPDATED_FLAG], { cwd: PROJECT_ROOT }, runner);
+  if (result.error) throw result.error;
+  return result.status ?? 1;
+}
+
 function markerMatches(text, marker) {
   const escaped = marker.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
   return [...text.matchAll(new RegExp(`^${escaped}\\r?$`, "gm"))];
@@ -128,7 +135,9 @@ export async function main() {
   try {
     const branch = parseBranch();
     requireMountLocation();
-    if (branch && !process.argv.includes(UPDATED_FLAG)) return installBranch(branch);
+    if (!process.argv.includes(UPDATED_FLAG)) {
+      return branch ? installBranch(branch) : updateCurrentBranch();
+    }
     const result = installAgents();
     console.log(`${result === "unchanged" ? "Root AGENTS.md is already up to date" : `${result === "created" ? "Created" : "Updated"} root AGENTS.md`}.`);
     console.log(branch ? `Workflows branch: ${branch}` : "Workflows ref: current checkout");

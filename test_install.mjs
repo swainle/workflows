@@ -9,6 +9,7 @@ import {
   installBranch,
   mergeAgents,
   parseBranch,
+  updateCurrentBranch,
   validateStageReferences,
 } from "./install.mjs";
 
@@ -34,6 +35,19 @@ test("updates the workflows branch and reruns installation", () => {
     ["git", "merge", "--ff-only", "origin/develop"],
     ["git", "submodule", "set-branch", "--branch", "develop", "docs/workflows"],
     [process.execPath, path.join(WORKFLOW_ROOT, "install.mjs"), "--workflows-updated", "--branch", "develop"],
+  ]);
+});
+
+test("updates the current workflows branch when branch is omitted", () => {
+  const calls = [];
+  const runner = (command, args, options) => {
+    calls.push({ command, args, cwd: options.cwd });
+    return { status: 0 };
+  };
+  assert.equal(updateCurrentBranch(runner), 0);
+  assert.deepEqual(calls.map(({ command, args }) => [command, ...args]), [
+    ["git", "pull", "--ff-only"],
+    [process.execPath, path.join(WORKFLOW_ROOT, "install.mjs"), "--workflows-updated"],
   ]);
 });
 
@@ -118,39 +132,54 @@ test("defines one CRUD permission matrix per stage", () => {
   }
 });
 
-test("inherits parent permissions and allows specific child overrides", () => {
+test("enforces serial stage read and write boundaries", () => {
   const agents = readFileSync(path.join(WORKFLOW_ROOT, "templates/AGENTS.template.md"), "utf8");
   assert.match(agents, /目录权限由后代路径继承/);
   assert.match(agents, /多条规则匹配时，路径越具体越优先，并按操作类型覆盖父级权限/);
   assert.match(agents, /路径具体程度相同时，“禁止”优先/);
-
-  const component = readFileSync(path.join(WORKFLOW_ROOT, "stages/component.md"), "utf8");
-  assert.match(component, /\| `docs\/\*\*` \| 禁止 \| 允许 \| 禁止 \| 禁止 \|/);
-  assert.match(component, /\| `<组件设计目录>\/\*\*` \| 允许 \| 允许 \| 允许 \| 允许 \|/);
-  assert.match(component, /\| `apps\/\*\*` \| 禁止 \| 禁止 \| 禁止 \| 禁止 \|/);
-  assert.match(component, /\| `<组件应用目录>\/\*\*` \| 禁止 \| 允许 \| 禁止 \| 禁止 \|/);
-  assert.doesNotMatch(component, /`(?:docs|apps)\/<组件>\/\*\*`/);
+  assert.match(agents, /需求 → system → 组件设计 → dev → test → deploy/);
+  assert.match(agents, /前置阶段目录只允许读取/);
+  assert.match(agents, /后置阶段和无关目录保持未匹配并禁止所有操作/);
 
   const requirement = readFileSync(path.join(WORKFLOW_ROOT, "stages/requirement.md"), "utf8");
-  assert.match(requirement, /\| `docs\/\*\*` \| 禁止 \| 允许 \| 禁止 \| 禁止 \|/);
+  assert.match(requirement, /\| `docs\/requirements\/\*\*` \| 禁止 \| 允许 \| 禁止 \| 禁止 \|/);
   assert.match(requirement, /\| `docs\/requirements\/REQ-<三位Issue编号>-\*\/\*\*` \| 允许 \| 允许 \| 允许 \| 允许 \|/);
-
-  const development = readFileSync(path.join(WORKFLOW_ROOT, "stages/development.md"), "utf8");
-  assert.match(development, /\| `apps\/\*\*` \| 禁止 \| 禁止 \| 禁止 \| 禁止 \|/);
-  assert.match(development, /\| `<组件应用目录>\/\*\*` \| 允许 \| 允许 \| 允许 \| 允许 \|/);
-  assert.match(development, /\| `<组件应用目录>\/deploy\/\*\*` \| 禁止 \| 允许 \| 禁止 \| 禁止 \|/);
-
-  const testing = readFileSync(path.join(WORKFLOW_ROOT, "stages/testing.md"), "utf8");
-  assert.match(testing, /\| `<组件应用目录>\/\*\*` \| 禁止 \| 允许 \| 禁止 \| 禁止 \|/);
-  assert.match(testing, /\| `<组件应用目录>\/test\/\*\*` \| 允许 \| 允许 \| 允许 \| 允许 \|/);
+  assert.doesNotMatch(requirement, /`(?:docs\/system|docs\/component|apps)\/\*\*`/);
 
   const system = readFileSync(path.join(WORKFLOW_ROOT, "stages/system.md"), "utf8");
-  assert.match(system, /\| `docs\/\*\*` \| 禁止 \| 允许 \| 禁止 \| 禁止 \|/);
+  assert.match(system, /\| `docs\/requirements\/\*\*` \| 禁止 \| 允许 \| 禁止 \| 禁止 \|/);
   assert.match(system, /\| `docs\/system\/\*\*` \| 允许 \| 允许 \| 允许 \| 允许 \|/);
+  assert.doesNotMatch(system, /`(?:docs\/component|apps)\/\*\*`/);
+
+  const component = readFileSync(path.join(WORKFLOW_ROOT, "stages/component.md"), "utf8");
+  assert.match(component, /\| `docs\/requirements\/\*\*` \| 禁止 \| 允许 \| 禁止 \| 禁止 \|/);
+  assert.match(component, /\| `docs\/system\/\*\*` \| 禁止 \| 允许 \| 禁止 \| 禁止 \|/);
+  assert.match(component, /\| `<组件设计目录>\/\*\*` \| 允许 \| 允许 \| 允许 \| 允许 \|/);
+  assert.doesNotMatch(component, /`apps\/\*\*`|`<组件应用目录>\/\*\*`/);
+
+  const development = readFileSync(path.join(WORKFLOW_ROOT, "stages/development.md"), "utf8");
+  for (const pattern of ["docs/requirements/\\*\\*", "docs/system/\\*\\*", "<组件设计目录>/\\*\\*"]) {
+    assert.match(development, new RegExp(`\\| \`${pattern}\` \\| 禁止 \\| 允许 \\| 禁止 \\| 禁止 \\|`));
+  }
+  assert.match(development, /\| `<组件应用目录>\/\*\*` \| 允许 \| 允许 \| 允许 \| 允许 \|/);
+  for (const pattern of ["test/\\*\\*", "Dockerfile", "deploy/\\*\\*"]) {
+    assert.match(development, new RegExp(`\\| \`<组件应用目录>/${pattern}\` \\| 禁止 \\| 禁止 \\| 禁止 \\| 禁止 \\|`));
+  }
+
+  const testing = readFileSync(path.join(WORKFLOW_ROOT, "stages/testing.md"), "utf8");
+  for (const pattern of ["docs/requirements/\\*\\*", "docs/system/\\*\\*", "<组件设计目录>/\\*\\*", "<组件应用目录>/\\*\\*"]) {
+    assert.match(testing, new RegExp(`\\| \`${pattern}\` \\| 禁止 \\| 允许 \\| 禁止 \\| 禁止 \\|`));
+  }
+  assert.match(testing, /\| `<组件应用目录>\/test\/\*\*` \| 允许 \| 允许 \| 允许 \| 允许 \|/);
+  assert.match(testing, /\| `<组件应用目录>\/deploy\/\*\*` \| 禁止 \| 禁止 \| 禁止 \| 禁止 \|/);
 
   const deploy = readFileSync(path.join(WORKFLOW_ROOT, "stages/deploy.md"), "utf8");
+  for (const pattern of ["docs/requirements/\\*\\*", "docs/system/\\*\\*", "docs/component/\\*\\*", "apps/\\*\\*"]) {
+    assert.match(deploy, new RegExp(`\\| \`${pattern}\` \\| 禁止 \\| 允许 \\| 禁止 \\| 禁止 \\|`));
+  }
   assert.match(deploy, /\| `apps\/\*\*` \| 禁止 \| 允许 \| 禁止 \| 禁止 \|/);
   assert.match(deploy, /\| `apps\/\*\/deploy\/\*\*` \| 允许 \| 允许 \| 允许 \| 允许 \|/);
+  assert.match(deploy, /\| `docs\/deploy\/\*\*` \| 允许 \| 允许 \| 允许 \| 允许 \|/);
   assert.match(deploy, /\| `docs\/deploy\/update\/\*\.md` \| 允许 \| 允许 \| 允许 \| 禁止 \|/);
 });
 
@@ -215,22 +244,45 @@ test("separates C1 context and C2 container architecture", () => {
   assert.match(content, /C4Container/);
 });
 
-test("lists C2 components as sections with external documentation", () => {
+test("lays out C1 peers horizontally and levels vertically", () => {
   const system = readFileSync(path.join(WORKFLOW_ROOT, "stages/system.md"), "utf8");
-  assert.doesNotMatch(system, /\| 组件 \| 组件应用目录 \| 组件设计目录 \|/);
+  assert.match(system, /Rel_D\(customer, system,/);
+  assert.match(system, /Rel_D\(operator, system,/);
+  assert.match(system, /UpdateLayoutConfig\(\$c4ShapeInRow="2", \$c4BoundaryInRow="1"\)/);
+  assert.match(system, /同一层级元素连续声明并水平排列/);
+  assert.match(system, /自上而下排列/);
+  assert.match(system, /不使用 Mermaid C4 尚未支持的 `Lay_D`、`Lay_R`/);
+});
+
+test("lists C2 components by type with development endpoints", () => {
+  const system = readFileSync(path.join(WORKFLOW_ROOT, "stages/system.md"), "utf8");
   assert.doesNotMatch(system, /^## (?:概述|组件边界|依赖方向)$/m);
-  assert.match(system, /### `<组件>`/);
-  assert.match(system, /组件应用目录：/);
-  assert.match(system, /组件设计目录：/);
-  assert.match(system, /对外文档：/);
-  for (const type of ["Swagger UI", "OpenAPI", "AsyncAPI"]) {
-    assert.match(system, new RegExp(`\`${type}\`：`));
-  }
-  assert.match(system, /`OpenAPI`：`http:\/\/localhost:3000\/api\/v1\/openapi\.json`/);
-  assert.match(system, /`AsyncAPI`：`http:\/\/localhost:3000\/api\/v1\/asyncapi\.json`/);
-  assert.match(system, /完整 HTTP\(S\) URL/);
-  assert.doesNotMatch(system, /`(?:OpenAPI|AsyncAPI)`：`docs\/component\//);
-  assert.match(system, /没有时写“无”/);
+  assert.ok(system.lastIndexOf("## 容器图") < system.lastIndexOf("## 组件清单"));
+  assert.match(system, /### 前端组件/);
+  assert.match(system, /### 后端组件/);
+  assert.match(system, /\| 组件 \| 应用 \| 设计 \|/);
+  assert.match(system, /\| `web` \| `apps\/web\/` \| `docs\/component\/web\/` \|/);
+  assert.match(system, /\| `api` \| `apps\/api\/` \| `docs\/component\/api\/` \|/);
+  assert.match(system, /\| `worker` \| `apps\/worker\/` \| `docs\/component\/worker\/` \|/);
+  assert.match(system, /Container\(worker, "Worker"/);
+  assert.match(system, /`api` 暴露端口：`3001`/);
+  assert.match(system, /`api` 访问地址：`http:\/\/localhost:3001\/`/);
+  assert.match(system, /`api` OpenAPI 契约：`http:\/\/localhost:3001\/api\/v1\/openapi\.json`/);
+  assert.match(system, /`api` AsyncAPI 契约：`http:\/\/localhost:3001\/api\/v1\/asyncapi\.json`/);
+  assert.match(system, /### 基础设施组件/);
+  assert.match(system, /\| `rabbitmq` \| 无 \| 无 \|/);
+  assert.match(system, /`rabbitmq` 管理界面：`http:\/\/localhost:15672\/`/);
+  assert.match(system, /`rabbitmq` 管理账号：`workflow_admin`/);
+  assert.match(system, /`rabbitmq` 管理密码：`workflow-dev-only`/);
+  assert.match(system, /`rabbitmq` 凭据来源：项目开发默认值（仅开发环境）/);
+  assert.match(system, /`rabbitmq` 官方文档：\[Management Plugin\]\(https:\/\/www\.rabbitmq\.com\/docs\/4\.2\/management\)/);
+  assert.match(system, /没有暴露时直接省略，不写“无”/);
+  assert.match(system, /对应版本官方文档/);
+  assert.match(system, /禁止使用环境变量、占位符、`待定` 或 `TODO`/);
+  assert.match(system, /后续部署配置必须使用相同值/);
+  assert.match(system, /不得用于测试、生产或其他环境/);
+  assert.match(system, /C2 只记录开发环境端口和地址/);
+  assert.match(system, /测试、生产及其他环境由 `\[deploy\]` 维护/);
 });
 
 test("defines C3 component and C4 code diagrams", () => {

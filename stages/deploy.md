@@ -11,16 +11,14 @@
 
 | 路径模式 | 创建 | 读取 | 修改 | 删除 |
 |---|---|---|---|---|
-| `docs/**` | 禁止 | 允许 | 禁止 | 禁止 |
+| `docs/requirements/**` | 禁止 | 允许 | 禁止 | 禁止 |
+| `docs/system/**` | 禁止 | 允许 | 禁止 | 禁止 |
+| `docs/component/**` | 禁止 | 允许 | 禁止 | 禁止 |
 | `apps/**` | 禁止 | 允许 | 禁止 | 禁止 |
 | `apps/*/Dockerfile` | 允许 | 允许 | 允许 | 允许 |
 | `apps/*/deploy/**` | 允许 | 允许 | 允许 | 允许 |
-| `docs/deploy/runbook.md` | 允许 | 允许 | 允许 | 允许 |
+| `docs/deploy/**` | 允许 | 允许 | 允许 | 允许 |
 | `docs/deploy/update/*.md` | 允许 | 允许 | 允许 | 禁止 |
-| `docs/deploy/compose.yml` | 允许 | 允许 | 允许 | 允许 |
-| `docs/deploy/dev.env` | 允许 | 允许 | 允许 | 允许 |
-| `docs/deploy/test.env` | 允许 | 允许 | 允许 | 允许 |
-| `docs/deploy/prod.env` | 允许 | 允许 | 允许 | 允许 |
 | `.github/workflows/**` | 允许 | 允许 | 允许 | 允许 |
 
 允许读取目标环境信息、构建和 CI 输出。

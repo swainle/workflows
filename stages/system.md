@@ -10,12 +10,8 @@
 
 | 路径模式 | 创建 | 读取 | 修改 | 删除 |
 |---|---|---|---|---|
-| `apps/**` | 禁止 | 允许 | 禁止 | 禁止 |
-| `docs/**` | 禁止 | 允许 | 禁止 | 禁止 |
+| `docs/requirements/**` | 禁止 | 允许 | 禁止 | 禁止 |
 | `docs/system/**` | 允许 | 允许 | 允许 | 允许 |
-| `.github/workflows/**` | 禁止 | 禁止 | 禁止 | 禁止 |
-
-允许读取测试、构建和 CI 输出。
 
 ## 越界处理
 
@@ -41,28 +37,23 @@
 
 ## 组件清单
 
-`c2.md` 使用稳定的组件名称和独立章节登记系统实际需要的前端、后端、任务处理器和其他部署单元：
+`c2.md` 按组件类型分组，使用稳定名称登记容器图中的前端、后端、任务处理器和其他部署单元：
 
-```md
-## 组件清单
-
-### `<组件>`
-
-- 组件应用目录：`apps/<组件>/`
-- 组件设计目录：`docs/component/<组件>/`
-- 对外文档：
-  - `Swagger UI`：`http://localhost:3000/api/v1/docs`
-  - `OpenAPI`：`http://localhost:3000/api/v1/openapi.json`
-  - `AsyncAPI`：`http://localhost:3000/api/v1/asyncapi.json`
-```
-
-- 每个组件使用一个三级标题（例如 `### booking-api`），标题对应 `[<组件>]` 指令且不得重复。
-- 每个组件章节始终包含“组件应用目录”“组件设计目录”和“对外文档”。
-- 组件应用目录必须位于 `apps/`，组件设计目录必须位于 `docs/component/`；路径使用仓库相对路径，不包含 `..`，各组件之间不得重复。
-- “对外文档”只列出外部消费者可使用的文档，每项记录类型和完整 HTTP(S) URL。
-- Swagger UI、`openapi.json`、`asyncapi.json` 和其他对外文档按实际情况登记；没有时写“无”。
-- URL 必须包含协议、主机、可选端口和完整 API 路径；多个环境分别标明环境名称和 URL。
+- 三级标题按实际职责使用“前端组件”“后端组件”“任务处理器”“基础设施组件”或其他稳定分类，不创建空分类。
+- 每个分类使用且只使用“组件”“应用”“设计”三列表格；每个组件只出现一次且名称不得重复。
+- 容器图中每个需要组件设计的自研容器都必须在组件清单中登记，组件名称保持一致；第三方基础设施不强制创建应用和设计目录。
+- 自研组件名称对应 `[<组件>]` 指令；应用目录必须位于 `apps/`，设计目录必须位于 `docs/component/`，路径不包含 `..` 且不得重复。
+- 第三方中间件的“应用”和“设计”写“无”，其版本和镜像仍由 `technology.md` 维护。
+- 只为实际向开发环境暴露端口或地址的组件添加带组件名前缀的列表项；没有暴露时直接省略，不写“无”。
+- 访问地址使用包含协议、主机、端口和完整路径的 URL；非 HTTP 服务使用实际协议。
+- Swagger UI、OpenAPI、AsyncAPI 和其他对外接口文档按实际情况使用带组件名前缀的列表项登记完整 HTTP(S) URL。
 - `openapi.json` 和 `asyncapi.json` 源文件仍由当前组件设计目录维护，其他组件只通过登记的 URL 读取或使用。
+- 多个中间件逐个登记；更新 C2 时，根据 `technology.md` 中的具体版本查阅对应版本官方文档，确认是否提供并启用管理界面，不使用博客、搜索摘要或非官方教程作结论。
+- 已启用管理界面的中间件登记完整管理 URL、确定的开发账号和密码、凭据来源及对应版本官方文档链接；没有管理界面或未启用时不添加这些字段。
+- 开发账号和密码优先采用对应版本官方默认值；官方没有可用默认值时，定义明确的项目开发默认值，并标注“仅开发环境”。
+- C2 中的开发凭据是公开且可直接使用的非敏感默认值，禁止使用环境变量、占位符、`待定` 或 `TODO`；后续部署配置必须使用相同值。
+- 开发默认凭据不得用于测试、生产或其他环境，这些环境必须由 `[deploy]` 设置独立密钥且不得写入文档。
+- C2 只记录开发环境端口和地址；测试、生产及其他环境由 `[deploy]` 维护。
 一次 `[system]` 可以设立多个组件，但只登记架构中真实需要的组件。
 
 ## C1 和 C2 文件格式
@@ -77,30 +68,25 @@
 ```mermaid
 C4Context
     title 系统上下文
-    Person(user, "用户", "使用系统的人")
+    Person(customer, "客户", "使用系统的客户")
+    Person(operator, "运营人员", "管理系统的人员")
     System(system, "系统", "系统职责")
-    System_Ext(external, "外部系统", "外部系统职责")
+    System_Ext(payment, "支付系统", "处理支付")
+    System_Ext(notification, "通知系统", "发送通知")
 
-    Rel(user, system, "使用")
-    Rel(system, external, "交互", "协议")
+    Rel_D(customer, system, "使用")
+    Rel_D(operator, system, "管理")
+    Rel_D(system, payment, "调用", "HTTPS")
+    Rel_D(system, notification, "调用", "HTTPS")
+
+    UpdateLayoutConfig($c4ShapeInRow="2", $c4BoundaryInRow="1")
 ```
 ````
 
-`c2.md` 只保存组件清单和容器图：
+`c2.md` 先保存容器图，再保存组件清单和开发接口信息：
 
 ````md
 # C2 容器
-
-## 组件清单
-
-### `<组件>`
-
-- 组件应用目录：`apps/<组件>/`
-- 组件设计目录：`docs/component/<组件>/`
-- 对外文档：
-  - `Swagger UI`：`http://localhost:3000/api/v1/docs`
-  - `OpenAPI`：`http://localhost:3000/api/v1/openapi.json`
-  - `AsyncAPI`：`http://localhost:3000/api/v1/asyncapi.json`
 
 ## 容器图
 
@@ -113,25 +99,69 @@ C4Container
     System_Boundary(system, "系统") {
         Container(web, "Web 应用", "主要技术栈", "容器职责")
         Container(api, "API 服务", "主要技术栈", "容器职责")
+        Container(worker, "Worker", "主要技术栈", "处理异步任务")
         ContainerDb(database, "数据库", "主要技术栈", "数据职责")
     }
 
     Rel(user, web, "使用", "HTTPS")
     Rel(web, api, "调用", "HTTPS/JSON")
+    Rel(api, worker, "提交任务", "消息协议")
     Rel(api, database, "读写", "数据库协议")
     Rel(api, external, "调用", "协议")
 ```
+
+## 组件清单
+
+### 前端组件
+
+| 组件 | 应用 | 设计 |
+|---|---|---|
+| `web` | `apps/web/` | `docs/component/web/` |
+
+- `web` 暴露端口：`3000`
+- `web` 访问地址：`http://localhost:3000/`
+
+### 后端组件
+
+| 组件 | 应用 | 设计 |
+|---|---|---|
+| `api` | `apps/api/` | `docs/component/api/` |
+| `worker` | `apps/worker/` | `docs/component/worker/` |
+
+- `api` 暴露端口：`3001`
+- `api` 访问地址：`http://localhost:3001/`
+- `api` Swagger UI：`http://localhost:3001/api/v1/doc`
+- `api` OpenAPI 契约：`http://localhost:3001/api/v1/openapi.json`
+- `api` AsyncAPI 契约：`http://localhost:3001/api/v1/asyncapi.json`
+
+### 基础设施组件
+
+| 组件 | 应用 | 设计 |
+|---|---|---|
+| `rabbitmq` | 无 | 无 |
+
+- `rabbitmq` 暴露端口：`5672`、`15672`
+- `rabbitmq` 访问地址：`amqp://localhost:5672`
+- `rabbitmq` 管理界面：`http://localhost:15672/`
+- `rabbitmq` 管理账号：`workflow_admin`
+- `rabbitmq` 管理密码：`workflow-dev-only`
+- `rabbitmq` 凭据来源：项目开发默认值（仅开发环境）
+- `rabbitmq` 官方文档：[Management Plugin](https://www.rabbitmq.com/docs/4.2/management)
 ````
 
-- “组件清单”始终存在，每个组件只有一个规定格式的三级章节。
+- “组件清单”始终存在，按组件类型使用规定格式的三级章节和三列表格。
 - `c1.md` 的“系统上下文图”始终使用 `C4Context`，展示系统边界、用户或角色、交互的外部系统及其关系，不展示内部容器。
+- C1 按“用户或角色 → 目标系统 → 外部系统”自上而下排列；同一层级元素连续声明并水平排列。
+- 跨层级关系按实际方向使用 `Rel_D` 或 `Rel_U`，`UpdateLayoutConfig` 的 `c4ShapeInRow`
+  设置为同一层级需要容纳的最大元素数，`c4BoundaryInRow` 使用 `1`。
+- 不使用 Mermaid C4 尚未支持的 `Lay_D`、`Lay_R` 等布局语句。
 - `c2.md` 的“容器图”始终使用 `C4Container`，展示系统内的容器、各容器的主要技术栈，以及容器之间和容器与外部系统之间的通信方式。
 - 组件清单和容器图中的组件名称保持一致；同一关系不再用文本图重复表达。
 - 容器图可以标注主要语言、框架和数据库；具体选型约束和版本策略放入 `technology.md`。
 - 跨组件业务或工程步骤放入 `process.md`。
 - 认证原则和信任边界放入 `security.md`。
 - 路由、中间件、源码目录、数据表和接口契约放入对应组件设计目录。
-- 环境、端口、构建、发布和部署方式切换 `[deploy]`，写入 `docs/deploy/`。
+- C2 只记录实际暴露的开发环境端口和地址；测试、生产等环境以及构建、发布和部署方式切换 `[deploy]`，写入 `docs/deploy/`。
 
 ## 流程分类
 
@@ -340,18 +370,23 @@ gitGraph
 
 ## 执行步骤
 
-1. 读取相关需求、现有规范、契约、源码和测试。
-2. 自动识别组件划分、架构、技术、安全和跨组件边界中的不确定项。
-3. 按根 `AGENTS.md` 的对话确认规则完成确认。
-4. 只增量更新长期有效的全局规范。
+1. 读取相关需求和现有系统规范，不读取组件设计、源码、测试或部署文件。
+2. 更新 C2 时，逐个检查 `technology.md` 中的中间件，并查阅对应版本官方文档确认管理界面、端口和启用条件。
+3. 自动识别组件划分、架构、技术、安全和跨组件边界中的不确定项。
+4. 按根 `AGENTS.md` 的对话确认规则完成确认。
+5. 只增量更新长期有效的全局规范。
 
 ## 完成检查
 
 - 实际修改只位于明确列出的全局文件。
 - 没有修改需求、组件规范、契约、源码或部署。
-- 组件清单按组件使用三级章节，每个章节包含“组件应用目录”“组件设计目录”和“对外文档”；路径合法且不重复。
-- 对外文档只包含实际暴露的 Swagger UI、OpenAPI、AsyncAPI 或其他文档，每项使用完整且有效的 HTTP(S) URL；没有时写“无”。
-- `c1.md` 包含 `C4Context` 系统上下文图，不包含内部容器。
+- 组件清单按类型使用三级章节，每个分类只有“组件”“应用”“设计”三列表格；组件和路径合法且不重复。
+- 只登记实际暴露的开发环境端口和完整访问地址；没有暴露时省略，测试和生产地址不写入 C2。
+- 对外文档只包含实际暴露的 Swagger UI、OpenAPI、AsyncAPI 或其他文档，每项带组件名前缀并使用完整且有效的 HTTP(S) URL。
+- 已逐个依据对应版本官方文档检查中间件管理界面；已启用的管理界面包含完整 URL、确定的开发账号和密码、凭据来源及官方文档链接。
+- C2 不包含环境变量、占位符、`待定` 或 `TODO`；所有开发地址、账号和密码均为可直接使用的确定值。
+- 开发默认凭据已明确标注仅限开发环境，不包含测试、生产或其他环境的密钥。
+- `c1.md` 包含 `C4Context` 系统上下文图，不包含内部容器；同级元素水平排列，整体按层级垂直排列。
 - `c2.md` 包含组件清单和 `C4Container` 容器图，没有组件内部实现、技术版本、部署内容或重复关系图。
 - `process.md` 的业务流程按实际用户角色、“通用”或“系统”分组并使用 `sequenceDiagram`；
   构建流程使用 `flowchart`，参与组件名称与组件清单一致。

@@ -7,6 +7,7 @@
 - 用 GitHub Issue 编号启动需求整理。
 - 按系统、组件、开发、测试和部署阶段路由任务。
 - 用可继承、可由具体子路径覆盖的阶段级 CRUD 权限表限制文件操作。
+- 按“需求 → system → 组件设计 → dev → test → deploy”串行，只读前置产物，只修改当前阶段文件。
 - 保留宿主项目已有的 `AGENTS.md` 规则。
 - 支持通过消息结尾控制只读、澄清、修改以及提交推送行为。
 
@@ -24,15 +25,15 @@ git submodule add -b main <repository-url> docs/workflows
 git submodule add -b v1.0.0 <repository-url> docs/workflows
 ```
 
-然后安装当前检出的分支或 Tag：
+然后更新并安装当前检出的分支：
 
 ```bash
 node docs/workflows/install.mjs
 ```
 
 安装器会把 `templates/AGENTS.template.md` 同步到宿主项目根目录 `AGENTS.md`
-的托管区块中，保留托管区块之外的宿主规则。未传 `--branch` 时不会切换或更新
-子模块。
+的托管区块中，保留托管区块之外的宿主规则。未传 `--branch` 时会在工作流子模块
+执行 `git pull --ff-only`，然后安装更新后的内容。
 
 需要切换并更新到指定分支时使用：
 
@@ -40,7 +41,8 @@ node docs/workflows/install.mjs
 node docs/workflows/install.mjs --branch develop
 ```
 
-`--branch` 是可选参数，仅接受分支名。
+`--branch` 是可选参数，仅接受分支名。子模块处于 detached HEAD（例如直接检出
+Tag）时无法更新“当前分支”，需要通过 `--branch` 指定要切换和更新的分支。
 
 ## 用法
 
@@ -58,8 +60,9 @@ node docs/workflows/install.mjs --branch develop
 
 组件名必须已在宿主项目的 `docs/system/c2.md` 中声明。
 `[system]` 阶段使用 `docs/system/c1.md` 维护系统上下文图，使用
-`docs/system/c2.md` 维护组件清单和容器图。组件清单按组件分节，并登记应用目录、
-设计目录以及 Swagger UI、OpenAPI、AsyncAPI 等对外文档的完整 HTTP(S) URL。
+`docs/system/c2.md` 维护容器图和组件清单。组件清单按类型分组，并登记应用目录、
+设计目录、实际暴露的开发环境端口和地址。中间件存在管理界面时，还登记管理 URL、
+可直接使用的开发默认账号密码、凭据来源和对应版本的官方文档，不保留未定值。
 组件设计阶段在组件设计目录中使用 `c3.md` 维护组件图，使用 `c4.md`
 维护关键类和接口的代码图。
 
