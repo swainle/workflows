@@ -34,7 +34,8 @@
 当任务使用 `[<组件>] frontend <任务>` 时，分别完成以下单一关注点设计：
 
 1. `information-architecture.md`：内容层级、导航关系、用户角色和入口。
-2. `routing-permissions.md`：路由、参数、页面权限、操作权限和无权访问处理。
+2. `routing-permissions.md`：引用系统安全基线，设计当前前端的路由、参数、页面权限、
+   操作权限和无权访问处理。
 3. `layout.md`：Page Shell、页面区域、响应式、滚动和溢出。
 4. `design-system.md`：组件库、视觉语义、复用规则及 Design Token 使用。
 5. `data-fetching.md`：请求、缓存、失效、取消、去重、重试、乐观更新和错误映射。
@@ -46,7 +47,8 @@
 10. `accessibility.md`：语义、键盘、焦点、Label、错误关联、对比度和动效减弱。
 11. `performance.md`：首屏、关键交互、Bundle、渲染、请求、图片、字体和性能预算。
 12. `errors.md`：错误分类、恢复策略和 Error Boundary。
-13. `observability.md`：日志、指标、Trace 关联、脱敏和告警。
+13. `observability.md`：引用系统可观测性基线，设计当前前端实际产生的错误事件、
+    日志、性能信号和 Trace 关联。
 14. `testing.md`：逻辑、组件、页面、契约、权限、可访问性和端到端测试策略。
 15. `configuration.md`：公开配置、构建时配置、默认值和启动校验。
 16. `runtime.md`：构建产物、运行方式、健康要求和托管约束。
@@ -61,8 +63,10 @@ OpenAPI `operationId`，消费方不复制提供方契约。能由 URL、表单�
 当任务使用 `[<组件>] backend <任务>` 时默认采用 DDD，并分别完成以下单一关注点设计：
 
 1. `interface.md`：HTTP、事件、任务入口、版本、幂等和兼容策略。
-2. `authentication.md`：身份来源、凭据、Session、Token、轮换、撤销和重放防护。
-3. `authorization.md`：角色、关系、所有权、数据范围、默认拒绝和权限执行点。
+2. `authentication.md`：引用系统安全基线，设计当前后端的身份接入、Session、Token、
+   轮换、撤销和重放防护。
+3. `authorization.md`：引用系统安全基线，设计当前后端的角色、关系、所有权、
+   数据范围和权限执行点。
 4. `ddd.md`：统一语言、聚合、实体、值对象、不变量、事务边界和领域事件。
 5. `process.md`：组件内部业务流程、参与方、分支和失败路径。
 6. `state.md`：聚合、实体或任务的状态、事件、转换和守卫条件。
@@ -71,8 +75,10 @@ OpenAPI `operationId`，消费方不复制提供方契约。能由 URL、表单�
 9. `validation.md`：输入边界、格式校验、标准化和领域校验职责。
 10. `errors.md`：错误分类、稳定错误码、协议映射、重试和敏感信息保护。
 11. `configuration.md`：配置来源、默认值、覆盖规则和启动校验。
-12. `secrets.md`：敏感级别、密钥来源、轮换和泄漏防护。
-13. `observability.md`：业务日志、安全审计、指标、追踪、健康检查和告警。
+12. `secrets.md`：引用系统密钥基线，列出当前后端需要的密钥、用途、轮换触发条件和
+    部署交付要求，不保存密钥值。
+13. `observability.md`：引用系统可观测性基线，设计当前后端实际产生的业务日志、
+    审计事件、指标、Span、健康检查和告警信号。
 14. `testing.md`：单元、集成、契约、安全、并发和端到端测试策略。
 15. `runtime.md`：进程、依赖、启动关闭、健康检查和资源要求。
 16. `deployment.md`：镜像、迁移、初始化及向 `[deploy]` 阶段交付的要求。
@@ -92,12 +98,24 @@ Command、Handler、Factory、DomainService 或 DomainEvent。
 - 实际部署文件仍由 `[deploy] <组件>` 维护；`runtime.md` 和 `deployment.md`
   只声明提供给部署阶段的组件运行与交付要求。
 
+### 跨阶段权威边界
+
+- `docs/system/security.md` 和 `docs/system/observability.md` 是跨组件原则、统一约定、
+  共用平台及系统级目标的唯一来源；组件文件只引用，不复制其正文。
+- 组件文件只维护当前组件如何落实全局基线、实际产生的信号、需要的密钥以及明确例外。
+- `authentication.md` 不重新定义全局身份体系，`authorization.md` 不重新定义全局
+  授权原则，`secrets.md` 不重新定义密钥平台或保存密钥值。
+- 组件 `observability.md` 不重新定义全局字段、命名、保留策略、告警级别或系统级 SLO。
+- Collector、Exporter、Dashboard、告警规则、密钥注入、证书挂载和环境值由
+  `[deploy]` 维护，组件设计只声明交付要求。
+
 ### 模式完成检查
 
 - Frontend 和 Backend 模式逐项检查各自列出的全部设计关注点。
 - 每个适用关注点只有一个权威文件，契约和执行配置不在 Markdown 中重复。
 - `component.md` 的设计架构索引列出设计目录内每个实际文件及其唯一作用。
 - C3、C4、各关注点文件和契约使用相同稳定名称及依赖方向。
+- 安全与可观测性文件引用系统基线，只包含当前组件的落实、信号、需求或例外。
 - 没有按 URL、数据库表或技术类型错误划分业务模块。
 - 没有为未来需求创建空文件、空目录或无调用方的抽象。
 
@@ -504,5 +522,6 @@ accessibility:
 - 需要长期维护代码结构时，`c4.md` 使用一个代码总览和按业务能力划分的详细 `flowchart LR`；总览不展示函数，详细章节只展示关键公开函数，所有图均为主分层从左到右、分层内部从上到下。
 - Backend 模式下，`ddd.md` 只记录统一语言、聚合不变量、事务边界、一致性、领域事件语义和建模决策，不复制 C4 或契约内容。
 - 使用 `frontend` 或 `backend` 模式时，额外通过“模式完成检查”。
+- 安全和可观测性设计没有复制系统基线或写入部署配置与环境值。
 - 引用的需求编号、权限编号、`operationId` 和 Token 均存在。
 - JSON、YAML、DBML、FGA 和 Mermaid 使用项目已有工具或标准解析器验证。

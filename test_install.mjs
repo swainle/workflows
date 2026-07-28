@@ -284,14 +284,30 @@ test("supports frontend and backend component design modes", () => {
   assert.match(component, /### Frontend 模式/);
   assert.match(component, /### Backend 模式/);
   assert.match(component, /当任务使用 `\[<组件>\] backend <任务>` 时默认采用 DDD/);
-  assert.match(component, /`authentication\.md`：身份来源、凭据、Session、Token、轮换、撤销和重放防护/);
-  assert.match(component, /`authorization\.md`：角色、关系、所有权、数据范围、默认拒绝和权限执行点/);
+  assert.match(component, /`authentication\.md`：引用系统安全基线，设计当前后端的身份接入、Session、Token/);
+  assert.match(component, /`authorization\.md`：引用系统安全基线，设计当前后端的角色、关系、所有权/);
   assert.match(component, /`process\.md`：组件内部业务流程、参与方、分支和失败路径/);
   assert.match(component, /`configuration\.md`：配置来源、默认值、覆盖规则和启动校验/);
-  assert.match(component, /`secrets\.md`：敏感级别、密钥来源、轮换和泄漏防护/);
+  assert.match(component, /`secrets\.md`：引用系统密钥基线，列出当前后端需要的密钥、用途、轮换触发条件/);
   assert.match(component, /Frontend 和 Backend 模式逐项检查各自列出的全部设计关注点/);
   assert.match(readme, /\[web\] frontend 设计组件/);
   assert.match(readme, /\[api\] backend 设计组件/);
+});
+
+test("separates system, component, and deploy security and observability ownership", () => {
+  const system = readFileSync(path.join(WORKFLOW_ROOT, "stages/system.md"), "utf8");
+  const component = readFileSync(path.join(WORKFLOW_ROOT, "stages/component.md"), "utf8");
+  const deploy = readFileSync(path.join(WORKFLOW_ROOT, "stages/deploy.md"), "utf8");
+
+  assert.match(system, /只维护所有组件共同遵守的长期安全原则、信任边界和控制基线/);
+  assert.match(system, /不写具体组件的\s*Token 或 Session 流程、权限关系、执行点、密钥清单、审计事件名或实现配置/);
+  assert.match(system, /只维护跨组件遥测约定、共用平台、关联传播、保留脱敏和系统级运行目标/);
+  assert.match(component, /### 跨阶段权威边界/);
+  assert.match(component, /组件文件只维护当前组件如何落实全局基线、实际产生的信号、需要的密钥以及明确例外/);
+  assert.match(component, /组件 `observability\.md` 不重新定义全局字段、命名、保留策略、告警级别或系统级 SLO/);
+  assert.match(deploy, /## 安全与可观测性边界/);
+  assert.match(deploy, /部署阶段维护密钥注入、证书挂载、环境值、安全中间件配置、Collector、Exporter/);
+  assert.match(deploy, /不得在部署文件中补写设计规则/);
 });
 
 test("plans the component test structure before implementing tests", () => {
