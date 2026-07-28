@@ -220,6 +220,26 @@ test("stores numbered requirement items in separate files", () => {
   assert.match(requirement, /items\/REQ-001-TC-001\.feature/);
 });
 
+test("supports the DDD component design modifier", () => {
+  const agents = readFileSync(path.join(WORKFLOW_ROOT, "templates/AGENTS.template.md"), "utf8");
+  const component = readFileSync(path.join(WORKFLOW_ROOT, "stages/component.md"), "utf8");
+  const readme = readFileSync(path.join(WORKFLOW_ROOT, "README.md"), "utf8");
+
+  assert.match(agents, /\[<组件>\] ddd <DDD设计任务>/);
+  assert.match(agents, /`ddd` 只能作为 `\[<组件>\]` 后的第一个任务词/);
+  assert.match(agents, /不得写成 `\[<组件> ddd\]`/);
+  assert.match(component, /## DDD 组件设计模式/);
+  assert.match(component, /当组件任务使用 `\[<组件>\] ddd <任务>` 时启用本模式/);
+  assert.match(component, /先识别业务不变量、状态生命周期和事务边界，再确定聚合根、实体和值对象/);
+  assert.match(component, /业务模块按内聚的业务能力或限界上下文划分，不按 URL、数据库表或技术类型划分/);
+  assert.match(component, /领域层不得依赖框架、ORM、HTTP、UI、Schema 校验、身份令牌、授权引擎、消息队列或其他基础设施/);
+  assert.match(component, /简单 CRUD、纯查询和数据转换不强制创建聚合/);
+  assert.match(component, /`modules\/<业务能力>\/`/);
+  assert.match(component, /### DDD 模式完成检查/);
+  assert.match(component, /启用时先执行“DDD 组件设计模式”的建模顺序和规则/);
+  assert.match(readme, /\[api\] ddd 设计组件/);
+});
+
 test("separates runtime and development technology selections", () => {
   const system = readFileSync(path.join(WORKFLOW_ROOT, "stages/system.md"), "utf8");
   assert.match(system, /### 运行组件/);

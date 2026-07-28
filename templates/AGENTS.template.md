@@ -73,6 +73,7 @@ Issue #123 → docs/requirements/REQ-123-<slug>/
 
 ```text
 [<组件>] <规范任务>
+[<组件>] ddd <DDD设计任务>
 [<组件> dev] <开发任务>
 [<组件> test] <测试任务>
 ```
@@ -81,6 +82,7 @@ Issue #123 → docs/requirements/REQ-123-<slug>/
 
 ```text
 [web] 讨论预约页面规范
+[booking-api] ddd 设计预约组件
 [web dev] 调整登录按钮圆角
 [web test] 验证登录页面
 [booking-api] 讨论预约接口
@@ -89,6 +91,9 @@ Issue #123 → docs/requirements/REQ-123-<slug>/
 
 `<组件>` 必须对应 `docs/system/c2.md` 组件清单中已声明的组件。
 组件任务使用该组件表格行声明的组件应用目录和组件设计目录，不根据组件名称猜测路径。
+`ddd` 只能作为 `[<组件>]` 后的第一个任务词，用于启用
+`stages/component.md` 中的 DDD 组件设计模式；它不是组件名或独立阶段，
+不得写成 `[<组件> ddd]`，也不适用于 `dev` 或 `test` 任务。
 不得在组件任务中自行创造组件；新增或拆分组件先使用 `[system]` 确认全局架构。
 保留目标：
 
