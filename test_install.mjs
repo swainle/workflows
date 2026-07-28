@@ -128,6 +128,11 @@ test("defines one CRUD permission matrix per stage", () => {
     const content = readFileSync(path.join(stageRoot, file), "utf8");
     assert.equal(content.match(/^## 操作权限$/gm)?.length, 1, file);
     assert.equal(content.match(/^\| 路径模式 \| 创建 \| 读取 \| 修改 \| 删除 \|$/gm)?.length, 1, file);
+    assert.match(
+      content,
+      /^\| 路径模式 \| 创建 \| 读取 \| 修改 \| 删除 \|\r?\n\|---\|---\|---\|---\|---\|\r?\n\| `\*\*` \| 禁止 \| 禁止 \| 禁止 \| 禁止 \|$/m,
+      file,
+    );
     assert.doesNotMatch(content, /^### (允许读取|允许修改|禁止修改)$/m, file);
   }
 });
@@ -137,9 +142,10 @@ test("enforces serial stage read and write boundaries", () => {
   assert.match(agents, /目录权限由后代路径继承/);
   assert.match(agents, /多条规则匹配时，路径越具体越优先，并按操作类型覆盖父级权限/);
   assert.match(agents, /路径具体程度相同时，“禁止”优先/);
+  assert.match(agents, /每张表的第一条规则必须是 `\| \*\* \| 禁止 \| 禁止 \| 禁止 \| 禁止 \|`/);
   assert.match(agents, /需求 → system → 组件设计 → dev → test → deploy/);
   assert.match(agents, /前置阶段目录只允许读取/);
-  assert.match(agents, /后置阶段和无关目录保持未匹配并禁止所有操作/);
+  assert.match(agents, /后置阶段和无关目录由 `\*\*` 默认规则禁止所有操作/);
 
   const requirement = readFileSync(path.join(WORKFLOW_ROOT, "stages/requirement.md"), "utf8");
   assert.match(requirement, /\| `docs\/requirements\/\*\*` \| 禁止 \| 允许 \| 禁止 \| 禁止 \|/);
@@ -270,12 +276,17 @@ test("lists C2 components by type with development endpoints", () => {
   assert.match(system, /`api` OpenAPI 契约：`http:\/\/localhost:3001\/api\/v1\/openapi\.json`/);
   assert.match(system, /`api` AsyncAPI 契约：`http:\/\/localhost:3001\/api\/v1\/asyncapi\.json`/);
   assert.match(system, /### 基础设施组件/);
-  assert.match(system, /\| `rabbitmq` \| 无 \| 无 \|/);
-  assert.match(system, /`rabbitmq` 管理界面：`http:\/\/localhost:15672\/`/);
-  assert.match(system, /`rabbitmq` 管理账号：`workflow_admin`/);
-  assert.match(system, /`rabbitmq` 管理密码：`workflow-dev-only`/);
-  assert.match(system, /`rabbitmq` 凭据来源：项目开发默认值（仅开发环境）/);
-  assert.match(system, /`rabbitmq` 官方文档：\[Management Plugin\]\(https:\/\/www\.rabbitmq\.com\/docs\/4\.2\/management\)/);
+  assert.doesNotMatch(system, /\| `(?:redis|openfga)` \|/);
+  assert.match(system, /- `redis`\r?\n  - 暴露端口：`6379`\r?\n  - 访问地址：`redis:\/\/localhost:6379`/);
+  assert.match(system, /- `openfga`\r?\n  - 暴露端口：`8080`、`8081`、`3000`/);
+  assert.match(system, /  - HTTP API 地址：`http:\/\/localhost:8080`/);
+  assert.match(system, /  - gRPC 地址：`localhost:8081`/);
+  assert.match(system, /  - Playground：`http:\/\/localhost:3000`/);
+  assert.match(system, /  - Playground 认证：开发环境无认证/);
+  assert.match(system, /  - 凭据来源：项目开发默认值（仅开发环境）/);
+  assert.match(system, /  - 官方文档：\[Docker Setup Guide\]\(https:\/\/openfga\.dev\/docs\/getting-started\/setup-openfga\/docker\)/);
+  assert.match(system, /基础设施组件不使用表格/);
+  assert.match(system, /管理界面未启用认证时明确写“开发环境无认证”/);
   assert.match(system, /没有暴露时直接省略，不写“无”/);
   assert.match(system, /对应版本官方文档/);
   assert.match(system, /禁止使用环境变量、占位符、`待定` 或 `TODO`/);
