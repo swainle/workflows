@@ -10,15 +10,9 @@
 
 | 路径模式 | 创建 | 读取 | 修改 | 删除 |
 |---|---|---|---|---|
-| `docs/**` | 禁止 | 允许 | 禁止 | 禁止 |
 | `apps/**` | 禁止 | 允许 | 禁止 | 禁止 |
-| `docs/system/c1.md` | 允许 | 允许 | 允许 | 允许 |
-| `docs/system/c2.md` | 允许 | 允许 | 允许 | 允许 |
-| `docs/system/technology.md` | 允许 | 允许 | 允许 | 允许 |
-| `docs/system/process.md` | 允许 | 允许 | 允许 | 允许 |
-| `docs/system/security.md` | 允许 | 允许 | 允许 | 允许 |
-| `docs/system/observability.md` | 允许 | 允许 | 允许 | 允许 |
-| `docs/system/gitflow.md` | 允许 | 允许 | 允许 | 允许 |
+| `docs/**` | 禁止 | 允许 | 禁止 | 禁止 |
+| `docs/system/*` | 允许 | 允许 | 允许 | 允许 |
 | `.github/workflows/**` | 禁止 | 禁止 | 禁止 | 禁止 |
 
 允许读取测试、构建和 CI 输出。

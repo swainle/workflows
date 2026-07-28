@@ -118,6 +118,42 @@ test("defines one CRUD permission matrix per stage", () => {
   }
 });
 
+test("inherits parent permissions and allows specific child overrides", () => {
+  const agents = readFileSync(path.join(WORKFLOW_ROOT, "templates/AGENTS.template.md"), "utf8");
+  assert.match(agents, /目录权限由后代路径继承/);
+  assert.match(agents, /更具体的子路径规则可以按操作类型覆盖父级权限/);
+  assert.match(agents, /同等具体的规则同时匹配时，“禁止”优先/);
+
+  const component = readFileSync(path.join(WORKFLOW_ROOT, "stages/component.md"), "utf8");
+  assert.match(component, /\| `docs\/\*\*` \| 禁止 \| 允许 \| 禁止 \| 禁止 \|/);
+  assert.match(component, /\| `<组件设计目录>\/\*\*` \| 允许 \| 允许 \| 允许 \| 允许 \|/);
+  assert.match(component, /\| `apps\/\*\*` \| 禁止 \| 禁止 \| 禁止 \| 禁止 \|/);
+  assert.match(component, /\| `<组件应用目录>\/\*\*` \| 禁止 \| 允许 \| 禁止 \| 禁止 \|/);
+  assert.doesNotMatch(component, /`(?:docs|apps)\/<组件>\/\*\*`/);
+
+  const requirement = readFileSync(path.join(WORKFLOW_ROOT, "stages/requirement.md"), "utf8");
+  assert.match(requirement, /\| `docs\/\*\*` \| 禁止 \| 允许 \| 禁止 \| 禁止 \|/);
+  assert.match(requirement, /\| `docs\/requirements\/REQ-<三位Issue编号>-\*\/\*\*` \| 允许 \| 允许 \| 允许 \| 允许 \|/);
+
+  const development = readFileSync(path.join(WORKFLOW_ROOT, "stages/development.md"), "utf8");
+  assert.match(development, /\| `apps\/\*\*` \| 禁止 \| 禁止 \| 禁止 \| 禁止 \|/);
+  assert.match(development, /\| `<组件应用目录>\/\*\*` \| 允许 \| 允许 \| 允许 \| 允许 \|/);
+  assert.match(development, /\| `<组件应用目录>\/deploy\/\*\*` \| 禁止 \| 允许 \| 禁止 \| 禁止 \|/);
+
+  const testing = readFileSync(path.join(WORKFLOW_ROOT, "stages/testing.md"), "utf8");
+  assert.match(testing, /\| `<组件应用目录>\/\*\*` \| 禁止 \| 允许 \| 禁止 \| 禁止 \|/);
+  assert.match(testing, /\| `<组件应用目录>\/test\/\*\*` \| 允许 \| 允许 \| 允许 \| 允许 \|/);
+
+  const system = readFileSync(path.join(WORKFLOW_ROOT, "stages/system.md"), "utf8");
+  assert.match(system, /\| `docs\/\*\*` \| 禁止 \| 允许 \| 禁止 \| 禁止 \|/);
+  assert.match(system, /\| `docs\/system\/\*` \| 允许 \| 允许 \| 允许 \| 允许 \|/);
+
+  const deploy = readFileSync(path.join(WORKFLOW_ROOT, "stages/deploy.md"), "utf8");
+  assert.match(deploy, /\| `apps\/\*\*` \| 禁止 \| 允许 \| 禁止 \| 禁止 \|/);
+  assert.match(deploy, /\| `apps\/\*\/deploy\/\*\*` \| 允许 \| 允许 \| 允许 \| 允许 \|/);
+  assert.match(deploy, /\| `docs\/deploy\/update\/\*\.md` \| 允许 \| 允许 \| 允许 \| 禁止 \|/);
+});
+
 test("separates stable runbook guidance from generated update plans", () => {
   const agents = readFileSync(path.join(WORKFLOW_ROOT, "templates/AGENTS.template.md"), "utf8");
   const deploy = readFileSync(path.join(WORKFLOW_ROOT, "stages/deploy.md"), "utf8");
