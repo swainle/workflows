@@ -120,6 +120,33 @@ test("defines bilingual message ending controls", () => {
   assert.match(template, /\| `\.` 或 `。` \|[^|]+不自动提交或推送 \|/);
 });
 
+test("uses Chinese documentation and tests without translating code identifiers", () => {
+  const agents = readFileSync(path.join(WORKFLOW_ROOT, "templates/AGENTS.template.md"), "utf8");
+  const development = readFileSync(path.join(WORKFLOW_ROOT, "stages/development.md"), "utf8");
+  const testing = readFileSync(path.join(WORKFLOW_ROOT, "stages/testing.md"), "utf8");
+  const readme = readFileSync(path.join(WORKFLOW_ROOT, "README.md"), "utf8");
+
+  assert.match(agents, /## 语言规则/);
+  assert.match(agents, /对话回复、正式文档、测试用例描述和必要的代码注释默认使用中文/);
+  assert.match(agents, /类名、函数名、变量名、文件名、包名、环境变量、HTTP 字段、数据库字段和协议名称/);
+  assert.match(agents, /中文注释说明设计原因、业务约束和风险，不逐行翻译代码/);
+
+  assert.match(development, /## 代码与注释规则/);
+  assert.match(development, /领域不变量、事务边界、锁、并发、幂等、安全边界/);
+  assert.match(development, /注释说明“为什么这样设计”和“不能违反什么”/);
+  assert.match(development, /简单赋值、参数传递、标准 CRUD 和显而易见的控制流不添加注释/);
+  assert.match(development, /没有重复代码含义、已经失效或纯装饰性的注释/);
+
+  assert.match(testing, /## 测试代码规则/);
+  assert.match(testing, /测试必须导入真实生产模块，或通过真实的 HTTP、UI、消息、数据库等公开入口执行生产代码/);
+  assert.match(testing, /不得在测试文件中重新实现、复制或简化待验证的业务规则/);
+  assert.match(testing, /测试辅助代码只能构造数据、创建 fixture、替换外部依赖和收集结果/);
+  assert.match(testing, /`describe`、`it`、场景名称和必要注释使用中文/);
+  assert.match(testing, /时间、随机数、ID 和外部响应等不稳定依赖必须固定、注入或使用测试框架替换/);
+  assert.match(testing, /每个测试执行真实生产代码入口/);
+  assert.match(readme, /默认使用中文回复、编写文档和测试描述/);
+});
+
 test("defines one CRUD permission matrix per stage", () => {
   const stageRoot = path.join(WORKFLOW_ROOT, "stages");
   const files = readdirSync(stageRoot).filter((file) => file.endsWith(".md"));
