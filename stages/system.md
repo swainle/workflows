@@ -41,13 +41,13 @@
 `c2.md` 按组件类型分组，使用稳定名称登记容器图中的前端、后端、任务处理器和其他部署单元：
 
 - 三级标题按实际职责使用“前端组件”“后端组件”“任务处理器”“基础设施组件”或其他稳定分类，不创建空分类。
-- 自研组件分类使用且只使用“组件”“应用”“设计”三列表格；基础设施组件不使用表格，每个基础设施使用一个一级列表项，其开发连接信息使用缩进列表项。
+- 自研组件分类先使用且只使用“组件”“应用”“设计”三列表格；表格后的开发连接信息按组件使用一级列表项和缩进属性列表。基础设施组件不使用表格，直接使用相同的列表格式。
 - 每个组件只出现一次且名称不得重复；容器图中每个需要组件设计的自研容器都必须在组件清单中登记，组件名称保持一致。
 - 自研组件名称对应 `[<组件>]` 指令；应用目录必须位于 `apps/`，设计目录必须位于 `docs/component/`，路径不包含 `..` 且不得重复。
 - 基础设施不登记应用和设计目录，其版本和镜像仍由 `technology.md` 维护。
 - 只为实际向开发环境暴露端口或地址的组件登记连接信息；没有暴露时直接省略，不写“无”。
 - HTTP(S) 和支持 URI 的服务使用包含协议、主机、端口和完整路径的 URL；gRPC 等服务可使用约定的 `主机:端口` 地址。
-- Swagger UI、OpenAPI、AsyncAPI 和其他对外接口文档按实际情况使用带组件名前缀的列表项登记完整 HTTP(S) URL。
+- Swagger UI、OpenAPI、AsyncAPI 和其他对外接口文档按实际情况登记在对应组件的缩进属性列表中，并使用完整 HTTP(S) URL。
 - `openapi.json` 和 `asyncapi.json` 源文件仍由当前组件设计目录维护，其他组件只通过登记的 URL 读取或使用。
 - 多个基础设施逐个使用一级列表项登记；更新 C2 时，根据 `technology.md` 中的具体版本查阅对应版本官方文档，确认是否提供并启用管理界面，不使用博客、搜索摘要或非官方教程作结论。
 - 已启用管理界面的中间件登记完整管理 URL、认证状态、凭据来源及对应版本官方文档链接；需要认证时同时登记确定的开发账号和密码，没有管理界面或未启用时不添加这些字段。
@@ -96,20 +96,24 @@ C4Context
 C4Container
     title 容器图
     Person(user, "用户", "使用系统的人")
-    System_Ext(external, "外部系统", "外部系统职责")
 
     System_Boundary(system, "系统") {
         Container(web, "Web 应用", "主要技术栈", "容器职责")
+
         Container(api, "API 服务", "主要技术栈", "容器职责")
         Container(worker, "Worker", "主要技术栈", "处理异步任务")
-        ContainerDb(database, "数据库", "主要技术栈", "数据职责")
+
+        ContainerDb(redis, "Redis", "Redis", "缓存和队列")
+        Container(openfga, "OpenFGA", "OpenFGA", "授权关系")
     }
 
-    Rel(user, web, "使用", "HTTPS")
-    Rel(web, api, "调用", "HTTPS/JSON")
-    Rel(api, worker, "提交任务", "消息协议")
-    Rel(api, database, "读写", "数据库协议")
-    Rel(api, external, "调用", "协议")
+    Rel_D(user, web, "使用", "HTTPS")
+    Rel_D(web, api, "调用", "HTTPS/JSON")
+    Rel_R(api, worker, "提交任务", "消息协议")
+    Rel_D(api, redis, "读写", "Redis")
+    Rel_D(api, openfga, "鉴权", "HTTP/gRPC")
+
+    UpdateLayoutConfig($c4ShapeInRow="2", $c4BoundaryInRow="1")
 ```
 
 ## 组件清单
@@ -120,8 +124,9 @@ C4Container
 |---|---|---|
 | `web` | `apps/web/` | `docs/component/web/` |
 
-- `web` 暴露端口：`3000`
-- `web` 访问地址：`http://localhost:3000/`
+- `web`
+  - 暴露端口：`3000`
+  - 访问地址：`http://localhost:3000/`
 
 ### 后端组件
 
@@ -130,11 +135,12 @@ C4Container
 | `api` | `apps/api/` | `docs/component/api/` |
 | `worker` | `apps/worker/` | `docs/component/worker/` |
 
-- `api` 暴露端口：`3001`
-- `api` 访问地址：`http://localhost:3001/`
-- `api` Swagger UI：`http://localhost:3001/api/v1/doc`
-- `api` OpenAPI 契约：`http://localhost:3001/api/v1/openapi.json`
-- `api` AsyncAPI 契约：`http://localhost:3001/api/v1/asyncapi.json`
+- `api`
+  - 暴露端口：`3001`
+  - 访问地址：`http://localhost:3001/`
+  - Swagger UI：`http://localhost:3001/api/v1/doc`
+  - OpenAPI 契约：`http://localhost:3001/api/v1/openapi.json`
+  - AsyncAPI 契约：`http://localhost:3001/api/v1/asyncapi.json`
 
 ### 基础设施组件
 
@@ -151,13 +157,16 @@ C4Container
   - 官方文档：[Docker Setup Guide](https://openfga.dev/docs/getting-started/setup-openfga/docker)
 ````
 
-- “组件清单”始终存在；自研组件分类使用规定格式的三列表格，基础设施组件使用一级组件列表及缩进属性列表。
+- “组件清单”始终存在；自研组件分类使用规定格式的三列表格，表格下方的连接信息与基础设施组件统一使用一级组件列表及缩进属性列表。
 - `c1.md` 的“系统上下文图”始终使用 `C4Context`，展示系统边界、用户或角色、交互的外部系统及其关系，不展示内部容器。
 - C1 按“用户或角色 → 目标系统 → 外部系统”自上而下排列；同一层级元素连续声明并水平排列。
 - 跨层级关系按实际方向使用 `Rel_D` 或 `Rel_U`，`UpdateLayoutConfig` 的 `c4ShapeInRow`
   设置为同一层级需要容纳的最大元素数，`c4BoundaryInRow` 使用 `1`。
 - 不使用 Mermaid C4 尚未支持的 `Lay_D`、`Lay_R` 等布局语句。
 - `c2.md` 的“容器图”始终使用 `C4Container`，展示系统内的容器、各容器的主要技术栈，以及容器之间和容器与外部系统之间的通信方式。
+- C2 容器按“前端组件 → 后端组件 → 基础设施组件”自上而下分层声明和排列；不存在的层级直接省略。
+- 同一层级组件连续声明并水平排列；跨层关系使用 `Rel_D` 或 `Rel_U`，同层关系使用 `Rel_R` 或 `Rel_L`。
+- `UpdateLayoutConfig` 的 `c4ShapeInRow` 设置为同一层级需要容纳的最大组件数，`c4BoundaryInRow` 使用 `1`。
 - 组件清单和容器图中的组件名称保持一致；同一关系不再用文本图重复表达。
 - 容器图可以标注主要语言、框架和数据库；具体选型约束和版本策略放入 `technology.md`。
 - 跨组件业务或工程步骤放入 `process.md`。
@@ -382,14 +391,14 @@ gitGraph
 
 - 实际修改只位于明确列出的全局文件。
 - 没有修改需求、组件规范、契约、源码或部署。
-- 组件清单按类型使用三级章节；自研组件分类只有“组件”“应用”“设计”三列表格，基础设施组件只使用一级组件列表及缩进属性列表；组件和路径合法且不重复。
+- 组件清单按类型使用三级章节；自研组件分类只有“组件”“应用”“设计”三列表格，表格后的连接信息与基础设施组件统一使用一级组件列表及缩进属性列表；组件和路径合法且不重复。
 - 只登记实际暴露的开发环境端口和完整访问地址；没有暴露时省略，测试和生产地址不写入 C2。
-- 对外文档只包含实际暴露的 Swagger UI、OpenAPI、AsyncAPI 或其他文档，每项带组件名前缀并使用完整且有效的 HTTP(S) URL。
+- 对外文档只包含实际暴露的 Swagger UI、OpenAPI、AsyncAPI 或其他文档，每项位于对应组件的缩进属性列表并使用完整且有效的 HTTP(S) URL。
 - 已逐个依据对应版本官方文档检查中间件管理界面；已启用的管理界面包含完整 URL、认证状态、凭据来源及官方文档链接，需要认证时还包含确定的开发账号和密码。
 - C2 不包含环境变量、占位符、`待定` 或 `TODO`；所有开发地址、账号和密码均为可直接使用的确定值。
 - 开发默认凭据已明确标注仅限开发环境，不包含测试、生产或其他环境的密钥。
 - `c1.md` 包含 `C4Context` 系统上下文图，不包含内部容器；同级元素水平排列，整体按层级垂直排列。
-- `c2.md` 包含组件清单和 `C4Container` 容器图，没有组件内部实现、技术版本、部署内容或重复关系图。
+- `c2.md` 包含组件清单和 `C4Container` 容器图；容器按前端、后端、基础设施垂直分层，同层水平排列，没有组件内部实现、技术版本、部署内容或重复关系图。
 - `process.md` 的业务流程按实际用户角色、“通用”或“系统”分组并使用 `sequenceDiagram`；
   构建流程使用 `flowchart`，参与组件名称与组件清单一致。
 - `technology.md` 的运行组件使用具体版本，组件名称与 `c2.md` 一致；非开发环境全部容器化，
