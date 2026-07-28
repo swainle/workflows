@@ -240,6 +240,25 @@ test("supports the DDD component design modifier", () => {
   assert.match(readme, /\[api\] ddd 设计组件/);
 });
 
+test("plans the component test structure before implementing tests", () => {
+  const component = readFileSync(path.join(WORKFLOW_ROOT, "stages/component.md"), "utf8");
+  const testing = readFileSync(path.join(WORKFLOW_ROOT, "stages/testing.md"), "utf8");
+  const readme = readFileSync(path.join(WORKFLOW_ROOT, "README.md"), "utf8");
+
+  assert.match(component, /### 测试目录设计规则/);
+  assert.match(component, /完整文件树必须包含当前组件计划维护的全部测试目录、测试文件/);
+  assert.match(component, /`unit\/`、`integration\/`、`contract\/` 和 `e2e\/`/);
+  assert.match(component, /单元测试按业务模块组织/);
+  assert.match(component, /集成测试按 HTTP、UI、数据库、消息、授权或其他真实边界组织/);
+  assert.match(component, /只有两个以上测试文件复用时才提取为共享文件/);
+  assert.match(component, /测试运行器配置、初始化文件和 package script 必须出现在完整文件树中/);
+  assert.match(component, /不在 `component\.md` 中复制测试步骤、断言、测试数据或执行结果/);
+  assert.match(testing, /从 `component\.md` 的完整文件树读取计划的测试目录、测试文件、fixture、支持代码和配置/);
+  assert.match(testing, /任务需要的测试层级或稳定测试文件未在组件设计中规划/);
+  assert.match(testing, /新增测试、fixture、支持代码和配置位于 `component\.md` 规划的测试目录中/);
+  assert.match(readme, /`component\.md` 的完整文件树同时规划单元、集成、契约和端到端测试/);
+});
+
 test("separates runtime and development technology selections", () => {
   const system = readFileSync(path.join(WORKFLOW_ROOT, "stages/system.md"), "utf8");
   assert.match(system, /### 运行组件/);
