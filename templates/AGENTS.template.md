@@ -181,7 +181,7 @@ Git                            文件历史
 | 系统上下文 | `C4Context` |
 | 系统容器 | `C4Container` |
 | 组件内部结构 | `C4Component` |
-| 组件代码结构 | `flowchart`，主分层从左到右、分层内部从上到下 |
+| 组件代码结构 | `flowchart`；先总览后按业务能力分章，主分层从左到右、分层内部从上到下 |
 | 跨组件业务流程和调用顺序 | `sequenceDiagram` |
 | 构建流程 | `flowchart` |
 | 组件内部业务流程 | `flowchart` |

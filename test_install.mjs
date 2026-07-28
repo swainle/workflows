@@ -318,9 +318,14 @@ test("defines single-purpose component documents and horizontal-first code diagr
   assert.match(component, /`c3\.md` 使用 `C4Component`/);
   assert.match(component, /# C3 组件图\r?\n\r?\n```mermaid\r?\nC4Component/);
   assert.match(component, /`c3\.md` 只包含一级标题和一个 `C4Component` Mermaid 代码块/);
-  assert.match(component, /`c4\.md` 统一使用 `flowchart LR`/);
-  assert.match(component, /主分层从左到右排列，每个分层内部从上到下排列/);
-  assert.match(component, /# C4 代码图\r?\n\r?\n```mermaid\r?\nflowchart LR/);
+  assert.match(component, /`c4\.md` 使用一个代码总览和按业务能力划分的详细章节/);
+  assert.match(component, /所有图统一使用 `flowchart LR`/);
+  assert.match(component, /# C4 代码图\r?\n\r?\n## 总览\r?\n\r?\n```mermaid\r?\nflowchart LR/);
+  assert.match(component, /## <业务能力>\r?\n\r?\n```mermaid\r?\nflowchart LR/);
+  assert.match(component, /总览使用一个 `flowchart LR`，只展示模块、业务能力及主要依赖，不展示字段或函数/);
+  assert.match(component, /每个详细章节只描述一个业务能力并使用一个 `flowchart LR`/);
+  assert.match(component, /详细章节只展示理解设计所需的关键公开函数、参数和返回类型/);
+  assert.match(component, /HTTP 请求、响应、错误和 Schema 由 `openapi\.json` 维护/);
   assert.match(component, /subgraph interface_layer\["接口层"\]\r?\n\s+direction TB/);
   assert.match(component, /subgraph application_layer\["应用层"\]\r?\n\s+direction TB/);
   assert.match(component, /subgraph core_layer\["核心模型层"\]\r?\n\s+direction TB/);
@@ -344,7 +349,7 @@ test("defines single-purpose component documents and horizontal-first code diagr
   assert.match(component, /UpdateLayoutConfig\(\$c4ShapeInRow="5", \$c4BoundaryInRow="1"\)/);
   assert.match(component, /不使用 Mermaid C4 尚未支持的 `Lay_D`、`Lay_R`/);
   assert.match(agents, /\| 组件内部结构 \| `C4Component` \|/);
-  assert.match(agents, /\| 组件代码结构 \| `flowchart`，主分层从左到右、分层内部从上到下 \|/);
+  assert.match(agents, /\| 组件代码结构 \| `flowchart`；先总览后按业务能力分章，主分层从左到右、分层内部从上到下 \|/);
 });
 
 test("groups business processes by role and uses flowcharts for builds", () => {

@@ -146,49 +146,83 @@ C4Component
 ```
 ````
 
-`c4.md` 统一使用 `flowchart LR` 描述关键代码单元及依赖。主分层从左到右排列，每个分层内部从上到下排列：
+`c4.md` 使用一个代码总览和按业务能力划分的详细章节。所有图统一使用 `flowchart LR`，主分层从左到右排列，每个分层内部从上到下排列：
 
 ````md
 # C4 代码图
+
+## 总览
 
 ```mermaid
 flowchart LR
     subgraph interface_layer["接口层"]
         direction TB
-        entry["组件入口<br/>«Interface»"]
+        entry["组件入口"]
+    }
+
+    subgraph capability_layer["业务能力"]
+        direction TB
+        capability_a["业务能力 A"]
+        capability_b["业务能力 B"]
+    }
+
+    subgraph port_layer["端口"]
+        direction TB
+        data_ports["数据端口"]
+        external_ports["外部能力端口"]
+    }
+
+    subgraph adapter_layer["适配器"]
+        direction TB
+        data_adapters["数据适配器"]
+        external_adapters["外部能力适配器"]
+    }
+
+    entry --> capability_a
+    entry --> capability_b
+    capability_a --> data_ports
+    capability_b --> external_ports
+    data_ports -.->|"implemented by"| data_adapters
+    external_ports -.->|"implemented by"| external_adapters
+```
+
+## <业务能力>
+
+```mermaid
+flowchart LR
+    subgraph interface_layer["接口层"]
+        direction TB
+        entry["组件入口<br/>«Interface»<br/>+handle(request): Response"]
     }
 
     subgraph application_layer["应用层"]
         direction TB
-        use_case_a["用例 A<br/>«ApplicationService»"]
-        use_case_b["用例 B<br/>«ApplicationService»"]
-    }
+        use_case["业务用例<br/>«ApplicationService»<br/>+execute(command): Result"]
+    end
 
     subgraph core_layer["核心模型层"]
         direction TB
-        core_model["核心模型<br/>«AggregateRoot / Store / Model»"]
-        policy["核心规则<br/>«DomainService / Policy»"]
-    }
+        core_model["核心模型<br/>«AggregateRoot / Store / Model»<br/>+perform(input): Result"]
+        policy["核心规则<br/>«DomainService / Policy»<br/>+check(input): boolean"]
+    end
 
     subgraph port_layer["端口层"]
         direction TB
-        repository_port["数据端口<br/>«Repository / Port»"]
-        external_port["外部能力端口<br/>«Port»"]
-    }
+        repository_port["数据端口<br/>«Repository / Port»<br/>+findById(id): Model<br/>+save(model): void"]
+        external_port["外部能力端口<br/>«Port»<br/>+invoke(input): Result"]
+    end
 
     subgraph adapter_layer["适配器层"]
         direction TB
         repository_adapter["数据适配器<br/>«Adapter»"]
         external_adapter["外部能力适配器<br/>«Adapter»"]
-    }
+    end
 
-    entry --> use_case_a
-    entry --> use_case_b
-    use_case_a --> core_model
-    use_case_b --> policy
-    use_case_a --> repository_port
-    use_case_b --> external_port
-    core_model --> policy
+    entry --> use_case
+    use_case --> core_model
+    use_case --> policy
+    use_case --> repository_port
+    use_case --> external_port
     repository_port -.->|"implemented by"| repository_adapter
     external_port -.->|"implemented by"| external_adapter
 ```
@@ -202,10 +236,15 @@ flowchart LR
 - `c4BoundaryInRow` 固定使用 `1`，使当前组件的内部分层以及主边界与基础设施边界整体垂直排列；同一层级内的组件按声明顺序水平排列。
 - `c4ShapeInRow` 使用能够容纳最宽层级的值，标准示例使用 `5`；跨层关系按实际方向使用 `Rel_D` 或 `Rel_U`，同层关系使用 `Rel_R` 或 `Rel_L`。
 - 异步链路按“生产者 → 队列或消息代理 → 消费者”排列；不使用 Mermaid C4 尚未支持的 `Lay_D`、`Lay_R` 等布局语句。
-- `c4.md` 只有一级标题和一个 `flowchart LR` Mermaid 图；只展示理解设计所需的关键代码单元及关系，不罗列所有源码文件、字段和方法。
-- C4 主分层按依赖方向从左到右排列；每个分层使用 `subgraph` 和 `direction TB`，使同层代码单元从上到下排列。
+- `c4.md` 包含一级标题、一个“总览”章节和按实际业务能力创建的详细章节。
+- 总览使用一个 `flowchart LR`，只展示模块、业务能力及主要依赖，不展示字段或函数。
+- 每个详细章节只描述一个业务能力并使用一个 `flowchart LR`；图仍过大时继续按内聚的子能力拆分章节。
+- C4 各图的主分层按依赖方向从左到右排列；每个分层使用 `subgraph` 和 `direction TB`，使同层代码单元从上到下排列。
 - 分层名称和数量按组件实际结构确定，不为套用模板创建空层；前端可以使用页面、功能、状态和适配器，后端可以使用接口、应用、领域、端口和适配器，任务处理器可以使用消费者、任务、规则和外部适配器。
 - C4 节点按实际情况标注 `ApplicationService`、`AggregateRoot`、`Entity`、`ValueObject`、`DomainService`、`Repository`、`DomainEvent`、`Page`、`Component`、`Hook`、`Store`、`Handler` 或 `Adapter`，不存在的角色不创建。
+- 详细章节只展示理解设计所需的关键公开函数、参数和返回类型，不展示私有函数、简单访问器、全部字段或重复的 CRUD 签名。
+- HTTP 请求、响应、错误和 Schema 由 `openapi.json` 维护；异步消息结构由 `asyncapi.json` 维护；C4 只引用稳定的操作名和类型名。
+- 同一代码单元在总览和各详细章节中使用相同名称；公共依赖只在相关章节出现，不为展示完整性复制无关节点和连线。
 - C3、C4、`component.md` 和契约中的名称及依赖方向保持一致。
 - 跨组件业务调用顺序放入系统 `process.md`；组件内部业务流程和多方时序分别放入当前组件的 `process.md` 和 `sequence.md`。
 
@@ -327,7 +366,7 @@ accessibility:
 - 没有修改源码、其他组件、需求、系统规范或部署文件。
 - `component.md` 只包含组件概述和完整的受版本控制文件结构，没有遗漏组件文件或复制其他专用文件的内容。
 - `c3.md` 只有一级标题和一个 `C4Component` Mermaid 图，没有其他说明；图中只包含当前组件的主要内部模块和必要外部依赖，层级整体垂直排列，同层组件水平排列。
-- 需要长期维护代码结构时，`c4.md` 使用 `flowchart LR`，主分层从左到右、分层内部从上到下，只包含关键代码单元和依赖。
+- 需要长期维护代码结构时，`c4.md` 使用一个代码总览和按业务能力划分的详细 `flowchart LR`；总览不展示函数，详细章节只展示关键公开函数，所有图均为主分层从左到右、分层内部从上到下。
 - 存在领域模型时，`ddd.md` 只记录统一语言、聚合不变量、事务边界、一致性、领域事件语义和建模决策，不复制 C4 或契约内容。
 - 引用的需求编号、权限编号、`operationId` 和 Token 均存在。
 - JSON、YAML、DBML、FGA 和 Mermaid 使用项目已有工具或标准解析器验证。
