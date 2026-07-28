@@ -121,8 +121,8 @@ test("defines one CRUD permission matrix per stage", () => {
 test("inherits parent permissions and allows specific child overrides", () => {
   const agents = readFileSync(path.join(WORKFLOW_ROOT, "templates/AGENTS.template.md"), "utf8");
   assert.match(agents, /目录权限由后代路径继承/);
-  assert.match(agents, /更具体的子路径规则可以按操作类型覆盖父级权限/);
-  assert.match(agents, /同等具体的规则同时匹配时，“禁止”优先/);
+  assert.match(agents, /多条规则匹配时，路径越具体越优先，并按操作类型覆盖父级权限/);
+  assert.match(agents, /路径具体程度相同时，“禁止”优先/);
 
   const component = readFileSync(path.join(WORKFLOW_ROOT, "stages/component.md"), "utf8");
   assert.match(component, /\| `docs\/\*\*` \| 禁止 \| 允许 \| 禁止 \| 禁止 \|/);
@@ -146,7 +146,7 @@ test("inherits parent permissions and allows specific child overrides", () => {
 
   const system = readFileSync(path.join(WORKFLOW_ROOT, "stages/system.md"), "utf8");
   assert.match(system, /\| `docs\/\*\*` \| 禁止 \| 允许 \| 禁止 \| 禁止 \|/);
-  assert.match(system, /\| `docs\/system\/\*` \| 允许 \| 允许 \| 允许 \| 允许 \|/);
+  assert.match(system, /\| `docs\/system\/\*\*` \| 允许 \| 允许 \| 允许 \| 允许 \|/);
 
   const deploy = readFileSync(path.join(WORKFLOW_ROOT, "stages/deploy.md"), "utf8");
   assert.match(deploy, /\| `apps\/\*\*` \| 禁止 \| 允许 \| 禁止 \| 禁止 \|/);
