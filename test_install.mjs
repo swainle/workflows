@@ -147,6 +147,23 @@ test("uses Chinese documentation and tests without translating code identifiers"
   assert.match(readme, /默认使用中文回复、编写文档和测试描述/);
 });
 
+test("requires design-driven development with zero unresolved decisions", () => {
+  const agents = readFileSync(path.join(WORKFLOW_ROOT, "templates/AGENTS.template.md"), "utf8");
+  const development = readFileSync(path.join(WORKFLOW_ROOT, "stages/development.md"), "utf8");
+  const readme = readFileSync(path.join(WORKFLOW_ROOT, "README.md"), "utf8");
+
+  assert.match(development, /## 开发前确认/);
+  assert.match(development, /先读取 `component\.md` 的概述、设计架构索引和完整文件结构/);
+  assert.match(development, /“任务行为 → 需求或设计依据 → 目标代码文件 → 验证方式”的实现映射/);
+  assert.match(development, /没有写明不等于允许自行决定/);
+  assert.match(development, /确认一个问题后继续检查，直到未确认项为零/);
+  assert.match(development, /用户回答不能替代正式设计/);
+  assert.match(development, /不通过降级行为、隐藏错误、临时分支、TODO、占位值或未声明默认值绕过/);
+  assert.match(development, /只有实现映射完整、未确认项为零、设计没有冲突且技术可行性已有证据时，才开始修改代码/);
+  assert.match(agents, /未确认项清零后才能修改代码/);
+  assert.match(readme, /信息缺失、\s*设计冲突或可行性无法证明时先提问或退回相应设计阶段，不猜测实现/);
+});
+
 test("defines one CRUD permission matrix per stage", () => {
   const stageRoot = path.join(WORKFLOW_ROOT, "stages");
   const files = readdirSync(stageRoot).filter((file) => file.endsWith(".md"));
