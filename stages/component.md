@@ -44,7 +44,7 @@
 
 | 文件 | 作用 | 创建条件 | 可修改内容 |
 |---|---|---|---|
-| `component.md` | 组件概述和主要目录结构 | 始终 | 当前组件的职责边界、使用者和稳定目录 |
+| `component.md` | 组件概述和完整文件结构 | 始终 | 当前组件的职责边界、使用者和受版本控制文件结构 |
 | `c3.md` | 组件内部结构和依赖关系图 | 始终 | 当前组件的 C3 Mermaid 图 |
 | `c4.md` | 关键代码单元和依赖关系 | 存在需要长期维护的代码结构 | 当前组件的主要代码结构 |
 | `ddd.md` | 领域语义、聚合规则和建模决策 | 存在领域模型 | 当前组件的统一语言、不变量、事务边界、一致性和领域事件 |
@@ -74,14 +74,20 @@
 ```text
 <组件应用目录>/
 ├─ src/
-│  ├─ <稳定一级目录>/    <职责>
-│  └─ <稳定一级目录>/    <职责>
-└─ test/                  自动化测试
+│  ├─ <目录>/
+│  │  ├─ <子目录>/
+│  │  │  └─ <文件>       <职责>
+│  │  └─ <文件>           <职责>
+│  └─ <文件>               <职责>
+├─ test/
+│  └─ <文件>               <职责>
+└─ <配置文件>               <职责>
 ```
 ````
 
 - `component.md` 不保存领域模型、流程、状态、时序或契约内容。
-- 目录结构只列稳定的一级目录和必要的二级目录，不逐个罗列源码文件。
+- 目录结构递归列出组件目录内所有应受版本控制的目录和文件，并在文件后简述职责。
+- 不列出依赖目录、构建产物、缓存、日志、临时文件、密钥或其他运行时生成内容。
 - 目录中的职责与 C3 模块保持一致；具体代码单元及依赖放入 `c4.md`。
 
 ## C3 和 C4 文件格式
@@ -140,41 +146,51 @@ C4Component
 ```
 ````
 
-`c4.md` 根据实际代码形态使用 `classDiagram` 或 `flowchart` 描述关键代码单元及依赖。面向对象或领域模型使用 `classDiagram`：
-
-````md
-# C4 代码图
-
-```mermaid
-classDiagram
-    class UseCase {
-        <<ApplicationService>>
-        +execute(command)
-    }
-    class Aggregate {
-        <<AggregateRoot>>
-        +perform()
-    }
-    class Repository {
-        <<Repository>>
-        +save()
-    }
-
-    UseCase --> Aggregate
-    UseCase --> Repository
-```
-````
-
-函数、前端组件、Hook、Store 或模块依赖使用 `flowchart`：
+`c4.md` 统一使用 `flowchart LR` 描述关键代码单元及依赖。主分层从左到右排列，每个分层内部从上到下排列：
 
 ````md
 # C4 代码图
 
 ```mermaid
 flowchart LR
-    Page --> Feature
-    Feature --> Store
-    Store --> ApiClient
+    subgraph interface_layer["接口层"]
+        direction TB
+        entry["组件入口<br/>«Interface»"]
+    }
+
+    subgraph application_layer["应用层"]
+        direction TB
+        use_case_a["用例 A<br/>«ApplicationService»"]
+        use_case_b["用例 B<br/>«ApplicationService»"]
+    }
+
+    subgraph core_layer["核心模型层"]
+        direction TB
+        core_model["核心模型<br/>«AggregateRoot / Store / Model»"]
+        policy["核心规则<br/>«DomainService / Policy»"]
+    }
+
+    subgraph port_layer["端口层"]
+        direction TB
+        repository_port["数据端口<br/>«Repository / Port»"]
+        external_port["外部能力端口<br/>«Port»"]
+    }
+
+    subgraph adapter_layer["适配器层"]
+        direction TB
+        repository_adapter["数据适配器<br/>«Adapter»"]
+        external_adapter["外部能力适配器<br/>«Adapter»"]
+    }
+
+    entry --> use_case_a
+    entry --> use_case_b
+    use_case_a --> core_model
+    use_case_b --> policy
+    use_case_a --> repository_port
+    use_case_b --> external_port
+    core_model --> policy
+    repository_port -.->|"implemented by"| repository_adapter
+    external_port -.->|"implemented by"| external_adapter
 ```
 ````
 
@@ -186,8 +202,10 @@ flowchart LR
 - `c4BoundaryInRow` 固定使用 `1`，使当前组件的内部分层以及主边界与基础设施边界整体垂直排列；同一层级内的组件按声明顺序水平排列。
 - `c4ShapeInRow` 使用能够容纳最宽层级的值，标准示例使用 `5`；跨层关系按实际方向使用 `Rel_D` 或 `Rel_U`，同层关系使用 `Rel_R` 或 `Rel_L`。
 - 异步链路按“生产者 → 队列或消息代理 → 消费者”排列；不使用 Mermaid C4 尚未支持的 `Lay_D`、`Lay_R` 等布局语句。
-- `c4.md` 只有一级标题和一个 Mermaid 图；只展示理解设计所需的关键代码单元及关系，不罗列所有源码文件、字段和方法。
-- C4 中按实际情况标注 `ApplicationService`、`AggregateRoot`、`Entity`、`ValueObject`、`DomainService`、`Repository` 和 `DomainEvent`，不存在的角色不创建。
+- `c4.md` 只有一级标题和一个 `flowchart LR` Mermaid 图；只展示理解设计所需的关键代码单元及关系，不罗列所有源码文件、字段和方法。
+- C4 主分层按依赖方向从左到右排列；每个分层使用 `subgraph` 和 `direction TB`，使同层代码单元从上到下排列。
+- 分层名称和数量按组件实际结构确定，不为套用模板创建空层；前端可以使用页面、功能、状态和适配器，后端可以使用接口、应用、领域、端口和适配器，任务处理器可以使用消费者、任务、规则和外部适配器。
+- C4 节点按实际情况标注 `ApplicationService`、`AggregateRoot`、`Entity`、`ValueObject`、`DomainService`、`Repository`、`DomainEvent`、`Page`、`Component`、`Hook`、`Store`、`Handler` 或 `Adapter`，不存在的角色不创建。
 - C3、C4、`component.md` 和契约中的名称及依赖方向保持一致。
 - 跨组件业务调用顺序放入系统 `process.md`；组件内部业务流程和多方时序分别放入当前组件的 `process.md` 和 `sequence.md`。
 
@@ -307,9 +325,9 @@ accessibility:
 
 - 实际修改全部位于组件清单声明的当前组件设计目录。
 - 没有修改源码、其他组件、需求、系统规范或部署文件。
-- `component.md` 只包含组件概述和稳定的主要目录结构，没有复制其他专用文件的内容。
+- `component.md` 只包含组件概述和完整的受版本控制文件结构，没有遗漏组件文件或复制其他专用文件的内容。
 - `c3.md` 只有一级标题和一个 `C4Component` Mermaid 图，没有其他说明；图中只包含当前组件的主要内部模块和必要外部依赖，层级整体垂直排列，同层组件水平排列。
-- 需要长期维护代码结构时，`c4.md` 使用适合实际代码形态的 `classDiagram` 或 `flowchart`，只包含关键代码单元和依赖。
+- 需要长期维护代码结构时，`c4.md` 使用 `flowchart LR`，主分层从左到右、分层内部从上到下，只包含关键代码单元和依赖。
 - 存在领域模型时，`ddd.md` 只记录统一语言、聚合不变量、事务边界、一致性、领域事件语义和建模决策，不复制 C4 或契约内容。
 - 引用的需求编号、权限编号、`operationId` 和 Token 均存在。
 - JSON、YAML、DBML、FGA 和 Mermaid 使用项目已有工具或标准解析器验证。
