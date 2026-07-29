@@ -361,6 +361,14 @@ test("separates system, component, and deploy security and observability ownersh
   assert.match(system, /没有实际安全例外时删除“例外”三级章节和表格/);
   assert.doesNotMatch(system, /## 身份与凭据基线/);
   assert.match(system, /只维护跨组件遥测约定、共用平台、关联传播、保留脱敏和系统级运行目标/);
+  assert.match(system, /`observability\.md` 只使用“全局信号基线”“遥测链路”“系统运行目标”和“数据治理”/);
+  assert.match(system, /## 全局信号基线[\s\S]*\| 信号 \| 全局要求 \| 必要标识 \| 组件负责 \|/);
+  assert.match(system, /日志必须统一结构、级别语义及\s+Trace ID、Span ID、Request ID 或 Correlation ID/);
+  assert.match(system, /## 遥测链路[\s\S]*flowchart LR[\s\S]*subgraph producers\["信号生产方"\]/);
+  assert.match(system, /## 系统运行目标[\s\S]*### SLI 与 SLO[\s\S]*### 告警分级与路由/);
+  assert.match(system, /## 数据治理[\s\S]*\| 信号 \| 保留要求 \| 采样要求 \| 敏感信息与脱敏 \| 访问控制 \|/);
+  assert.doesNotMatch(system, /## 日志关联/);
+  assert.doesNotMatch(system, /## Trace 传播/);
   assert.match(component, /### 跨阶段权威边界/);
   assert.match(component, /组件文件只维护当前组件如何落实全局基线、实际产生的信号、需要的密钥以及明确例外/);
   assert.match(component, /组件 `observability\.md` 不重新定义全局字段、命名、保留策略、告警级别或系统级 SLO/);
