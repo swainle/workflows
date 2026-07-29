@@ -82,6 +82,9 @@ Tag）时无法更新“当前分支”，需要通过 `--branch` 指定要切�
 表单、页面状态、反馈、可访问性、性能、错误监控和测试分别写入单一职责文件；
 `[api] backend 设计组件` 默认采用 DDD，并将接口、认证、授权、领域、数据、校验、
 错误、配置、密钥、可观测性、测试和运行部署要求分别写入单一职责文件。
+Backend 模式完整读取 `templates/backend-design.template.md`，按“C3 → DDD → 业务行为 →
+接口与边界 → 机器可读模型 → C4 → 工程与运行 → 部署交付 → component.md 汇总”的顺序执行，
+并使用其中的固定章节模板；不适用的可选文件和章节不创建。
 `[<组件> dev]` 严格依据 `component.md` 的设计架构索引和相关设计文件开发；开始修改前
 必须建立需求或设计到代码及验证方式的映射，清零会影响行为、契约、安全、数据、
 兼容性或文件结构的未确认项，并验证设计与实际依赖、框架和外部契约可行。信息缺失、
@@ -105,6 +108,7 @@ Runbook 命令从 `docs/deploy/` 执行，JavaScript 和 TypeScript 组件默认
 
 ```text
 templates/AGENTS.template.md  安装到宿主项目的全局入口和阶段路由
+templates/backend-design.template.md  Backend 设计流程和固定文档结构
 stages/                       各阶段的职责、权限和完成检查
 install.mjs                   更新子模块并安装工作流规则
 test_install.mjs              安装器和规则结构测试

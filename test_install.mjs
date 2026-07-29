@@ -289,6 +289,7 @@ test("stores numbered requirement items in separate files", () => {
 
 test("supports frontend and backend component design modes", () => {
   const agents = readFileSync(path.join(WORKFLOW_ROOT, "templates/AGENTS.template.md"), "utf8");
+  const backend = readFileSync(path.join(WORKFLOW_ROOT, "templates/backend-design.template.md"), "utf8");
   const component = readFileSync(path.join(WORKFLOW_ROOT, "stages/component.md"), "utf8");
   const readme = readFileSync(path.join(WORKFLOW_ROOT, "README.md"), "utf8");
 
@@ -301,14 +302,48 @@ test("supports frontend and backend component design modes", () => {
   assert.match(component, /### Frontend 模式/);
   assert.match(component, /### Backend 模式/);
   assert.match(component, /当任务使用 `\[<组件>\] backend <任务>` 时默认采用 DDD/);
-  assert.match(component, /`authentication\.md`：引用系统安全基线，设计当前后端的身份接入、Session、Token/);
-  assert.match(component, /`authorization\.md`：引用系统安全基线，设计当前后端的角色、关系、所有权/);
-  assert.match(component, /`process\.md`：组件内部业务流程、参与方、分支和失败路径/);
-  assert.match(component, /`configuration\.md`：配置来源、默认值、覆盖规则和启动校验/);
-  assert.match(component, /`secrets\.md`：引用系统密钥基线，列出当前后端需要的密钥、用途、轮换触发条件/);
+  assert.match(component, /完整读取\s+`docs\/workflows\/templates\/backend-design\.template\.md`/);
+  assert.match(component, /C3 → DDD → 业务流程、状态与时序 → 接口和边界 → 机器可读模型 → C4/);
+  assert.match(component, /每个适用文件使用模板规定的标题名称和顺序/);
+  assert.match(component, /Backend 专用 Markdown、机器可读模型及其固定结构统一由/);
   assert.match(component, /Frontend 和 Backend 模式逐项检查各自列出的全部设计关注点/);
+  assert.match(backend, /# Backend 组件设计流程与文档模板/);
+  assert.match(backend, /## 文件关系与设计顺序/);
+  assert.match(backend, /flowchart LR/);
+  assert.match(backend, /## 执行流程/);
+  assert.match(backend, /不得从框架、数据库表或现有源码反推业务模型/);
+  assert.match(backend, /`interface\.md` 对应 `openapi\.json` 或 `asyncapi\.json`/);
+  assert.match(backend, /`authorization\.md` 对应 `authorization\.fga`/);
+  assert.match(backend, /`data-access\.md` 对应 `schema\.dbml`/);
+  for (const file of [
+    "c3.md",
+    "ddd.md",
+    "process.md",
+    "state.md",
+    "sequence.md",
+    "interface.md",
+    "authentication.md",
+    "authorization.md",
+    "validation.md",
+    "errors.md",
+    "data-access.md",
+    "c4.md",
+    "configuration.md",
+    "secrets.md",
+    "observability.md",
+    "testing.md",
+    "runtime.md",
+    "deployment.md",
+    "component.md",
+  ]) {
+    assert.ok(backend.includes(`## \`${file}\``), `missing Backend template for ${file}`);
+  }
+  for (const file of ["openapi.json", "asyncapi.json", "authorization.fga", "schema.dbml"]) {
+    assert.ok(backend.includes(`### \`${file}\``), `missing Backend model template for ${file}`);
+  }
   assert.match(readme, /\[web\] frontend 设计组件/);
   assert.match(readme, /\[api\] backend 设计组件/);
+  assert.match(readme, /`templates\/backend-design\.template\.md`/);
 });
 
 test("separates system, component, and deploy security and observability ownership", () => {
