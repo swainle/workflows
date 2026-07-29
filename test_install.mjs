@@ -353,6 +353,13 @@ test("separates system, component, and deploy security and observability ownersh
 
   assert.match(system, /只维护所有组件共同遵守的长期安全原则、信任边界和控制基线/);
   assert.match(system, /不写具体组件的\s*Token 或 Session 流程、权限关系、执行点、密钥清单、审计事件名或实现配置/);
+  assert.match(system, /`security\.md` 只使用“安全目标”“信任边界”“全局控制基线”和“风险与例外”四个二级章节/);
+  assert.match(system, /## 安全目标[\s\S]*\| 目标 \| 适用范围 \| 验证方式 \|/);
+  assert.match(system, /## 信任边界[\s\S]*flowchart LR[\s\S]*subgraph external\["外部与不可信区域"\]/);
+  assert.match(system, /## 全局控制基线[\s\S]*\| 领域 \| 全局规则 \| 适用范围 \| 验证方式 \|/);
+  assert.match(system, /## 风险与例外[\s\S]*\| 风险 \| 适用范围 \| 控制措施 \| 验证方式 \|/);
+  assert.match(system, /没有实际安全例外时删除“例外”三级章节和表格/);
+  assert.doesNotMatch(system, /## 身份与凭据基线/);
   assert.match(system, /只维护跨组件遥测约定、共用平台、关联传播、保留脱敏和系统级运行目标/);
   assert.match(component, /### 跨阶段权威边界/);
   assert.match(component, /组件文件只维护当前组件如何落实全局基线、实际产生的信号、需要的密钥以及明确例外/);
