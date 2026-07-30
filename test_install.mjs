@@ -303,7 +303,7 @@ test("supports frontend and backend component design modes", () => {
   assert.match(component, /### Backend 模式/);
   assert.match(component, /当任务使用 `\[<组件>\] backend <任务>` 时默认采用 DDD/);
   assert.match(component, /完整读取\s+`docs\/workflows\/templates\/backend-design\.template\.md`/);
-  assert.match(component, /C3 → DDD（含按需状态图与关键时序图）→ 接口和边界 → 机器可读模型 → C4/);
+  assert.match(component, /C3 → DDD（每个限界上下文包含状态图与关键时序图）→ 接口和边界 → 机器可读模型 → C4/);
   assert.doesNotMatch(component, /\| `process\.md` \| 后端业务流程 \|/);
   assert.match(component, /组件设计目录不创建 `process\.md`/);
   assert.match(component, /每个适用文件使用模板规定的标题名称和顺序/);
@@ -316,13 +316,13 @@ test("supports frontend and backend component design modes", () => {
   assert.match(backend, /不得从框架、数据库表或现有源码反推业务模型/);
   assert.match(backend, /## `ddd\.md`[\s\S]*## <限界上下文名称>[\s\S]*### 边界[\s\S]*### 统一语言/);
   assert.match(backend, /### 领域模型[\s\S]*```mermaid\r?\nflowchart LR[\s\S]*«Aggregate Root»/);
-  assert.match(backend, /### 状态图（按需）[\s\S]*```mermaid\r?\nstateDiagram-v2/);
-  assert.match(backend, /### 关键时序（按需）[\s\S]*```mermaid\r?\nsequenceDiagram/);
+  assert.match(backend, /### 状态图[\s\S]*```mermaid\r?\nstateDiagram-v2/);
+  assert.match(backend, /### 关键时序[\s\S]*```mermaid\r?\nsequenceDiagram/);
   assert.match(backend, /\| 领域事件 \| 产生聚合 \| 触发条件 \| 消费方 \| 业务含义 \|/);
   assert.doesNotMatch(backend, /## 一致性与补偿/);
   assert.doesNotMatch(backend, /## 聚合规则/);
   assert.match(component, /一个组件默认对应一个限界上下文/);
-  assert.match(component, /每个限界上下文必须包含边界、统一语言、领域模型图和领域事件列表/);
+  assert.match(component, /每个限界上下文必须完整包含边界、统一语言、领域模型图、状态图、关键时序图和领域事件列表/);
   assert.match(component, /不创建独立的 `state\.md` 或\s+`sequence\.md`/);
   assert.doesNotMatch(backend, /## `process\.md`/);
   assert.match(backend, /system_process\["docs\/system\/process\.md<br\/>跨组件业务流程"\]/);
