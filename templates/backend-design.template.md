@@ -531,7 +531,37 @@ flowchart LR
 ## Fixture 与测试支持
 
 ## 测试运行配置
+
+## 测试命令
+
+| 测试层级 | 命令 | 前置条件 | 执行范围 |
+|---|---|---|---|
+| 单元测试 | `pnpm test:unit` | 无外部依赖 | 领域规则、应用服务和纯函数 |
+| 集成测试 | `pnpm test:integration` | 测试基础设施已启动 | Repository、Adapter、事务和外部边界 |
+| 契约测试 | `pnpm test:contract` | 契约文件可用 | OpenAPI、AsyncAPI 和消费方兼容性 |
+| 安全测试 | `pnpm test:security` | 授权测试依赖可用 | 认证、授权和输入边界 |
+| 端到端测试 | `pnpm test:e2e` | 完整测试环境已启动 | 当前组件负责的关键路径 |
+| 全部测试 | `pnpm test` | 所需测试依赖已启动 | 全部适用测试 |
+| 监听模式 | `pnpm test:watch` | 本地开发环境 | 受影响测试 |
+| 覆盖率 | `pnpm test:coverage` | Vitest 覆盖率 Provider 可用 | 覆盖率报告 |
+
+### 局部执行
+
+| 目标 | 命令 |
+|---|---|
+| 单个文件 | `pnpm vitest run <测试文件>` |
+| 单个用例 | `pnpm vitest run -t "<用例名称>"` |
+| 更新快照 | `pnpm vitest run -u` |
 ```
+
+- JavaScript 和 TypeScript 组件没有既有测试工具链时，默认使用 `pnpm` 和 Vitest；
+  项目已有有效工具链时沿用现状，不为统一格式强制迁移。
+- `package.json` scripts 是分层测试命令的唯一来源；`testing.md` 只索引真实存在的脚本，
+  按实际适用层级增删表格行，不记录无法执行的占位命令。
+- 默认使用 `test`、`test:watch`、`test:unit`、`test:integration`、`test:contract`、
+  `test:security`、`test:e2e` 和 `test:coverage` 作为适用层级的 script 名称。
+- 每条命令必须写明前置条件和执行范围；CI 与本地开发调用相同的 package scripts。
+- 单个文件、单个用例和快照更新使用 Vitest CLI；复杂参数不复制到多个文档或 CI 配置中。
 
 ## `runtime.md`
 

@@ -222,6 +222,11 @@ Command、Handler、Factory、DomainService 或 DomainEvent。
   AC、PERM 或 TC 编号；详细场景仍由需求 `.feature` 和专用规范维护。
 - 测试运行器配置、初始化文件和 package script 必须出现在完整文件树中并说明职责；
   `[<组件> test]` 不能修改的根级配置由 `[<组件> dev]` 按设计实现。
+- `testing.md` 必须包含“测试命令”章节，按适用测试层级记录命令、前置条件和执行范围，
+  并包含单个文件、单个用例等局部执行方式。
+- JavaScript 和 TypeScript 组件没有既有测试工具链时默认使用 `pnpm` 和 Vitest；
+  已有有效工具链时沿用现状。分层命令以 `package.json` scripts 为唯一来源，
+  `testing.md` 只建立可执行命令索引。
 - 不在 `component.md` 中复制测试步骤、断言、测试数据或执行结果。
 
 ## C3 和 C4 文件格式

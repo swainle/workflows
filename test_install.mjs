@@ -407,11 +407,18 @@ test("plans the component test structure before implementing tests", () => {
   assert.match(component, /集成测试按 HTTP、UI、数据库、消息、授权或其他真实边界组织/);
   assert.match(component, /只有两个以上测试文件复用时才提取为共享文件/);
   assert.match(component, /测试运行器配置、初始化文件和 package script 必须出现在完整文件树中/);
+  assert.match(component, /`testing\.md` 必须包含“测试命令”章节/);
+  assert.match(component, /没有既有测试工具链时默认使用 `pnpm` 和 Vitest/);
+  assert.match(component, /分层命令以 `package\.json` scripts 为唯一来源/);
   assert.match(component, /不在 `component\.md` 中复制测试步骤、断言、测试数据或执行结果/);
   assert.match(testing, /从 `component\.md` 的完整文件树读取计划的测试目录、测试文件、fixture、支持代码和配置/);
   assert.match(testing, /任务需要的测试层级或稳定测试文件未在组件设计中规划/);
+  assert.match(testing, /读取组件 `testing\.md` 的“测试命令”和“局部执行”章节/);
+  assert.match(testing, /默认采用 `pnpm` 和 Vitest/);
+  assert.match(testing, /`pnpm vitest run <测试文件>`/);
   assert.match(testing, /新增测试、fixture、支持代码和配置位于 `component\.md` 规划的测试目录中/);
   assert.match(readme, /`component\.md` 的完整文件树同时规划单元、集成、契约和端到端测试/);
+  assert.match(readme, /组件没有既有测试工具链时默认使用 `pnpm` 和 Vitest/);
 });
 
 test("separates runtime and development technology selections", () => {

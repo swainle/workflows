@@ -92,6 +92,8 @@ Backend 模式完整读取 `templates/backend-design.template.md`，按“C3 →
 必须建立需求或设计到代码及验证方式的映射，清零会影响行为、契约、安全、数据、
 兼容性或文件结构的未确认项，并验证设计与实际依赖、框架和外部契约可行。信息缺失、
 设计冲突或可行性无法证明时先提问或退回相应设计阶段，不猜测实现。
+组件 `testing.md` 按测试层级记录可执行命令、前置条件和执行范围；JavaScript 和 TypeScript
+组件没有既有测试工具链时默认使用 `pnpm` 和 Vitest，已有有效工具链时沿用现状。
 `[deploy] <组件>` 维护该组件的开发基础设施配置，例如 `[deploy] api` 会更新
 Runbook 中的 `### api`，并按实际需要维护 Compose、`dev.env` 和首次初始化配置；
 Runbook 命令从 `docs/deploy/` 执行，JavaScript 和 TypeScript 组件默认使用 `pnpm`。
