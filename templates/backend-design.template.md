@@ -175,17 +175,34 @@ flowchart LR
 
 ### 参与方与前置条件
 
-### 业务流程
+### 业务时序
 
 ```mermaid
-flowchart TD
-    <流程节点与关系>
+sequenceDiagram
+    actor Actor as 业务参与方
+    participant Entry as 组件入口
+    participant Capability as 业务能力
+
+    Actor->>Entry: 发起业务动作
+    Entry->>Capability: 执行业务步骤
+    alt 成功
+        Capability-->>Entry: 成功结果
+        Entry-->>Actor: 返回成功结果
+    else 失败
+        Capability-->>Entry: 失败结果
+        Entry-->>Actor: 返回失败结果
+    end
 ```
 
 ### 分支与失败路径
 
 ### 一致性、幂等与补偿
 ````
+
+- `process.md` 的参与方使用业务角色、当前组件的业务能力和必要外部系统，消息使用业务动作和结果；
+  分支使用 `alt`，可选步骤使用 `opt`，循环使用 `loop`，并行步骤使用 `par`。
+- `process.md` 不展示类、方法、HTTP 路径、Repository、Port、Adapter 或数据库调用；
+  这些技术交互由 `sequence.md` 维护。
 
 ## `state.md`
 
@@ -240,6 +257,9 @@ sequenceDiagram
 
 ### 失败时序
 ````
+
+- `sequence.md` 使用组件入口、应用用例、领域对象、Port、Adapter 和必要外部系统作为参与方，
+  维护技术调用、超时、重试和失败返回，不复制 `process.md` 的业务流程说明。
 
 ## `interface.md`
 

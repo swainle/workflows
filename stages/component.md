@@ -147,7 +147,7 @@ Command、Handler、Factory、DomainService 或 DomainEvent。
 | `authentication.md` | 身份认证 | 存在身份要求 | 身份、凭据、Session、Token、轮换和撤销 |
 | `authorization.md` | 权限控制 | 存在非公开操作 | 角色、关系、所有权、数据范围和执行点 |
 | `ddd.md` | 领域设计 | Backend 模式 | 统一语言、聚合、不变量、事务边界和领域事件 |
-| `process.md` | 后端业务流程 | 存在稳定流程 | 参与方、步骤、分支和失败路径 |
+| `process.md` | 后端业务流程 | 存在稳定流程 | 业务参与方、业务步骤、分支和失败路径 |
 | `state.md` | 后端状态模型 | 存在稳定状态模型 | 聚合、实体或任务的状态转换 |
 | `sequence.md` | 多方交互时序 | 存在多方调用 | 当前组件时序 |
 | `data-access.md` | 数据访问 | 存在持久化或查询 | Repository、查询、事务、并发、迁移和保留 |
@@ -386,7 +386,10 @@ flowchart LR
 - HTTP 请求、响应、错误和 Schema 由 `openapi.json` 维护；异步消息结构由 `asyncapi.json` 维护；C4 只引用稳定的操作名和类型名。
 - 同一代码单元在总览和各详细章节中使用相同名称；公共依赖只在相关章节出现，不为展示完整性复制无关节点和连线。
 - C3、C4、`component.md` 和契约中的名称及依赖方向保持一致。
-- 跨组件业务调用顺序放入系统 `process.md`；组件内部业务流程和多方时序分别放入当前组件的 `process.md` 和 `sequence.md`。
+- 跨组件业务调用顺序放入系统 `process.md`；组件内部业务流程使用 `process.md` 的
+  `sequenceDiagram` 表达业务参与方、动作、结果和分支，不展开协议、方法、Port 或 Adapter。
+- 当前组件的 `sequence.md` 只表达入口、用例、领域对象、Port 和外部系统之间的技术调用时序，
+  不复制 `process.md` 已维护的业务流程和业务规则。
 
 ## Backend 文件格式
 
