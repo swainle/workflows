@@ -314,6 +314,14 @@ test("supports frontend and backend component design modes", () => {
   assert.match(backend, /flowchart LR/);
   assert.match(backend, /## 执行流程/);
   assert.match(backend, /不得从框架、数据库表或现有源码反推业务模型/);
+  assert.match(backend, /## `ddd\.md`[\s\S]*## 上下文边界[\s\S]*\| 上下文 \| 负责 \| 不负责 \| 外部上下文 \|/);
+  assert.match(backend, /## 聚合[\s\S]*\| 聚合 \| 聚合根 \| 核心成员 \| 业务不变量 \| 事务边界 \|/);
+  assert.match(backend, /## 核心模型[\s\S]*\| 名称 \| 类型 \| 身份或等价规则 \| 所属聚合 \| 业务职责 \|/);
+  assert.match(backend, /## 一致性与补偿/);
+  assert.doesNotMatch(backend, /## 聚合规则/);
+  assert.match(component, /一个组件默认对应一个上下文边界/);
+  assert.match(component, /每个实际聚合必须明确聚合根、不变量和事务边界/);
+  assert.match(component, /没有此类模型时删除该章节，不罗列数据载体、全部字段或实现类/);
   assert.doesNotMatch(backend, /## `process\.md`/);
   assert.match(backend, /system_process\["docs\/system\/process\.md<br\/>跨组件业务流程"\]/);
   assert.match(backend, /system_process -\.->\|"引用，不复制"\| sequence/);
@@ -530,7 +538,7 @@ test("defines single-purpose component documents and horizontal-first code diagr
   assert.match(component, /任务处理器可以使用消费者、任务、规则和外部适配器/);
   assert.match(component, /C4 节点按实际情况标注 `ApplicationService`、`AggregateRoot`/);
   assert.doesNotMatch(component, /classDiagram/);
-  assert.match(component, /`ddd\.md` 只保存图无法完整表达的领域语义和决策/);
+  assert.match(component, /`ddd\.md` 只保存图无法完整表达的上下文边界、领域语义和决策/);
   assert.match(component, /Backend 中简单 CRUD 或纯查询仍在 `ddd\.md` 说明统一语言/);
   assert.match(component, /subgraph component\["<组件>"\]\r?\n\s+direction LR/);
   assert.match(component, /subgraph entry_layer\["接入层"\]\r?\n\s+direction TB/);
