@@ -93,27 +93,39 @@ C4Context
 ## 容器图
 
 ```mermaid
-C4Container
-    title 容器图
-    Person(user, "用户", "使用系统的人")
+flowchart LR
+    subgraph actors["用户与外部系统"]
+        direction TB
+        user["用户"]
+    end
 
-    System_Boundary(system, "系统") {
-        Container(web, "Web 应用", "主要技术栈", "容器职责")
+    subgraph system["系统"]
+        direction LR
 
-        Container(api, "API 服务", "主要技术栈", "容器职责")
-        Container(worker, "Worker", "主要技术栈", "处理异步任务")
+        subgraph frontend_layer["前端组件"]
+            direction TB
+            web["web<br/>Web 应用<br/>主要技术栈<br/>容器职责"]
+        end
 
-        ContainerDb(redis, "Redis", "Redis", "缓存和队列")
-        Container(openfga, "OpenFGA", "OpenFGA", "授权关系")
-    }
+        subgraph backend_layer["后端组件"]
+            direction TB
+            api["api<br/>API 服务<br/>主要技术栈<br/>容器职责"]
+            worker["worker<br/>Worker<br/>主要技术栈<br/>处理异步任务"]
+            api -->|"提交任务<br/>消息协议"| worker
+        end
 
-    Rel_D(user, web, "使用", "HTTPS")
-    Rel_D(web, api, "调用", "HTTPS/JSON")
-    Rel_R(api, worker, "提交任务", "消息协议")
-    Rel_D(api, redis, "读写", "Redis")
-    Rel_D(api, openfga, "鉴权", "HTTP/gRPC")
+        subgraph infrastructure_layer["基础设施组件"]
+            direction TB
+            redis[("redis<br/>Redis<br/>缓存和队列")]
+            openfga["openfga<br/>OpenFGA<br/>授权关系"]
+        end
 
-    UpdateLayoutConfig($c4ShapeInRow="2", $c4BoundaryInRow="1")
+        frontend_layer -->|"web → api<br/>调用 · HTTPS/JSON"| backend_layer
+        backend_layer -->|"api → redis<br/>读写 · Redis"| infrastructure_layer
+        backend_layer -->|"api → openfga<br/>鉴权 · HTTP/gRPC"| infrastructure_layer
+    end
+
+    actors -->|"user → web<br/>使用 · HTTPS"| frontend_layer
 ```
 
 ## 组件清单
@@ -163,10 +175,12 @@ C4Container
 - 跨层级关系按实际方向使用 `Rel_D` 或 `Rel_U`，`UpdateLayoutConfig` 的 `c4ShapeInRow`
   设置为同一层级需要容纳的最大元素数，`c4BoundaryInRow` 使用 `1`。
 - 不使用 Mermaid C4 尚未支持的 `Lay_D`、`Lay_R` 等布局语句。
-- `c2.md` 的“容器图”始终使用 `C4Container`，展示系统内的容器、各容器的主要技术栈，以及容器之间和容器与外部系统之间的通信方式。
-- C2 容器按“前端组件 → 后端组件 → 基础设施组件”自上而下分层声明和排列；不存在的层级直接省略。
-- 同一层级组件连续声明并水平排列；跨层关系使用 `Rel_D` 或 `Rel_U`，同层关系使用 `Rel_R` 或 `Rel_L`。
-- `UpdateLayoutConfig` 的 `c4ShapeInRow` 设置为同一层级需要容纳的最大组件数，`c4BoundaryInRow` 使用 `1`。
+- `c2.md` 的“容器图”始终使用 `flowchart LR`，展示系统内的容器、各容器的主要技术栈，以及容器之间和容器与外部系统之间的通信方式。
+- C2 先按“用户与外部系统 → 前端组件 → 后端组件 → 基础设施组件”从左到右分层；不存在的层级直接省略。
+- 系统使用一个主 `subgraph`，组件类型分别使用嵌套 `subgraph`；主分层使用 `direction LR`，
+  每个组件类型内部使用 `direction TB`，使同类组件从上到下排列。
+- Mermaid 会在子图内部节点直接连接外部时忽略子图方向，因此跨层关系连接层级 `subgraph`，
+  并在标签中明确写出“源组件 → 目标组件”、用途和协议；同层关系直接连接实际组件节点。
 - 组件清单和容器图中的组件名称保持一致；同一关系不再用文本图重复表达。
 - 容器图可以标注主要语言、框架和数据库；具体选型约束和版本策略放入 `technology.md`。
 - 跨组件业务或工程步骤放入 `process.md`。
@@ -500,7 +514,8 @@ flowchart LR
 - C2 不包含环境变量、占位符、`待定` 或 `TODO`；所有开发地址、账号和密码均为可直接使用的确定值。
 - 开发默认凭据已明确标注仅限开发环境，不包含测试、生产或其他环境的密钥。
 - `c1.md` 包含 `C4Context` 系统上下文图，不包含内部容器；同级元素水平排列，整体按层级垂直排列。
-- `c2.md` 包含组件清单和 `C4Container` 容器图；容器按前端、后端、基础设施垂直分层，同层水平排列，没有组件内部实现、技术版本、部署内容或重复关系图。
+- `c2.md` 包含组件清单和 `flowchart LR` 容器图；用户与外部系统、前端、后端和基础设施
+  从左到右分层，同类组件从上到下排列，没有组件内部实现、技术版本、部署内容或重复关系图。
 - `process.md` 的业务流程按实际用户角色、“通用”或“系统”分组并使用 `sequenceDiagram`；
   构建流程使用 `flowchart`，参与组件名称与组件清单一致。
 - `technology.md` 的运行组件使用具体版本，组件名称与 `c2.md` 一致；非开发环境全部容器化，
