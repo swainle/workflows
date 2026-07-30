@@ -415,10 +415,14 @@ test("plans the component test structure before implementing tests", () => {
   assert.match(testing, /任务需要的测试层级或稳定测试文件未在组件设计中规划/);
   assert.match(testing, /读取组件 `testing\.md` 的“测试命令”和“局部执行”章节/);
   assert.match(testing, /默认采用 `pnpm` 和 Vitest/);
-  assert.match(testing, /`pnpm vitest run <测试文件>`/);
+  assert.match(testing, /不执行测试、覆盖率、Lint、构建或其他验证命令/);
+  assert.match(testing, /测试未执行，由用户手动执行/);
+  assert.match(testing, /只通过阅读生产代码、测试代码、\s*类型定义和配置进行静态检查/);
+  assert.doesNotMatch(testing, /执行项目真实存在的测试命令/);
   assert.match(testing, /新增测试、fixture、支持代码和配置位于 `component\.md` 规划的测试目录中/);
   assert.match(readme, /`component\.md` 的完整文件树同时规划单元、集成、契约和端到端测试/);
   assert.match(readme, /组件没有既有测试工具链时默认使用 `pnpm` 和 Vitest/);
+  assert.match(readme, /`\\?\[<组件> test\]` 只根据用户要求修改测试代码/);
 });
 
 test("separates runtime and development technology selections", () => {
