@@ -398,13 +398,16 @@ test("separates system, component, and deploy security and observability ownersh
 test("plans the component test structure before implementing tests", () => {
   const component = readFileSync(path.join(WORKFLOW_ROOT, "stages/component.md"), "utf8");
   const testing = readFileSync(path.join(WORKFLOW_ROOT, "stages/testing.md"), "utf8");
+  const backend = readFileSync(path.join(WORKFLOW_ROOT, "templates/backend-design.template.md"), "utf8");
   const readme = readFileSync(path.join(WORKFLOW_ROOT, "README.md"), "utf8");
 
   assert.match(component, /### 测试目录设计规则/);
   assert.match(component, /完整文件树必须包含当前组件计划维护的全部测试目录、测试文件/);
-  assert.match(component, /`unit\/`、`integration\/`、`contract\/` 和 `e2e\/`/);
+  assert.match(component, /`fixtures\/`、`support\/`、`unit\/`、`integration\/` 和 `concurrency\/`/);
   assert.match(component, /单元测试按业务模块组织/);
-  assert.match(component, /集成测试按 HTTP、UI、数据库、消息、授权或其他真实边界组织/);
+  assert.match(component, /集成测试以 OpenAPI、AsyncAPI 等机器可读接口契约为依据/);
+  assert.match(component, /每个测试分类先写目录路径，再用表格逐行记录测试文件、测试对象/);
+  assert.match(component, /一行只描述一个稳定测试用例/);
   assert.match(component, /只有两个以上测试文件复用时才提取为共享文件/);
   assert.match(component, /测试运行器配置、初始化文件和 package script 必须出现在完整文件树中/);
   assert.match(component, /`testing\.md` 必须包含“测试命令”章节/);
@@ -418,9 +421,14 @@ test("plans the component test structure before implementing tests", () => {
   assert.match(testing, /不执行测试、覆盖率、Lint、构建或其他验证命令/);
   assert.match(testing, /测试未执行，由用户手动执行/);
   assert.match(testing, /只通过阅读生产代码、测试代码、\s*类型定义和配置进行静态检查/);
+  assert.match(testing, /每一行稳定测试用例作为测试代码规划依据/);
   assert.doesNotMatch(testing, /执行项目真实存在的测试命令/);
   assert.match(testing, /新增测试、fixture、支持代码和配置位于 `component\.md` 规划的测试目录中/);
-  assert.match(readme, /`component\.md` 的完整文件树同时规划单元、集成、契约和端到端测试/);
+  assert.match(backend, /## Fixture 与测试支持[\s\S]*## 单元测试[\s\S]*## 集成测试[\s\S]*## 并发测试[\s\S]*## 测试配置[\s\S]*## 测试命令/);
+  assert.match(backend, /路径：`test\/integration\/data\/`[\s\S]*\| 测试文件 \| 测试对象 \| 函数或操作 \| 测试用例 \| 测试事项 \|/);
+  assert.match(backend, /`user-repository\.test\.ts` \| `UserRepository` \| `findByPhone\(\)` \| 按手机号查询用户/);
+  assert.doesNotMatch(backend, /## 契约测试|## 安全测试|## 端到端测试|## 测试运行配置/);
+  assert.match(readme, /`component\.md` 的完整文件树同时规划 Fixture、测试支持、单元、集成和并发测试/);
   assert.match(readme, /组件没有既有测试工具链时默认使用 `pnpm` 和 Vitest/);
   assert.match(readme, /`\\?\[<组件> test\]` 只根据用户要求修改测试代码/);
 });

@@ -44,12 +44,14 @@
 - JavaScript 和 TypeScript 组件没有既有测试工具链时默认采用 `pnpm` 和 Vitest；
   项目已有有效工具链时沿用现状，不为统一格式迁移测试框架或包管理器。
 - 分层测试命令以 `package.json` scripts 为唯一来源，默认 script 名称为适用的
-  `test`、`test:watch`、`test:unit`、`test:integration`、`test:contract`、
-  `test:security`、`test:e2e` 和 `test:coverage`。
+  `test`、`test:watch`、`test:unit`、`test:integration`、`test:concurrency`
+  和 `test:coverage`。
 - 需要修改 `package.json`、Vitest 根级配置或其他不在 `test/**` 内的运行配置时，
   停止对应部分并说明应切换到 `[<组件> dev]`；不得在测试阶段创建替代配置。
 - 不执行测试、覆盖率、Lint、构建或其他验证命令；只通过阅读生产代码、测试代码、
   类型定义和配置进行静态检查。
+- 将 `testing.md` 中每一行稳定测试用例作为测试代码规划依据；测试文件名相对于对应
+  分类路径，“测试事项”决定该用例需要覆盖的规则、边界、错误和副作用。
 - 测试必须导入真实生产模块，或通过真实的 HTTP、UI、消息、数据库等公开入口执行生产代码。
 - 不得在测试文件中重新实现、复制或简化待验证的业务规则，再对测试中的实现进行断言。
 - 测试辅助代码只能构造数据、创建 fixture、替换外部依赖和收集结果，不得决定业务结果。
