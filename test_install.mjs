@@ -303,7 +303,9 @@ test("supports frontend and backend component design modes", () => {
   assert.match(component, /### Backend 模式/);
   assert.match(component, /当任务使用 `\[<组件>\] backend <任务>` 时默认采用 DDD/);
   assert.match(component, /完整读取\s+`docs\/workflows\/templates\/backend-design\.template\.md`/);
-  assert.match(component, /C3 → DDD → 业务流程、状态与时序 → 接口和边界 → 机器可读模型 → C4/);
+  assert.match(component, /C3 → DDD → 状态与组件时序 → 接口和边界 → 机器可读模型 → C4/);
+  assert.doesNotMatch(component, /\| `process\.md` \| 后端业务流程 \|/);
+  assert.match(component, /组件设计目录不创建 `process\.md`/);
   assert.match(component, /每个适用文件使用模板规定的标题名称和顺序/);
   assert.match(component, /Backend 专用 Markdown、机器可读模型及其固定结构统一由/);
   assert.match(component, /Frontend 和 Backend 模式逐项检查各自列出的全部设计关注点/);
@@ -312,9 +314,12 @@ test("supports frontend and backend component design modes", () => {
   assert.match(backend, /flowchart LR/);
   assert.match(backend, /## 执行流程/);
   assert.match(backend, /不得从框架、数据库表或现有源码反推业务模型/);
-  assert.match(backend, /## `process\.md`[\s\S]*### 业务时序[\s\S]*```mermaid\r?\nsequenceDiagram/);
-  assert.match(backend, /`process\.md` 不展示类、方法、HTTP 路径、Repository、Port、Adapter 或数据库调用/);
-  assert.match(backend, /这些技术交互由 `sequence\.md` 维护/);
+  assert.doesNotMatch(backend, /## `process\.md`/);
+  assert.match(backend, /system_process\["docs\/system\/process\.md<br\/>跨组件业务流程"\]/);
+  assert.match(backend, /system_process -\.->\|"引用，不复制"\| sequence/);
+  assert.match(backend, /## `sequence\.md`[\s\S]*\| 场景 \| 系统流程引用 \| 入口 \| 结果 \|/);
+  assert.match(backend, /### 调用时序[\s\S]*```mermaid\r?\nsequenceDiagram/);
+  assert.match(backend, /### 事务与一致性[\s\S]*### 超时、重试与幂等[\s\S]*### 失败返回/);
   assert.match(backend, /`sequence\.md` 使用组件入口、应用用例、领域对象、Port、Adapter 和必要外部系统作为参与方/);
   assert.match(backend, /`interface\.md` 对应 `openapi\.json` 或 `asyncapi\.json`/);
   assert.match(backend, /`authorization\.md` 对应 `authorization\.fga`/);
@@ -322,7 +327,6 @@ test("supports frontend and backend component design modes", () => {
   for (const file of [
     "c3.md",
     "ddd.md",
-    "process.md",
     "state.md",
     "sequence.md",
     "interface.md",
@@ -548,7 +552,7 @@ test("groups business processes by role and uses flowcharts for builds", () => {
   const agents = readFileSync(path.join(WORKFLOW_ROOT, "templates/AGENTS.template.md"), "utf8");
   const system = readFileSync(path.join(WORKFLOW_ROOT, "stages/system.md"), "utf8");
   assert.match(agents, /\| 构建流程 \| `flowchart` \|/);
-  assert.match(agents, /\| 组件内部业务流程 \| `sequenceDiagram` \|/);
+  assert.match(agents, /\| 组件内部调用时序 \| `sequenceDiagram` \|/);
   assert.match(system, /### <用户角色>/);
   assert.match(system, /### 通用/);
   assert.match(system, /### 系统/);

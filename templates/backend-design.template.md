@@ -17,10 +17,10 @@
 flowchart LR
     c3["c3.md<br/>组件结构"]
     ddd["ddd.md<br/>DDD 设计"]
+    system_process["docs/system/process.md<br/>跨组件业务流程"]
 
     subgraph behavior["业务行为"]
         direction TB
-        process["process.md<br/>业务流程"]
         state["state.md<br/>状态模型"]
         sequence["sequence.md<br/>调用时序"]
     end
@@ -59,9 +59,9 @@ flowchart LR
     component["component.md<br/>最终索引与完整文件树"]
 
     c3 --> ddd
-    ddd --> process
     ddd --> state
-    process --> sequence
+    state --> sequence
+    system_process -.->|"引用，不复制"| sequence
     sequence --> interface
 
     interface --> authentication
@@ -101,7 +101,8 @@ flowchart LR
    现有组件规范及当前组件提供的契约。
 2. 用 `c3.md` 确认组件边界、主要内部模块、上游调用方和必要外部依赖。
 3. 用 `ddd.md` 先确定业务能力、统一语言、不变量、事务边界和必要的领域事件。
-4. 按实际需要用 `process.md`、`state.md` 和 `sequence.md` 落实业务流程、状态转换及关键调用时序。
+4. 从系统 `process.md` 引用相关跨组件业务流程；按实际需要用 `state.md` 维护状态转换，
+   用 `sequence.md` 维护当前组件的关键技术调用时序，不复制系统业务流程。
 5. 从已确认的业务行为设计 `interface.md`，再按实际边界设计认证、授权、输入校验、错误处理
    和数据访问；不得从框架、数据库表或现有源码反推业务模型。
 6. 由提供方分别维护机器可读模型：`interface.md` 对应 `openapi.json` 或 `asyncapi.json`，
@@ -160,50 +161,6 @@ flowchart LR
 - <关键模型边界及其原因>
 ```
 
-## `process.md`
-
-````md
-# 组件内部流程
-
-## 流程清单
-
-| 流程 | 目标 | 参与方 | 触发条件 |
-|---|---|---|---|
-| <流程> | <业务目标> | <参与方> | <触发条件> |
-
-## <流程名称>
-
-### 参与方与前置条件
-
-### 业务时序
-
-```mermaid
-sequenceDiagram
-    actor Actor as 业务参与方
-    participant Entry as 组件入口
-    participant Capability as 业务能力
-
-    Actor->>Entry: 发起业务动作
-    Entry->>Capability: 执行业务步骤
-    alt 成功
-        Capability-->>Entry: 成功结果
-        Entry-->>Actor: 返回成功结果
-    else 失败
-        Capability-->>Entry: 失败结果
-        Entry-->>Actor: 返回失败结果
-    end
-```
-
-### 分支与失败路径
-
-### 一致性、幂等与补偿
-````
-
-- `process.md` 的参与方使用业务角色、当前组件的业务能力和必要外部系统，消息使用业务动作和结果；
-  分支使用 `alt`，可选步骤使用 `opt`，循环使用 `loop`，并行步骤使用 `par`。
-- `process.md` 不展示类、方法、HTTP 路径、Repository、Port、Adapter 或数据库调用；
-  这些技术交互由 `sequence.md` 维护。
-
 ## `state.md`
 
 ````md
@@ -236,30 +193,51 @@ stateDiagram-v2
 ## `sequence.md`
 
 ````md
-# 关键时序
+# 组件时序
 
 ## 场景清单
 
-| 场景 | 入口 | 参与方 | 结果 |
+| 场景 | 系统流程引用 | 入口 | 结果 |
 |---|---|---|---|
-| <场景> | <入口> | <参与方> | <结果> |
+| <场景> | <系统 process.md 中的稳定流程名> | <入口> | <结果> |
 
 ## <场景名称>
 
-### 正常时序
+### 调用时序
 
 ```mermaid
 sequenceDiagram
-    <参与方与调用>
+    participant Entry as 组件入口
+    participant UseCase as 应用用例
+    participant Domain as 领域对象
+    participant Port as Port
+    participant Adapter as Adapter
+    participant External as 外部系统
+
+    Entry->>UseCase: 调用
+    UseCase->>Domain: 执行业务行为
+    UseCase->>Port: 请求外部能力
+    Port->>Adapter: 调用实现
+    Adapter->>External: 访问
+    External-->>Adapter: 返回
+    Adapter-->>Port: 返回
+    Port-->>UseCase: 返回
+    UseCase-->>Entry: 返回结果
 ```
+
+### 事务与一致性
 
 ### 超时、重试与幂等
 
-### 失败时序
+### 失败返回
 ````
 
 - `sequence.md` 使用组件入口、应用用例、领域对象、Port、Adapter 和必要外部系统作为参与方，
-  维护技术调用、超时、重试和失败返回，不复制 `process.md` 的业务流程说明。
+  维护技术调用、事务、超时、重试和失败返回。
+- 场景引用系统 `process.md` 中的稳定流程名，不复制跨组件业务步骤；没有对应跨组件流程时，
+  引用相关需求或 DDD 用例名称。
+- 业务不变量、一致性及补偿规则引用 `ddd.md`，状态转换和守卫条件引用 `state.md`，
+  不在时序文件中重新定义。
 
 ## `interface.md`
 
