@@ -214,8 +214,10 @@ Command、Handler、Factory、DomainService 或 DomainEvent。
 - 单元测试按业务模块组织，覆盖领域规则、应用用例、状态逻辑和纯函数，不按源码文件数量机械创建测试。
 - 单元测试中的基础设施、数据访问和 Adapter 只覆盖纯逻辑；真实数据库、HTTP、消息、
   认证、授权和外部服务边界放入集成测试。
-- 集成测试以 OpenAPI、AsyncAPI 等机器可读接口契约为依据，验证入口、Repository、
-  Adapter、事务、认证、授权和错误转换，不复制契约 Schema。
+- 集成测试包含“接口测试”，路径为 `test/integration/api/`，通过真实 HTTP、异步消息
+  或 RPC 入口，以 OpenAPI、AsyncAPI 或 RPC IDL 为依据验证请求、响应、状态码、错误码、
+  消息、认证、授权、幂等和兼容性，不复制契约 Schema。
+- 其他集成测试验证 Repository、Adapter、事务、认证、授权和错误转换等真实边界。
 - 并发测试覆盖幂等、事务隔离、资源竞争、唯一约束和重复事件等实际风险。
 - fixture、factory、mock 和测试支持代码放在首次需要它们的最小公共目录；
   只有两个以上测试文件复用时才提取为共享文件。

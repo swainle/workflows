@@ -405,7 +405,8 @@ test("plans the component test structure before implementing tests", () => {
   assert.match(component, /完整文件树必须包含当前组件计划维护的全部测试目录、测试文件/);
   assert.match(component, /`fixtures\/`、`support\/`、`unit\/`、`integration\/` 和 `concurrency\/`/);
   assert.match(component, /单元测试按业务模块组织/);
-  assert.match(component, /集成测试以 OpenAPI、AsyncAPI 等机器可读接口契约为依据/);
+  assert.match(component, /集成测试包含“接口测试”，路径为 `test\/integration\/api\/`/);
+  assert.match(component, /通过真实 HTTP、异步消息\s*或 RPC 入口/);
   assert.match(component, /每个测试分类先写目录路径，再用表格逐行记录测试文件、测试对象/);
   assert.match(component, /一行只描述一个稳定测试用例/);
   assert.match(component, /只有两个以上测试文件复用时才提取为共享文件/);
@@ -422,11 +423,16 @@ test("plans the component test structure before implementing tests", () => {
   assert.match(testing, /测试未执行，由用户手动执行/);
   assert.match(testing, /只通过阅读生产代码、测试代码、\s*类型定义和配置进行静态检查/);
   assert.match(testing, /每一行稳定测试用例作为测试代码规划依据/);
+  assert.match(testing, /接口测试代码放入 `test\/integration\/api\/`/);
+  assert.match(testing, /`test:api`/);
   assert.doesNotMatch(testing, /执行项目真实存在的测试命令/);
   assert.match(testing, /新增测试、fixture、支持代码和配置位于 `component\.md` 规划的测试目录中/);
   assert.match(backend, /## Fixture 与测试支持[\s\S]*## 单元测试[\s\S]*## 集成测试[\s\S]*## 并发测试[\s\S]*## 测试配置[\s\S]*## 测试命令/);
   assert.match(backend, /路径：`test\/integration\/data\/`[\s\S]*\| 测试文件 \| 测试对象 \| 函数或操作 \| 测试用例 \| 测试事项 \|/);
   assert.match(backend, /`user-repository\.test\.ts` \| `UserRepository` \| `findByPhone\(\)` \| 按手机号查询用户/);
+  assert.match(backend, /### 接口测试[\s\S]*路径：`test\/integration\/api\/`[\s\S]*契约：`<openapi\.json、asyncapi\.json 或 RPC IDL>`/);
+  assert.match(backend, /`http\/<文件>\.test\.ts` \| OpenAPI[\s\S]*`events\/<文件>\.test\.ts` \| AsyncAPI[\s\S]*`rpc\/<文件>\.test\.ts`/);
+  assert.match(backend, /\| 接口测试 \| `pnpm test:api` \|/);
   assert.doesNotMatch(backend, /## 契约测试|## 安全测试|## 端到端测试|## 测试运行配置/);
   assert.match(readme, /`component\.md` 的完整文件树同时规划 Fixture、测试支持、单元、集成和并发测试/);
   assert.match(readme, /组件没有既有测试工具链时默认使用 `pnpm` 和 Vitest/);

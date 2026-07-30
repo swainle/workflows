@@ -606,13 +606,17 @@ flowchart LR
 
 ## 集成测试
 
-### 接口契约
+### 接口测试
 
 路径：`test/integration/api/`
 
-| 测试文件 | 接口或契约 | 函数或操作 | 测试用例 | 测试事项 |
+契约：`<openapi.json、asyncapi.json 或 RPC IDL>`
+
+| 测试文件 | 接口类型或契约 | 函数或操作 | 测试用例 | 测试事项 |
 |---|---|---|---|---|
-| `<文件>.test.ts` | <OpenAPI operationId 或 AsyncAPI operation> | `<操作>` | <接口场景> | <请求、响应、状态码、错误码及消息结构> |
+| `http/<文件>.test.ts` | OpenAPI | `<operationId>` | <HTTP 接口场景> | <请求、响应、状态码、错误码、认证、授权及幂等> |
+| `events/<文件>.test.ts` | AsyncAPI | `<operation>` | <消息接口场景> | <消息 Schema、元数据、发布、消费及重复投递> |
+| `rpc/<文件>.test.ts` | <RPC IDL> | `<方法>` | <RPC 接口场景> | <请求、响应、错误及兼容性> |
 
 ### 数据访问
 
@@ -659,6 +663,7 @@ flowchart LR
 | 测试层级 | 命令 | 前置条件 | 执行范围 |
 |---|---|---|---|
 | 单元测试 | `pnpm test:unit` | 无外部依赖 | 领域规则、应用服务和纯函数 |
+| 接口测试 | `pnpm test:api` | 组件入口及测试基础设施可用 | HTTP、异步消息和 RPC 接口 |
 | 集成测试 | `pnpm test:integration` | 测试基础设施已启动 | Repository、Adapter、事务和外部边界 |
 | 并发测试 | `pnpm test:concurrency` | 测试数据库已启动 | 幂等、事务隔离和资源竞争 |
 | 全部测试 | `pnpm test` | 所需测试依赖已启动 | 全部适用测试 |
@@ -678,8 +683,8 @@ flowchart LR
   项目已有有效工具链时沿用现状，不为统一格式强制迁移。
 - `package.json` scripts 是分层测试命令的唯一来源；`testing.md` 只索引真实存在的脚本，
   按实际适用层级增删表格行，不记录无法执行的占位命令。
-- 默认使用 `test`、`test:watch`、`test:unit`、`test:integration`、`test:concurrency`
-  和 `test:coverage` 作为适用层级的 script 名称。
+- 默认使用 `test`、`test:watch`、`test:unit`、`test:api`、`test:integration`、
+  `test:concurrency` 和 `test:coverage` 作为适用层级的 script 名称。
 - 每条命令必须写明前置条件和执行范围；CI 与本地开发调用相同的 package scripts。
 - 单个文件、单个用例和快照更新使用 Vitest CLI；复杂参数不复制到多个文档或 CI 配置中。
 - 每个测试分类先写相对组件应用目录的路径，再用表格记录测试文件、测试对象、函数或操作、
@@ -688,7 +693,8 @@ flowchart LR
   边界、错误和副作用，不使用 `find*` 等模糊函数名合并多个场景。
 - 单元测试中的基础设施、数据访问和 Adapter 只覆盖不访问真实外部资源的纯逻辑；
   真实数据库、消息、认证、授权和外部服务边界放入集成测试。
-- 集成测试以 OpenAPI、AsyncAPI 等机器可读接口契约为依据，不在测试设计中复制 Schema。
+- 接口测试归入集成测试，通过真实 HTTP、异步消息或 RPC 入口验证组件，并以 OpenAPI、
+  AsyncAPI 或 RPC IDL 为依据；按实际协议保留适用表格行，不复制契约 Schema。
 
 ## `runtime.md`
 

@@ -94,6 +94,8 @@ Backend 模式完整读取 `templates/backend-design.template.md`，按“C3 →
 设计冲突或可行性无法证明时先提问或退回相应设计阶段，不猜测实现。
 组件 `testing.md` 按测试层级记录可执行命令、前置条件和执行范围；JavaScript 和 TypeScript
 组件没有既有测试工具链时默认使用 `pnpm` 和 Vitest，已有有效工具链时沿用现状。
+接口测试归入集成测试，按 HTTP、异步消息或 RPC 入口引用机器可读契约，并使用
+`test/integration/api/` 下的对应协议子目录。
 `[<组件> test]` 只根据用户要求修改测试代码，不执行测试、覆盖率、Lint 或构建命令；
 完成时将测试标记为“未执行”，并列出用户可手动运行的相关命令。
 `[deploy] <组件>` 维护该组件的开发基础设施配置，例如 `[deploy] api` 会更新
