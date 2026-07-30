@@ -16,7 +16,7 @@
 ```mermaid
 flowchart LR
     c3["c3.md<br/>组件结构"]
-    ddd["ddd.md<br/>领域模型、状态与关键时序"]
+    ddd["ddd.md<br/>领域结构、状态与关键时序"]
     system_process["docs/system/process.md<br/>跨组件业务流程"]
 
     interface["interface.md<br/>接口原则"]
@@ -92,8 +92,8 @@ flowchart LR
 1. 根据 C2 组件清单确定当前组件的应用目录、设计目录和外部连接，读取相关需求、系统规范、
    现有组件规范及当前组件提供的契约。
 2. 用 `c3.md` 确认组件边界、主要内部模块、上游调用方和必要外部依赖。
-3. 在 `ddd.md` 中按限界上下文分章，用领域模型图表达聚合根、必要实体和值对象、不变量、
-   事务边界及跨聚合一致性，并维护领域事件列表。
+3. 在 `ddd.md` 中按限界上下文分章，用领域结构图结合展示应用服务、领域服务、聚合根、
+   必要实体和值对象、领域端口及事件，并维护领域事件列表。
 4. 为每个限界上下文维护状态图和关键时序图；时序图引用系统 `process.md` 的稳定流程名，
    不复制跨组件业务流程或接口调用细节。
 5. 从已确认的业务行为设计 `interface.md`，再按实际边界设计认证、授权、输入校验、错误处理
@@ -141,22 +141,40 @@ flowchart LR
 |---|---|
 | <术语> | <当前上下文中的唯一含义> |
 
-### 领域模型
+### 领域结构
 
 ```mermaid
 flowchart LR
-    subgraph aggregate["<聚合> · 事务边界"]
+    subgraph application["应用层"]
         direction TB
-        root["<聚合根> «Aggregate Root»<br/><关键不变量>"]
-        entity["<实体> «Entity»"]
-        value["<值对象> «Value Object»"]
-
-        root --> entity
-        root --> value
+        app["<应用服务><br/>«Application Service»<br/>+<业务用例>(command)"]
     end
 
-    aggregate -.->|"仅引用 <聚合根>ID<br/><一致性方式>"| other["<其他聚合>"]
-    aggregate -->|"<领域事件>"| external["<外部上下文>"]
+    subgraph domain["领域层"]
+        direction TB
+
+        subgraph aggregate["<聚合> · 事务边界"]
+            direction TB
+            root["<聚合根><br/>«Aggregate Root»<br/>+<领域行为>()<br/><关键不变量>"]
+            entity["<实体><br/>«Entity»<br/>+<领域行为>()"]
+            value["<值对象><br/>«Value Object»<br/>+<领域判断>()"]
+
+            root --> entity
+            root --> value
+        end
+
+        service["<领域服务><br/>«Domain Service»<br/>+<领域规则>()"]
+        aggregate --> service
+    end
+
+    subgraph boundary["领域端口与事件"]
+        direction TB
+        repository["<仓储><br/>«Repository»<br/>+findById(id)<br/>+save(aggregate)"]
+        event["<领域事件><br/>«Domain Event»"]
+    end
+
+    application -->|"应用服务 → 聚合根<br/>协调业务用例"| domain
+    domain -->|"聚合根 → 仓储 / 领域事件<br/>持久化并发布事实"| boundary
 ```
 
 ### 状态图
@@ -193,14 +211,18 @@ sequenceDiagram
 ````
 
 - 一个组件默认对应一个限界上下文；只有确实存在不同统一语言和模型边界时才增加上下文章节。
-- 每个上下文必须完整包含边界、统一语言、领域模型图、状态图、关键时序和领域事件列表，
+- 每个上下文必须完整包含边界、统一语言、领域结构图、状态图、关键时序和领域事件列表，
   各上下文独立维护自己的术语、模型、生命周期、协作和事件。
-- 领域模型使用 `flowchart LR`；每个聚合使用一个 `subgraph` 和 `direction TB`，在图中表达
-  聚合根、必要实体和值对象、关键不变量、事务边界、跨聚合引用和一致性方式。
+- 领域结构图使用 `flowchart LR` 模拟类图，不使用 `classDiagram`；应用层、领域层、
+  领域端口与事件从左到右排列，每层使用 `subgraph` 和 `direction TB` 使类型从上到下排列。
+- 领域结构图结合展示应用服务、领域服务、聚合根、必要实体和值对象、仓储及领域事件；
+  每个聚合使用嵌套 `subgraph` 表达事务边界，只显示类型、DDD 构造型和关键公开业务行为。
+- 跨层关系连接分层 `subgraph` 并在标签中写明实际的源类型、目标类型和业务用途，
+  跨聚合关系只引用稳定 ID 并标明一致性方式。
 - 状态图和关键时序图归属对应限界上下文，不创建独立的 `state.md` 或 `sequence.md`。
 - 关键时序只表达领域行为，引用系统 `process.md` 中的稳定流程名，不重复跨组件业务流程，
   也不展开接口参数、消息载荷、超时、重试等技术细节。
-- 不在 `ddd.md` 中罗列类、方法、全部字段、ORM 模型或简单数据载体；代码结构、数据库结构和
+- 不在 `ddd.md` 中罗列全部字段、私有方法、ORM 模型或简单数据载体；代码结构、数据库结构和
   接口结构分别由 `c4.md`、`schema.dbml` 和 OpenAPI/AsyncAPI 维护。
 
 ## `interface.md`
