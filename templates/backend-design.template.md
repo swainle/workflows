@@ -116,16 +116,15 @@ flowchart LR
 
 ## `c3.md`
 
-只允许一级标题和一个 Mermaid `C4Component` 图。
+只允许一级标题和一个 Mermaid `flowchart LR` 图；完整分层、关系和布局规则以
+`docs/workflows/stages/component.md` 为准。
 
 ````md
 # C3 组件图
 
 ```mermaid
-C4Component
-    title <组件> 组件图
-
-    <当前组件、内部模块、必要外部依赖及关系>
+flowchart LR
+    <上游调用方、当前组件分层、必要外部依赖及关系>
 ```
 ````
 
