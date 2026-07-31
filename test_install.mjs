@@ -432,7 +432,8 @@ test("plans the component test structure before implementing tests", () => {
   assert.match(component, /\| 契约测试 \| `CON` \|/);
   assert.match(component, /\| 并发测试 \| `CONC` \|/);
   assert.match(component, /\| 端到端测试 \| `E2E` \|/);
-  assert.match(component, /Markdown 引用块中写可选的 `BP`、`Req`、`Design`/);
+  assert.match(component, /Markdown 引用行中写必需的 `Design`，再按需写可选的 `BP`、`BR`、`FR`、`AC`/);
+  assert.match(component, /组件测试不引用 TC/);
   assert.match(component, /`Desc`、`Given`、`When`、`Then`/);
   assert.match(component, /四个字段连续书写且\s*彼此之间不留空行/);
   assert.match(component, /一个用例只描述一个主要行为/);
@@ -454,7 +455,7 @@ test("plans the component test structure before implementing tests", () => {
   assert.match(testing, /每个五级标题定义的稳定测试用例作为测试代码规划依据/);
   assert.match(testing, /用例描述必须由五级标题的用例编号和该用例的 `Desc` 组成/);
   assert.match(testing, /测试层级缩写必须与 `testing\.md` 所在分类一致/);
-  assert.match(testing, /验证用例引用的 `BP`、`Req` 和 `Design` 实际存在/);
+  assert.match(testing, /验证必填的 `Design` 以及可选的 `BP`、`BR`、`FR`、`AC` 实际存在且类型正确/);
   assert.match(testing, /不同公开操作、成功与失败分支或独立边界场景合并/);
   assert.match(testing, /接口测试代码放入 `test\/integration\/api\/`/);
   assert.match(testing, /测试报告和覆盖率报告只按用户需要手动导出/);
@@ -465,7 +466,8 @@ test("plans the component test structure before implementing tests", () => {
   assert.match(backend, /## Fixture 与测试支持[\s\S]*## 单元测试[\s\S]*## 集成测试[\s\S]*## 契约测试[\s\S]*## 并发测试[\s\S]*## 端到端测试[\s\S]*## 测试配置[\s\S]*## 测试命令/);
   assert.match(backend, /### Domain 测试[\s\S]*### Application 测试[\s\S]*### Infrastructure 纯逻辑测试/);
   assert.match(backend, /#### appointment\.test\.ts[\s\S]*测试对象：`Appointment`[\s\S]*##### BOOKING-DOM-APPOINTMENT-001/);
-  assert.match(backend, /> Req：`REQ-001-BR-002`、`REQ-001-AC-008`[\s\S]*> Design：`ddd\.md#预约#状态图#Appointment`/);
+  assert.match(backend, /> Design：`ddd\.md#预约#状态图#Appointment`\r?\n> BR：`REQ-001-BR-002`\r?\n> AC：`REQ-001-AC-008`/);
+  assert.doesNotMatch(backend, /> Req：/);
   assert.match(backend, /Desc：取消待就诊预约\r?\nGiven：预约处于 `pending`。\r?\nWhen：调用 `cancel\(\)`。\r?\nThen：预约状态变为 `cancelled`/);
   assert.match(backend, /四个字段连续书写，彼此之间不留空行/);
   assert.match(backend, /##### AUTH-APP-LOGIN-001[\s\S]*##### SHARED-INF-CONFIGURATION-001/);
@@ -478,7 +480,7 @@ test("plans the component test structure before implementing tests", () => {
   assert.match(backend, /测试报告和覆盖率报告按需由用户手动导出/);
   assert.match(readme, /`component\.md` 的完整文件树同时规划 Fixture、测试支持、单元、集成和并发测试/);
   assert.match(readme, /组件没有既有测试工具链时默认\s*使用 `pnpm` 和 Vitest/);
-  assert.match(readme, /每个用例[\s\S]*BP\/Req\/Design[\s\S]*Given–When–Then/);
+  assert.match(readme, /每个用例[\s\S]*Design 和可选的 BP\/BR\/FR\/AC[\s\S]*Given–When–Then/);
   assert.match(readme, /DOM、APP、INF、API、INT、CON、CONC 或 E2E/);
   assert.match(readme, /`\\?\[<组件> test\]` 只根据用户要求修改测试代码/);
 });

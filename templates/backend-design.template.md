@@ -546,8 +546,9 @@ flowchart LR
 
 ##### BOOKING-DOM-APPOINTMENT-001
 
-> Req：`REQ-001-BR-002`、`REQ-001-AC-008`
 > Design：`ddd.md#预约#状态图#Appointment`
+> BR：`REQ-001-BR-002`
+> AC：`REQ-001-AC-008`
 
 Desc：取消待就诊预约
 Given：预约处于 `pending`。
@@ -564,9 +565,9 @@ Then：预约状态变为 `cancelled`，并产生可观察的取消结果。
 
 ##### AUTH-APP-LOGIN-001
 
-> BP：`BP-001`
-> Req：`REQ-001-FR-001`
 > Design：`ddd.md#认证#关键时序#登录`
+> BP：`BP-001`
+> FR：`REQ-001-FR-001`
 
 Desc：<简短中文描述>
 Given：<聚合、Port 返回值和当前用户等前置条件>
@@ -602,8 +603,8 @@ Then：<可观察的返回值或稳定错误>
 
 ##### AUTH-INT-SESSION-001
 
-> Req：`REQ-001-BR-002`
 > Design：`data-access.md#Repository#SessionRepository`
+> BR：`REQ-001-BR-002`
 
 Desc：<简短中文描述>
 Given：<真实数据库状态和迁移前置条件>
@@ -639,9 +640,9 @@ Then：<可观察的协议、序列化、超时、重试或错误转换结果>
 
 ##### AUTH-API-LOGIN-001
 
-> BP：`BP-001`
-> Req：`REQ-001-FR-001`
 > Design：`interface.md#操作定义#登录`
+> BP：`BP-001`
+> FR：`REQ-001-FR-001`
 
 Desc：<简短中文描述>
 Given：<入口调用前状态和输入>
@@ -658,8 +659,8 @@ Then：<可观察的响应、状态码、错误码、消息或必要副作用>
 
 ##### AUTH-INT-MODULE-001
 
-> BP：`BP-001`
 > Design：`ddd.md#认证#关键时序#<流程>`
+> BP：`BP-001`
 
 Desc：<简短中文描述>
 Given：<模块协作前状态>
@@ -678,8 +679,8 @@ Then：<可观察的模块契约、事务或事件传递结果>
 
 ##### AUTH-CON-EVENT-001
 
-> Req：`REQ-001-FR-001`
 > Design：`interface.md#契约索引`
+> FR：`REQ-001-FR-001`
 
 Desc：<简短中文描述>
 Given：<契约版本和输入>
@@ -696,8 +697,8 @@ Then：<可观察的字段、类型、错误结构、版本或兼容性结果>
 
 ##### AUTH-CONC-TOKEN-001
 
-> Req：`REQ-001-BR-003`
 > Design：`data-access.md#并发控制`
+> BR：`REQ-001-BR-003`
 
 Desc：<简短中文描述>
 Given：<并发操作前状态>
@@ -714,8 +715,9 @@ Then：<唯一可接受的最终状态、幂等、冲突或事务隔离结果>
 
 ##### AUTH-E2E-LOGIN-001
 
+> Design：`interface.md#操作定义#登录`
 > BP：`BP-001`
-> Req：`REQ-001-AC-001`
+> AC：`REQ-001-AC-001`
 
 Desc：<简短中文描述>
 Given：<完整测试环境和业务前置状态>
@@ -769,13 +771,16 @@ Then：<跨组件可观察的最终结果>
   | 契约测试 | `CON` |
   | 并发测试 | `CONC` |
   | 端到端测试 | `E2E` |
-- 每个用例先在连续的 Markdown 引用行中写可选的 `BP`、`Req`、`Design`，再依次写必需的
+- 每个用例先在连续的 Markdown 引用行中写必需的 `Design`，再按需写可选的 `BP`、`BR`、`FR`、`AC`，
+  然后依次写必需的
   `Desc`、`Given`、`When`、`Then`，字段名统一使用英文和全角冒号。`Desc` 是不含编号的
   简短中文描述；四个字段连续书写，彼此之间不留空行。测试代码中的用例描述使用
   “`<用例编号> <Desc>`”。
-- `BP`、`Req`、`Design` 中至少存在一项。`BP` 只引用系统 `process.md` 中实际存在的跨组件
-  业务流程，`Req` 引用实际需求项，`Design` 使用“`<文件>#<章节>#<子章节>`”引用实际设计位置；
-  存在多个引用时使用顿号分隔，不适用时省略该引用行。
+- `Design` 使用“`<文件>#<章节>#<子章节>`”引用实际设计位置。`BP` 只引用系统 `process.md`
+  中实际存在的跨组件业务流程，`BR`、`FR`、`AC` 分别引用对应类型的实际需求项；多个编号使用
+  顿号分隔，不适用的可选引用行直接省略。
+- 只引用当前测试直接验证的 BP、BR、FR 或 AC，不因 BP、FR 和 AC 的上游关系自动展开全部关联。
+  组件测试不引用 TC；Requirement TC 只由全局 `[test]` 实现。
 - `Given` 只描述执行前状态、输入和依赖，`When` 只描述一个公开行为、应用用例或协议入口，
   `Then` 只描述可观察结果；多个结果使用项目符号列表。
 - Domain 测试使用真实领域对象且不访问外部资源；Application 测试只替换 Repository、外部
