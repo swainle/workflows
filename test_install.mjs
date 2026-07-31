@@ -443,6 +443,13 @@ test("plans the component test structure before implementing tests", () => {
   assert.match(component, /一个用例只描述一个主要行为/);
   assert.match(component, /消息发布行为由集成测试验证，Schema 兼容性由契约测试/);
   assert.match(component, /只有两个以上测试文件复用时才提取为共享文件/);
+  assert.match(component, /`Src` 是组件应用目录下测试文件的精确相对路径/);
+  assert.match(component, /完整文件树必须逐个包含所有 `Src`/);
+  assert.match(component, /没有现有约定时使用小写英文\s*`kebab-case` 主题名和该工具链的原生测试后缀/);
+  assert.match(component, /`appointment\.test\.ts`、`cancel-booking\.test\.ts`/);
+  assert.match(component, /不使用\s*`booking-service\.test\.ts` 或 `BOOKING-APP-CANCEL-001\.test\.ts`/);
+  assert.match(component, /公开入口、fixture 生命周期或外部依赖不同\s*时拆分文件/);
+  assert.match(component, /同步更新完整文件树和引用该文件的全部 `Src`/);
   assert.match(component, /测试运行器配置、初始化文件和实际测试命令入口必须出现在完整文件树中/);
   assert.match(component, /`testing\.md` 必须包含“测试命令”章节/);
   assert.match(component, /没有既有测试工具链时默认\s*使用 `pnpm` 和 Vitest/);
@@ -463,6 +470,8 @@ test("plans the component test structure before implementing tests", () => {
   assert.match(testing, /用例编号必须符合 `component\.md` 的对象或能力命名规则/);
   assert.match(testing, /不在测试实现阶段擅自改号/);
   assert.match(testing, /验证必填的 `Design`、`Src` 以及可选的 `BP`、`BR`、`FR`、`AC` 实际存在且类型正确/);
+  assert.match(testing, /`Src` 必须与 `component\.md` 完整文件树中的精确测试文件路径一致/);
+  assert.match(testing, /不得自行选择替代路径、移动或重命名 `Src`/);
   assert.match(testing, /不同公开操作、成功与失败分支或独立边界场景合并/);
   assert.match(testing, /接口测试代码放入 `test\/integration\/api\/`/);
   assert.match(testing, /测试报告和覆盖率报告只按用户需要手动导出/);
@@ -483,6 +492,7 @@ test("plans the component test structure before implementing tests", () => {
   assert.match(backend, /\| Infrastructure 纯逻辑测试 \| `INF` \| 纯逻辑技术能力 \|/);
   assert.match(backend, /消息发布或消费行为由集成测试验证，Schema 结构与版本兼容性由契约测试验证/);
   assert.match(backend, /> Src：`test\/integration\/api\/http\/login\.test\.ts`/);
+  assert.match(backend, /`component\.md` 的完整文件树必须逐个包含所有\s*`Src`/);
   assert.match(backend, /`testing\.md` 只索引项目真实存在的命令/);
   assert.match(backend, /测试报告和覆盖率报告按需由用户手动导出/);
   assert.match(readme, /`component\.md` 的完整文件树同时规划 Fixture、测试支持、单元、集成和并发测试/);
