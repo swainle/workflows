@@ -98,7 +98,7 @@ Backend 模式完整读取 `templates/backend-design.template.md`，按“C3 →
 组件 `testing.md` 开头用一句话说明语言和实际工具链，以测试大类作为二级标题并以用例编号作为
 三级标题；每个用例在引用块中记录必填的 Design、Src 和可选的 BP/BR/FR/AC，以 Desc 和 Given–When–Then 描述
 单一主要行为；编号使用 DOM、APP、INF、API、INT、CON、CONC 或 E2E 标识实际测试分类，
-不创建用例总表。文档按测试层级
+第三段描述稳定对象或业务行为而不重复限界上下文或实现类型，不创建用例总表。文档按测试层级
 记录可执行命令、前置条件和执行范围；JavaScript 和 TypeScript 组件没有既有测试工具链时默认
 使用 `pnpm` 和 Vitest，已有有效工具链时沿用现状。测试报告和覆盖率报告按需手动导出。
 接口测试归入集成测试，按 HTTP、异步消息或 RPC 入口引用机器可读契约，并使用

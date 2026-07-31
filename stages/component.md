@@ -233,18 +233,22 @@ Command、Handler、Factory、DomainService 或 DomainEvent。
 - `testing.md` 以“单元测试、集成测试、契约测试、并发测试、端到端测试”作为二级标题，
   每个测试用例直接使用只含用例编号的三级标题；不再按测试层级、测试文件或测试对象增加标题。
 - 用例编号格式为“`<限界上下文>-<测试层级>-<对象或能力>-<三位序号>`”，在组件内唯一且
-  保持稳定，删除后不复用；测试层级缩写必须与用例所在分类一致：
+  保持稳定，删除后不复用；限界上下文和对象或能力使用大写英文 `KEBAB-CASE`，序号在相同
+  “限界上下文 + 测试层级 + 对象或能力”前缀内从 `001` 递增。测试层级缩写及第三段含义如下：
 
-  | 类型 | 缩写 |
-  |---|---|
-  | Domain 单元测试 | `DOM` |
-  | Application 单元测试 | `APP` |
-  | Infrastructure 纯逻辑测试 | `INF` |
-  | 接口集成测试 | `API` |
-  | 其他集成测试 | `INT` |
-  | 契约测试 | `CON` |
-  | 并发测试 | `CONC` |
-  | 端到端测试 | `E2E` |
+  | 类型 | 缩写 | 对象或能力 |
+  |---|---|---|
+  | Domain 单元测试 | `DOM` | 聚合、实体、值对象或领域规则 |
+  | Application 单元测试 | `APP` | Command、Query 或应用用例 |
+  | Infrastructure 纯逻辑测试 | `INF` | 纯逻辑技术能力 |
+  | 接口集成测试 | `API` | 接口操作或公开能力 |
+  | 其他集成测试 | `INT` | Repository、Adapter 或协作边界 |
+  | 契约测试 | `CON` | 契约对象 |
+  | 并发测试 | `CONC` | 并发行为或竞争资源 |
+  | 端到端测试 | `E2E` | 组件内完整业务链路 |
+- 对象或能力不重复限界上下文，也不使用 `SERVICE`、`HANDLER`、`CONTROLLER` 等实现类型填充。
+  Application 测试使用 `CREATE`、`CANCEL`、`GET-DETAIL` 等应用用例，例如使用
+  `BOOKING-APP-CANCEL-001`，不使用 `BOOKING-APP-BOOKING-SERVICE-001`。
 - 每个用例先在连续的 Markdown 引用行中写必需的 `Design` 和 `Src`，再按需写可选的 `BP`、`BR`、`FR`、`AC`，
   然后依次写必需的
   `Desc`、`Given`、`When`、`Then`；字段名统一使用英文和全角冒号，四个字段连续书写且
