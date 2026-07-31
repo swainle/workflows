@@ -536,17 +536,10 @@ flowchart LR
 
 ## 单元测试
 
-### Domain 测试
-
-路径：`<领域单元测试目录>`
-
-#### appointment.test.ts
-
-测试对象：`Appointment` 聚合的取消和完成状态转换。
-
-##### BOOKING-DOM-APPOINTMENT-001
+### BOOKING-DOM-APPOINTMENT-001
 
 > Design：`ddd.md#预约#状态图#Appointment`
+> Src：`test/unit/domain/appointment.test.ts`
 > BR：`REQ-001-BR-002`
 > AC：`REQ-001-AC-008`
 
@@ -555,17 +548,10 @@ Given：预约处于 `pending`。
 When：调用 `cancel()`。
 Then：预约状态变为 `cancelled`，并产生可观察的取消结果。
 
-### Application 测试
-
-路径：`<应用单元测试目录>`
-
-#### <应用单元测试文件>
-
-测试对象：`<应用服务、Command Handler 或 Query Handler>`
-
-##### AUTH-APP-LOGIN-001
+### AUTH-APP-LOGIN-001
 
 > Design：`ddd.md#认证#关键时序#登录`
+> Src：`test/unit/application/login.test.ts`
 > BP：`BP-001`
 > FR：`REQ-001-FR-001`
 
@@ -574,17 +560,10 @@ Given：<聚合、Port 返回值和当前用户等前置条件>
 When：<执行一个应用用例>
 Then：<可观察的输出、状态、错误或必要副作用>
 
-### Infrastructure 纯逻辑测试
-
-路径：`<基础设施纯逻辑单元测试目录>`
-
-#### <基础设施纯逻辑测试文件>
-
-测试对象：`<配置解析、查询条件构造或不访问外部资源的纯逻辑对象>`
-
-##### SHARED-INF-CONFIGURATION-001
+### SHARED-INF-CONFIGURATION-001
 
 > Design：`configuration.md#启动校验`
+> Src：`test/unit/infrastructure/configuration.test.ts`
 
 Desc：<简短中文描述>
 Given：<纯输入和配置前置条件>
@@ -593,17 +572,10 @@ Then：<可观察的返回值或稳定错误>
 
 ## 集成测试
 
-### 数据访问测试
-
-路径：`<数据访问集成测试目录>`
-
-#### <数据访问集成测试文件>
-
-测试对象：`<Repository 或数据访问实现>`
-
-##### AUTH-INT-SESSION-001
+### AUTH-INT-SESSION-001
 
 > Design：`data-access.md#Repository#SessionRepository`
+> Src：`test/integration/session-repository.test.ts`
 > BR：`REQ-001-BR-002`
 
 Desc：<简短中文描述>
@@ -611,36 +583,20 @@ Given：<真实数据库状态和迁移前置条件>
 When：<执行一个 Repository 操作>
 Then：<可观察的映射、约束、事务或并发结果>
 
-### Adapter 测试
-
-路径：`<Adapter 集成测试目录>`
-
-#### <Adapter 集成测试文件>
-
-测试对象：`<消息、缓存或第三方服务 Adapter>`
-
-##### AUTH-INT-ADAPTER-001
+### AUTH-INT-ADAPTER-001
 
 > Design：`interface.md#<章节>`
+> Src：`test/integration/adapter.test.ts`
 
 Desc：<简短中文描述>
 Given：<真实或受控外部边界状态>
 When：<执行一个 Adapter 公开操作>
 Then：<可观察的协议、序列化、超时、重试或错误转换结果>
 
-### 接口测试
-
-路径：`test/integration/api/<http、events 或 rpc>/`
-
-契约：`<OpenAPI、AsyncAPI 或 RPC IDL>`
-
-#### <接口集成测试文件>
-
-测试对象：`<operationId、AsyncAPI operation 或 RPC 方法>`
-
-##### AUTH-API-LOGIN-001
+### AUTH-API-LOGIN-001
 
 > Design：`interface.md#操作定义#登录`
+> Src：`test/integration/api/http/login.test.ts`
 > BP：`BP-001`
 > FR：`REQ-001-FR-001`
 
@@ -649,17 +605,10 @@ Given：<入口调用前状态和输入>
 When：<通过真实 HTTP、异步消息或 RPC 入口调用组件>
 Then：<可观察的响应、状态码、错误码、消息或必要副作用>
 
-### 模块协作测试
-
-路径：`<模块集成测试目录>`
-
-#### <模块集成测试文件>
-
-测试对象：`<参与模块或限界上下文>`
-
-##### AUTH-INT-MODULE-001
+### AUTH-INT-MODULE-001
 
 > Design：`ddd.md#认证#关键时序#<流程>`
+> Src：`test/integration/module-login.test.ts`
 > BP：`BP-001`
 
 Desc：<简短中文描述>
@@ -669,17 +618,10 @@ Then：<可观察的模块契约、事务或事件传递结果>
 
 ## 契约测试
 
-路径：`<契约测试目录>`
-
-契约：`<机器可读契约>`
-
-#### <契约测试文件>
-
-测试对象：`<提供方与消费方>`
-
-##### AUTH-CON-EVENT-001
+### AUTH-CON-EVENT-001
 
 > Design：`interface.md#契约索引`
+> Src：`test/contract/auth-event.test.ts`
 > FR：`REQ-001-FR-001`
 
 Desc：<简短中文描述>
@@ -689,15 +631,10 @@ Then：<可观察的字段、类型、错误结构、版本或兼容性结果>
 
 ## 并发测试
 
-路径：`<并发测试目录>`
-
-#### <并发测试文件>
-
-测试对象：`<聚合、应用服务或 Repository>`
-
-##### AUTH-CONC-TOKEN-001
+### AUTH-CONC-TOKEN-001
 
 > Design：`data-access.md#并发控制`
+> Src：`test/concurrency/token.test.ts`
 > BR：`REQ-001-BR-003`
 
 Desc：<简短中文描述>
@@ -707,15 +644,10 @@ Then：<唯一可接受的最终状态、幂等、冲突或事务隔离结果>
 
 ## 端到端测试
 
-路径：`<端到端测试目录>`
-
-#### <端到端测试文件>
-
-测试对象：`<跨组件核心业务链路>`
-
-##### AUTH-E2E-LOGIN-001
+### AUTH-E2E-LOGIN-001
 
 > Design：`interface.md#操作定义#登录`
+> Src：`test/e2e/login.test.ts`
 > BP：`BP-001`
 > AC：`REQ-001-AC-001`
 
@@ -755,10 +687,9 @@ Then：<跨组件可观察的最终结果>
 - 开头只用一句话说明当前语言、运行时、构建或包管理工具和测试框架，不创建语言映射表或
   测试用例总表；沿用项目现有有效工具链，JavaScript 和 TypeScript 没有现有工具链时默认
   使用 `pnpm` 和 Vitest。
-- 单元测试只按 Domain、Application 和 Infrastructure 纯逻辑分类；配置解析、查询条件构造
-  等不访问外部资源的技术逻辑归入 Infrastructure，不为单个文件创建“数据”等额外分类。
-- 每个测试文件使用不带反引号的四级标题并记录测试对象；每个测试用例使用只含用例编号且不带
-  反引号的五级标题。编号格式为“`<限界上下文>-<测试层级>-<对象或能力>-<三位序号>`”，
+- 测试大类只使用“单元测试、集成测试、契约测试、并发测试、端到端测试”二级标题；
+  每个测试用例直接使用只含用例编号且不带反引号的三级标题，不增加测试层级、文件或对象标题。
+- 编号格式为“`<限界上下文>-<测试层级>-<对象或能力>-<三位序号>`”，
   编号在组件内唯一且稳定，删除后不复用。测试层级缩写必须与用例所在分类一致：
 
   | 类型 | 缩写 |
@@ -771,12 +702,13 @@ Then：<跨组件可观察的最终结果>
   | 契约测试 | `CON` |
   | 并发测试 | `CONC` |
   | 端到端测试 | `E2E` |
-- 每个用例先在连续的 Markdown 引用行中写必需的 `Design`，再按需写可选的 `BP`、`BR`、`FR`、`AC`，
+- 每个用例先在连续的 Markdown 引用行中写必需的 `Design` 和 `Src`，再按需写可选的 `BP`、`BR`、`FR`、`AC`，
   然后依次写必需的
   `Desc`、`Given`、`When`、`Then`，字段名统一使用英文和全角冒号。`Desc` 是不含编号的
   简短中文描述；四个字段连续书写，彼此之间不留空行。测试代码中的用例描述使用
   “`<用例编号> <Desc>`”。
-- `Design` 使用“`<文件>#<章节>#<子章节>`”引用实际设计位置。`BP` 只引用系统 `process.md`
+- `Design` 使用“`<文件>#<章节>#<子章节>`”引用实际设计位置。`Src` 使用组件应用目录下的
+  测试文件相对路径，同一文件包含多个用例时在每个用例中重复记录。`BP` 只引用系统 `process.md`
   中实际存在的跨组件业务流程，`BR`、`FR`、`AC` 分别引用对应类型的实际需求项；多个编号使用
   顿号分隔，不适用的可选引用行直接省略。
 - 只引用当前测试直接验证的 BP、BR、FR 或 AC，不因 BP、FR 和 AC 的上游关系自动展开全部关联。
