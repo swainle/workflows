@@ -12,7 +12,7 @@
 - 保留用户已有修改，不重置、不清理、不顺手修改无关内容。
 - 本地文件的创建、读取、修改和删除只按当前阶段的操作权限表执行。
 - 每个阶段的操作权限表必须以 `**` 全部禁止作为默认规则；只有表中更具体的路径可以开放操作。
-- 阶段按“需求 → system → 组件设计 → dev → test → deploy”串行；当前阶段只读前置阶段和本阶段文件，只增删改本阶段文件。
+- 阶段按“需求 → system → 组件设计 → dev → 组件 test → 全局 test → deploy”串行；当前阶段只读前置阶段和本阶段文件，只增删改本阶段文件。
 - 路径必须在授权目录内，不包含 `..`，不得通过符号链接跳出范围。
 
 ## 语言规则
@@ -111,6 +111,7 @@ Issue #123 → docs/requirements/REQ-123-<slug>/
 
 ```text
 [system]         全局架构、技术和开发约定
+[test]           跨组件验收测试及执行
 [deploy]         组件构建、全局编排、CI/CD、发布和回滚
 [deploy] <组件>  当前组件的开发基础设施、初始化和启动说明
 ```
@@ -118,13 +119,23 @@ Issue #123 → docs/requirements/REQ-123-<slug>/
 `[deploy] <组件>` 中的组件名必须精确匹配 `docs/system/c2.md` 组件清单；
 该指令按 `stages/deploy.md` 更新组件开发配置，不是生产部署，也不创建升级方案。
 
+全局验收测试使用：
+
+```text
+[test] <验收任务>
+```
+
+`[test]` 根据需求 TC、AC 和系统 BP 维护并执行 `test/acceptance/**` 中的跨组件验收测试；
+它不替代 `[<组件> test]` 的组件单元、集成、接口、契约或并发测试。
+精确的 `[test]` 是保留的全局指令，必须优先于 `[<组件>]` 解析，不得把 `test` 当作组件名。
+
 部署升级方案使用：
 
 ```text
 [deploy] update <升级内容>
 ```
 
-只有明确包含 `update` 的 `[deploy]` 指令才在 `docs/deploy/update/` 生成一份系统升级方案；
+只有明确包含 `update` 的 `[deploy]` 指令才在 `deploy/update/` 生成一份系统升级方案；
 其他 `[deploy]` 指令处理构建、发布、部署、检查、回滚和恢复等运维任务，不生成升级方案。
 
 未知方括号指令或普通自然语言任务不套用本工作流，按宿主项目规则处理。
@@ -139,6 +150,7 @@ Issue #123 → docs/requirements/REQ-123-<slug>/
 | `[<组件>]` | `docs/workflows/stages/component.md` |
 | `[<组件> dev]` | `docs/workflows/stages/development.md` |
 | `[<组件> test]` | `docs/workflows/stages/testing.md` |
+| `[test]` | `docs/workflows/stages/acceptance.md` |
 | `[system]` | `docs/workflows/stages/system.md` |
 | `[deploy]` | `docs/workflows/stages/deploy.md` |
 
@@ -166,15 +178,17 @@ Issue #123 → docs/requirements/REQ-123-<slug>/
 ## 本地事实来源
 
 ```text
-docs/**                        需求、规范、契约和部署方式
+docs/**                        需求、规范和契约
 apps/**                        当前实际实现
 <组件应用目录>/test/**         自动化测试实现
+test/acceptance/**             跨组件验收测试实现
+deploy/**                      全局部署与运维配置
 Git                            文件历史
 测试和 CI 输出                 执行证据
 ```
 
 - 每个阶段只使用操作权限表允许读取的本地事实。
-- 开发、测试和部署按串行顺序读取前置阶段产物，不反向读取后置阶段文件。
+- 开发、组件测试、全局验收和部署按串行顺序读取前置阶段产物，不反向读取后置阶段文件。
 - 不通过修改规范掩盖实现问题，也不通过降低断言掩盖测试失败。
 - 单次讨论、开发过程、测试输出和部署日志不写入 `docs/**`。
 

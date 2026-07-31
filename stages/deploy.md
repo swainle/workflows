@@ -18,8 +18,8 @@
 | `apps/**` | 禁止 | 允许 | 禁止 | 禁止 |
 | `apps/*/Dockerfile` | 允许 | 允许 | 允许 | 允许 |
 | `apps/*/deploy/**` | 允许 | 允许 | 允许 | 允许 |
-| `docs/deploy/**` | 允许 | 允许 | 允许 | 允许 |
-| `docs/deploy/update/*.md` | 允许 | 允许 | 允许 | 禁止 |
+| `deploy/**` | 允许 | 允许 | 允许 | 允许 |
+| `deploy/update/*.md` | 允许 | 允许 | 允许 | 禁止 |
 | `.github/workflows/**` | 允许 | 允许 | 允许 | 允许 |
 
 允许读取目标环境信息、构建和 CI 输出。
@@ -34,13 +34,13 @@
 |---|---|---|---|
 | `apps/*/Dockerfile` | 组件镜像构建 | 组件使用容器镜像 | 构建阶段、运行时和健康检查 |
 | `apps/*/deploy/**` | 组件部署资源 | 组件存在专用部署资源 | 组件清单、脚本和配置模板 |
-| `runbook.md` | 长期部署与运维规范 | 始终 | 组件、开发、环境与配置、构建与发布方式 |
-| `update/*.md` | 单次正式系统升级方案 | 仅 `[deploy] update` | 部署检查、备份、迁移、部署、回滚和恢复 |
-| `compose.yml` | 服务编排 | 使用 Compose | 服务、网络、卷和健康检查 |
-| `init/**` | 开发基础设施初始化 | 基础设施需要显式初始化 | 幂等初始化脚本和配置 |
-| `dev.env` | 开发环境变量模板 | 存在开发环境变量 | 变量名和安全占位符 |
-| `test.env` | 测试环境变量模板 | 存在测试环境变量 | 变量名和安全占位符 |
-| `prod.env` | 生产环境变量模板 | 存在生产环境变量 | 变量名和安全占位符 |
+| `deploy/runbook.md` | 长期部署与运维规范 | 始终 | 组件、开发、环境与配置、构建与发布方式 |
+| `deploy/update/*.md` | 单次正式系统升级方案 | 仅 `[deploy] update` | 部署检查、备份、迁移、部署、回滚和恢复 |
+| `deploy/compose.yml` | 服务编排 | 使用 Compose | 服务、网络、卷和健康检查 |
+| `deploy/init/**` | 开发基础设施初始化 | 基础设施需要显式初始化 | 幂等初始化脚本和配置 |
+| `deploy/dev.env` | 开发环境变量模板 | 存在开发环境变量 | 变量名和安全占位符 |
+| `deploy/test.env` | 测试环境变量模板 | 存在测试环境变量 | 变量名和安全占位符 |
+| `deploy/prod.env` | 生产环境变量模板 | 存在生产环境变量 | 变量名和安全占位符 |
 | `.github/workflows/*` | CI/CD 自动化 | 使用 GitHub Actions | 构建、测试、发布和部署工作流 |
 
 环境文件不得包含真实密钥、令牌、证书、密码或生产凭据。
@@ -58,7 +58,9 @@
 
 ## Runbook 格式
 
-`docs/deploy/runbook.md` 保存长期有效且可重复执行的内容：
+全局部署文件统一位于项目根目录的 `deploy/`；`apps/*/deploy/**` 仅保存组件专属部署资源。
+
+`deploy/runbook.md` 保存长期有效且可重复执行的内容：
 
 ```md
 # 部署与运维手册
@@ -85,10 +87,10 @@
 依赖 <基础设施名称列表>。
 
 ```bash
-cd docs/deploy
+cd deploy
 
 # 准备环境变量
-cp dev.env <组件应用目录相对docs/deploy的路径>/.env
+cp dev.env <组件应用目录相对deploy的路径>/.env
 cp dev.env .env
 
 # 拉起基础设施
@@ -98,22 +100,22 @@ docker compose up -d <依赖服务名>
 docker compose up -d <初始化服务名>
 
 # 启动组件
-pnpm --dir <组件应用目录相对docs/deploy的路径> dev
+pnpm --dir <组件应用目录相对deploy的路径> dev
 ```
 ````
 
 - `[deploy] <组件>` 只新增或更新该组件的 `### <组件>`，不改写其他组件的开发配置。
 - 组件名、应用目录和基础设施依赖从 `docs/system/c2.md` 读取，不根据名称猜测路径或服务。
-- 命令统一从仓库根执行并先进入 `docs/deploy/`；因此 Compose 使用默认的
+- 命令统一从仓库根执行并先进入 `deploy/`；因此 Compose 使用默认的
   `.env` 和 `compose.yml`，不重复传递 `--env-file` 或 `-f`。
-- 先将 `dev.env` 复制为 `docs/deploy/.env` 和组件应用目录的 `.env`；
+- 先将 `dev.env` 复制为 `deploy/.env` 和组件应用目录的 `.env`；
   Runbook 只提供命令，不自动执行或覆盖本地文件。
 - JavaScript 和 TypeScript 组件默认使用 `pnpm`；项目明确采用其他包管理器时使用项目实际命令。
 - 日常启动只拉起当前组件实际依赖的服务，不使用无目标的 `docker compose up -d`。
 - 需要显式初始化时使用独立的一次性 Compose 服务，名称优先为 `<基础设施>-init`，
   并在 Runbook 中标注“仅首次启动”；没有初始化步骤时省略该命令和注释。
 - 初始化服务在 `compose.yml` 中依赖目标服务健康、使用 `restart: "no"`，并引用
-  `docs/deploy/init/<基础设施>/` 中实际需要的脚本或配置。基础设施原生初始化机制足够时不额外创建 init 服务。
+  `deploy/init/<基础设施>/` 中实际需要的脚本或配置。基础设施原生初始化机制足够时不额外创建 init 服务。
 - Runbook 不复制 Compose 已维护的镜像、端口、网络、卷、健康检查或初始化实现。
 - 破坏性重置、删除卷或清空数据不属于首次初始化，不写入普通开发配置。
 
@@ -159,7 +161,7 @@ pnpm --dir <组件应用目录相对docs/deploy的路径> dev
 
 只有 `[deploy] update <升级内容>` 可以创建升级方案，规则如下：
 
-- 目录固定为 `docs/deploy/update/`。
+- 目录固定为 `deploy/update/`。
 - 一次系统升级只生成一份文件，所有受影响组件合并在同一方案中。
 - 文件名为 `<YYYYMMDDHHmmss>_<升级主题>.md`。
 - 升级主题根据指令内容生成小写英文 `kebab-case`，不强制包含版本号。
@@ -222,7 +224,7 @@ pnpm --dir <组件应用目录相对docs/deploy的路径> dev
 - 环境文件没有真实凭据。
 - 安全与可观测性部署配置落实系统和组件设计，没有复制或重新定义其规则。
 - `runbook.md` 的开发配置、环境文件表格、版本规则、构建和发布命令符合固定格式。
-- `[deploy] <组件>` 只更新目标组件的开发配置；命令从 `docs/deploy/` 执行，
+- `[deploy] <组件>` 只更新目标组件的开发配置；命令从 `deploy/` 执行，
   使用实际依赖服务、必要的首次初始化服务和项目包管理器。
 - `update/*.md` 仅由 `[deploy] update` 创建，文件名、时间戳、部署检查和顺序符合规则。
 - 一次系统升级只有一份方案，且没有写入执行状态、部署日志或验证结果。

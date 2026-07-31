@@ -259,6 +259,8 @@ Command、Handler、Factory、DomainService 或 DomainEvent。
 - BP 主要用于 Application、接口、模块协作和 E2E 测试；Domain、Repository、Adapter 和纯逻辑
   测试没有直接验证跨组件流程时省略 BP。消息发布行为由集成测试验证，Schema 兼容性由契约测试
   验证，不在两个层级重复相同断言。
+- 组件 `testing.md` 中的 E2E 只验证当前组件边界内的完整公开入口；需要启动或断言多个组件、
+  直接实现 Requirement TC 或验收跨组件 BP 的场景归全局 `[test]`，不在组件测试中重复规划。
 - 测试工具链和命令沿用组件现状；JavaScript 和 TypeScript 组件没有既有测试工具链时默认
   使用 `pnpm` 和 Vitest。`testing.md` 只索引项目真实存在的命令。
 - 测试报告和覆盖率报告按需由用户手动导出，不作为默认生成或提交的项目文件。

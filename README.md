@@ -7,7 +7,8 @@
 - 用 GitHub Issue 编号启动需求整理。
 - 按系统、组件、开发、测试和部署阶段路由任务。
 - 每个阶段用 `**` 显式禁止所有文件，再由更具体的 CRUD 规则按需开放。
-- 按“需求 → system → 组件设计 → dev → test → deploy”串行，只读前置产物，只修改当前阶段文件。
+- 按“需求 → system → 组件设计 → dev → 组件 test → 全局 test → deploy”串行，只读前置产物，只修改当前阶段文件。
+- 需求 TC 按 FR 集中在一个 `.feature` 文件中，每个 TC 独立为 Scenario 或 Scenario Outline。
 - 保留宿主项目已有的 `AGENTS.md` 规则。
 - 支持通过消息结尾控制只读、澄清、修改以及提交推送行为。
 - 默认使用中文回复、编写文档和测试描述；代码标识符保持项目既有风格，
@@ -58,6 +59,7 @@ Tag）时无法更新“当前分支”，需要通过 `--branch` 指定要切�
 [api] backend 设计组件
 [web dev] 调整登录按钮圆角
 [web test] 验证登录页面
+[test] 验收预约全流程
 [deploy] api
 [deploy] 检查生产部署配置
 [deploy] update 升级数据库
@@ -103,9 +105,11 @@ Backend 模式完整读取 `templates/backend-design.template.md`，按“C3 →
 `test/integration/api/` 下的对应协议子目录。
 `[<组件> test]` 只根据用户要求修改测试代码，不执行测试、覆盖率、Lint 或构建命令；
 完成时将测试标记为“未执行”，并列出用户可手动运行的相关命令。
+全局 `[test]` 直接使用需求 TC 作为稳定验收用例 ID，在 `test/acceptance/**` 中维护并执行
+跨组件验收测试，验证关联 AC 和 BP 的用户可观察结果；它不复制组件测试，也不默认导出报告。
 `[deploy] <组件>` 维护该组件的开发基础设施配置，例如 `[deploy] api` 会更新
 Runbook 中的 `### api`，并按实际需要维护 Compose、`dev.env` 和首次初始化配置；
-Runbook 命令从 `docs/deploy/` 执行，JavaScript 和 TypeScript 组件默认使用 `pnpm`。
+Runbook 命令从项目根目录的 `deploy/` 执行，JavaScript 和 TypeScript 组件默认使用 `pnpm`。
 
 消息最后一个字符决定执行方式：
 
