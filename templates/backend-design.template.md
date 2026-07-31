@@ -544,7 +544,7 @@ flowchart LR
 
 测试对象：`Appointment` 聚合的取消和完成状态转换。
 
-##### BOOKING-UNIT-APPOINTMENT-001
+##### BOOKING-DOM-APPOINTMENT-001
 
 > Req：`REQ-001-BR-002`、`REQ-001-AC-008`
 > Design：`ddd.md#预约#状态图#Appointment`
@@ -562,7 +562,7 @@ Then：预约状态变为 `cancelled`，并产生可观察的取消结果。
 
 测试对象：`<应用服务、Command Handler 或 Query Handler>`
 
-##### AUTH-UNIT-LOGIN-001
+##### AUTH-APP-LOGIN-001
 
 > BP：`BP-001`
 > Req：`REQ-001-FR-001`
@@ -581,7 +581,7 @@ Then：<可观察的输出、状态、错误或必要副作用>
 
 测试对象：`<配置解析、查询条件构造或不访问外部资源的纯逻辑对象>`
 
-##### SHARED-UNIT-CONFIGURATION-001
+##### SHARED-INF-CONFIGURATION-001
 
 > Design：`configuration.md#启动校验`
 
@@ -600,7 +600,7 @@ Then：<可观察的返回值或稳定错误>
 
 测试对象：`<Repository 或数据访问实现>`
 
-##### AUTH-INTEGRATION-SESSION-001
+##### AUTH-INT-SESSION-001
 
 > Req：`REQ-001-BR-002`
 > Design：`data-access.md#Repository#SessionRepository`
@@ -618,7 +618,7 @@ Then：<可观察的映射、约束、事务或并发结果>
 
 测试对象：`<消息、缓存或第三方服务 Adapter>`
 
-##### AUTH-INTEGRATION-ADAPTER-001
+##### AUTH-INT-ADAPTER-001
 
 > Design：`interface.md#<章节>`
 
@@ -637,7 +637,7 @@ Then：<可观察的协议、序列化、超时、重试或错误转换结果>
 
 测试对象：`<operationId、AsyncAPI operation 或 RPC 方法>`
 
-##### AUTH-INTEGRATION-LOGIN-001
+##### AUTH-API-LOGIN-001
 
 > BP：`BP-001`
 > Req：`REQ-001-FR-001`
@@ -656,7 +656,7 @@ Then：<可观察的响应、状态码、错误码、消息或必要副作用>
 
 测试对象：`<参与模块或限界上下文>`
 
-##### AUTH-INTEGRATION-MODULE-001
+##### AUTH-INT-MODULE-001
 
 > BP：`BP-001`
 > Design：`ddd.md#认证#关键时序#<流程>`
@@ -676,7 +676,7 @@ Then：<可观察的模块契约、事务或事件传递结果>
 
 测试对象：`<提供方与消费方>`
 
-##### AUTH-CONTRACT-EVENT-001
+##### AUTH-CON-EVENT-001
 
 > Req：`REQ-001-FR-001`
 > Design：`interface.md#契约索引`
@@ -694,7 +694,7 @@ Then：<可观察的字段、类型、错误结构、版本或兼容性结果>
 
 测试对象：`<聚合、应用服务或 Repository>`
 
-##### AUTH-CONCURRENCY-TOKEN-001
+##### AUTH-CONC-TOKEN-001
 
 > Req：`REQ-001-BR-003`
 > Design：`data-access.md#并发控制`
@@ -757,8 +757,18 @@ Then：<跨组件可观察的最终结果>
   等不访问外部资源的技术逻辑归入 Infrastructure，不为单个文件创建“数据”等额外分类。
 - 每个测试文件使用不带反引号的四级标题并记录测试对象；每个测试用例使用只含用例编号且不带
   反引号的五级标题。编号格式为“`<限界上下文>-<测试层级>-<对象或能力>-<三位序号>`”，
-  测试层级使用 `UNIT`、`INTEGRATION`、`CONTRACT`、`CONCURRENCY` 或 `E2E`；编号在组件内
-  唯一且稳定，删除后不复用。
+  编号在组件内唯一且稳定，删除后不复用。测试层级缩写必须与用例所在分类一致：
+
+  | 类型 | 缩写 |
+  |---|---|
+  | Domain 单元测试 | `DOM` |
+  | Application 单元测试 | `APP` |
+  | Infrastructure 纯逻辑测试 | `INF` |
+  | 接口集成测试 | `API` |
+  | 其他集成测试 | `INT` |
+  | 契约测试 | `CON` |
+  | 并发测试 | `CONC` |
+  | 端到端测试 | `E2E` |
 - 每个用例先在连续的 Markdown 引用行中写可选的 `BP`、`Req`、`Design`，再依次写必需的
   `Desc`、`Given`、`When`、`Then`，字段名统一使用英文和全角冒号。`Desc` 是不含编号的
   简短中文描述；四个字段连续书写，彼此之间不留空行。测试代码中的用例描述使用

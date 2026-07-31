@@ -233,8 +233,18 @@ Command、Handler、Factory、DomainService 或 DomainEvent。
 - `testing.md` 的每个测试分类先写目录路径，每个测试文件使用四级标题并记录测试对象；
   每个测试用例使用只含用例编号的五级标题，不使用反引号包裹标题。
 - 用例编号格式为“`<限界上下文>-<测试层级>-<对象或能力>-<三位序号>`”，在组件内唯一且
-  保持稳定，删除后不复用；测试层级使用 `UNIT`、`INTEGRATION`、`CONTRACT`、
-  `CONCURRENCY` 或 `E2E`。
+  保持稳定，删除后不复用；测试层级缩写必须与用例所在分类一致：
+
+  | 类型 | 缩写 |
+  |---|---|
+  | Domain 单元测试 | `DOM` |
+  | Application 单元测试 | `APP` |
+  | Infrastructure 纯逻辑测试 | `INF` |
+  | 接口集成测试 | `API` |
+  | 其他集成测试 | `INT` |
+  | 契约测试 | `CON` |
+  | 并发测试 | `CONC` |
+  | 端到端测试 | `E2E` |
 - 每个用例先在 Markdown 引用块中写可选的 `BP`、`Req`、`Design`，再依次写必需的
   `Desc`、`Given`、`When`、`Then`；字段名统一使用英文和全角冒号，四个字段连续书写且
   彼此之间不留空行。
