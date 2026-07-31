@@ -285,15 +285,16 @@ test("configures component development infrastructure with deploy targets", () =
   assert.match(readme, /JavaScript 和 TypeScript 组件默认使用 `pnpm`/);
 });
 
-test("groups requirement test scenarios by feature", () => {
+test("groups requirement test scenarios by acceptance criterion", () => {
   const requirement = readFileSync(path.join(WORKFLOW_ROOT, "stages/requirement.md"), "utf8");
   assert.doesNotMatch(requirement, /`(business|acceptance|permission|migration)\.md`/);
   for (const type of ["BR", "FLOW", "AC", "PERM", "MIG"]) {
     assert.match(requirement, new RegExp(`items/REQ-001-${type}-001\\.md`));
   }
-  assert.match(requirement, /features\/REQ-001-FR-001\.feature/);
-  assert.match(requirement, /一个 `\.feature` 文件对应一个 FR/);
+  assert.match(requirement, /features\/REQ-001-AC-001\.feature/);
+  assert.match(requirement, /一个 `\.feature` 文件对应一个 AC/);
   assert.match(requirement, /一个 TC 对应一个 `Scenario` 或 `Scenario Outline`/);
+  assert.match(requirement, /每个 TC 只归属一个 AC/);
   assert.match(requirement, /成功、失败、权限或具有独立业务意义的边界情况使用不同 TC/);
   assert.match(requirement, /Examples 行只是该 TC 的数据变体，不创建新的 TC 编号/);
   assert.doesNotMatch(requirement, /每个 TC 写入 `items\/` 中的同编号 `\.feature` 文件/);
@@ -497,6 +498,7 @@ test("separates global acceptance from component tests", () => {
   assert.match(acceptance, /^# `\[test\]` 全局验收测试/m);
   assert.match(acceptance, /Requirement TC 是验收测试的稳定用例 ID/);
   assert.match(acceptance, /不创建第二套验收编号/);
+  assert.match(acceptance, /验证其唯一归属的 AC/);
   assert.match(acceptance, /Scenario Outline 的 Examples 行是同一 TC 的数据变体/);
   assert.match(acceptance, /TC → AC → BP → 入口 → 可观察结果/);
   assert.match(acceptance, /从真实 HTTP、UI、异步消息或 RPC 入口执行/);

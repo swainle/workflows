@@ -44,7 +44,7 @@
 
 - Requirement TC 是验收测试的稳定用例 ID；测试代码中的用例描述使用
   “`<REQ-三位编号-TC-三位序号> <Scenario 名称>`”，不创建第二套验收编号。
-- 每个验收测试直接引用一个 TC Scenario 或 Scenario Outline，并验证其关联 AC；测试实现不合并
+- 每个验收测试直接引用一个 TC Scenario 或 Scenario Outline，并验证其唯一归属的 AC；测试实现不合并
   多个 TC。Scenario Outline 的 Examples 行是同一 TC 的数据变体，可由测试运行器展开执行。
 - 使用 TC 的 Given、When、Then 作为场景步骤，以关联 BP 的参与者、组件顺序、成功和失败结果
   作为跨组件边界；BP 不重新定义 BR，业务判断仍以关联需求项为准。

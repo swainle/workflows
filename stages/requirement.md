@@ -59,7 +59,7 @@ docs/requirements/REQ-001-<slug>/
 │  ├─ REQ-001-PERM-001.md
 │  └─ REQ-001-MIG-001.md
 └─ features/
-   └─ REQ-001-FR-001.feature
+   └─ REQ-001-AC-001.feature
 ```
 
 | 文件 | 作用 | 创建条件 | 可修改内容 |
@@ -70,10 +70,10 @@ docs/requirements/REQ-001-<slug>/
 | `items/REQ-001-AC-001.md` | 单条验收条件 | 存在该 AC | 与文件编号一致的一个 AC |
 | `items/REQ-001-PERM-001.md` | 单条权限规则 | 存在该 PERM | 与文件编号一致的一个 PERM |
 | `items/REQ-001-MIG-001.md` | 单条迁移需求 | 存在该 MIG | 与文件编号一致的一个 MIG |
-| `features/REQ-001-FR-001.feature` | 一个 FR 的端到端验收场景 | FR 存在 TC | 该 FR 关联的全部 TC |
+| `features/REQ-001-AC-001.feature` | 一个 AC 的端到端验收场景 | AC 存在 TC | 该 AC 关联的全部 TC |
 
 `items/` 中每个文件只定义一个与文件名相同的编号，不在文件名追加标题或 slug。
-`features/` 中每个文件只定义文件名对应 FR 的 TC，不混入其他 FR 的场景。
+`features/` 中每个文件只定义文件名对应 AC 的 TC，不混入其他 AC 的场景。
 不创建空文件、空目录，也不创建状态、讨论、开发或验证记录文件。
 
 ## 固定格式
@@ -140,7 +140,7 @@ flowchart LR
     click FR001 "./requirement.md#req-001-fr-001" "查看 REQ-001-FR-001"
     click FLOW001 "./items/REQ-001-FLOW-001.md" "查看 REQ-001-FLOW-001"
     click AC001 "./items/REQ-001-AC-001.md" "查看 REQ-001-AC-001"
-    click TC001 "./features/REQ-001-FR-001.feature" "查看 REQ-001-TC-001"
+    click TC001 "./features/REQ-001-AC-001.feature" "查看 REQ-001-TC-001"
 ```
 ````
 
@@ -155,7 +155,7 @@ flowchart LR
 - 节点 ID 使用类型和序号，如 `FR001`；节点文字使用完整编号和简短标题。
 - 同一编号影响多个 FR 时允许出现在多张局部图中。
 - 每个节点必须使用 `click` 指向其定义；FR 和 NFR 指向 `requirement.md` 中的显式锚点，
-  TC 指向其所属 FR 的 `features/REQ-001-FR-001.feature`，其他类型指向 `items/` 中的同编号文件。
+  TC 指向其所属 AC 的 `features/REQ-001-AC-001.feature`，其他类型指向 `items/` 中的同编号文件。
 - BR → FR 表示行为约束；PERM → FR 表示访问控制，只限制具体步骤时改为 PERM → FLOW。
 - NFR → FR 表示质量要求；作用于整个系统的 NFR 不在每张局部图重复。
 - MIG -.-> FR 表示条件性上线依赖，仅在不完成迁移就无法交付该 FR 时绘制。
@@ -252,21 +252,20 @@ flowchart TD
 
 ### TC
 
-每个 FR 的全部 TC 写入 `features/` 中以 FR 编号命名的 `.feature` 文件：
+每个 AC 的全部 TC 写入 `features/` 中以 AC 编号命名的 `.feature` 文件：
 
 ```gherkin
+@REQ-001-AC-001
 @REQ-001-FR-001
-Feature: <业务能力>
+Feature: <验收目标>
 
   @REQ-001-TC-001
-  @REQ-001-AC-001
   Scenario: <成功、失败、权限或独立边界场景>
     Given <前置事实>
     When <一个主要动作>
     Then <可验证结果>
 
   @REQ-001-TC-002
-  @REQ-001-AC-002
   Scenario Outline: <仅输入数据和期望值变化的场景>
     Given <包含参数的前置事实>
     When <同一个主要动作>
@@ -278,9 +277,10 @@ Feature: <业务能力>
       | <值二> | <结果二> |
 ```
 
-- 一个 `.feature` 文件对应一个 FR，Feature 的第一条 Tag 必须与文件名的 FR 编号一致。
-- 一个 TC 对应一个 `Scenario` 或 `Scenario Outline`；场景的第一条 Tag 必须是该 TC 编号，并关联
-  至少一个实际存在的 AC。同一个 TC 不得跨文件重复定义，每个 TC 只关联一个 FR。
+- 一个 `.feature` 文件对应一个 AC，Feature 的第一条 Tag 必须与文件名的 AC 编号一致，并使用
+  后续 Tag 关联该 AC 实际所属的 FR。
+- 一个 TC 对应一个 `Scenario` 或 `Scenario Outline`；场景的第一条 Tag 必须是该 TC 编号。
+  同一个 TC 不得跨文件重复定义，每个 TC 只归属一个 AC。
 - 成功、失败、权限或具有独立业务意义的边界情况使用不同 TC，不合并到同一个 Scenario。
 - 只有 Given、When、Then 结构相同且仅输入数据和期望值变化时才使用 `Scenario Outline`；
   每个 Examples 行只是该 TC 的数据变体，不创建新的 TC 编号。
@@ -351,6 +351,6 @@ Feature: <业务能力>
 - 每个 FR 正文后直接跟随一张局部 Mermaid 图。
 - 每个 FR 至少关联 FLOW、AC 和 TC。
 - `items/` 中每个文件只定义一个编号，文件名、标题和内容编号一致。
-- 每个 `features/REQ-001-FR-001.feature` 只包含该 FR 的 TC，每个 TC 只定义一次且场景 Tag 正确。
+- 每个 `features/REQ-001-AC-001.feature` 只包含该 AC 的 TC，每个 TC 只归属一个 AC、只定义一次且场景 Tag 正确。
 - 所有编号、锚点、点击目标、引用和 `.feature` Tag 均存在且一致。
 - 没有创建空文件或过程记录。

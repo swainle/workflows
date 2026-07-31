@@ -8,7 +8,7 @@
 - 按系统、组件、开发、测试和部署阶段路由任务。
 - 每个阶段用 `**` 显式禁止所有文件，再由更具体的 CRUD 规则按需开放。
 - 按“需求 → system → 组件设计 → dev → 组件 test → 全局 test → deploy”串行，只读前置产物，只修改当前阶段文件。
-- 需求 TC 按 FR 集中在一个 `.feature` 文件中，每个 TC 独立为 Scenario 或 Scenario Outline。
+- 需求 TC 按 AC 集中在一个 `.feature` 文件中，每个 TC 独立为 Scenario 或 Scenario Outline。
 - 保留宿主项目已有的 `AGENTS.md` 规则。
 - 支持通过消息结尾控制只读、澄清、修改以及提交推送行为。
 - 默认使用中文回复、编写文档和测试描述；代码标识符保持项目既有风格，
