@@ -11,6 +11,64 @@
 - `openapi.json`、`asyncapi.json`、`authorization.fga` 和 `schema.dbml` 是机器可读源文件，Markdown 只引用它们。
 - 系统安全与可观测性基线只从 `docs/system/security.md` 和 `docs/system/observability.md` 引用。
 
+## 架构、代码与运行约定
+
+### 组件、上下文与运行单元
+
+- 工作流组件按业务和所有权边界划分，不按进程划分。一个 Backend 组件可以按实际需求包含 API、
+  Outbox Relay 和消息 Worker 等多个独立入口，并由同一代码库或构建产物使用不同命令启动。
+- 只有存在不同统一语言和模型边界时才建立多个限界上下文。认证、授权、资源、预约等名称不是必须拆分的清单；
+  单纯调用外部授权引擎的权限检查保持为应用能力或 Port，只有策略本身具有业务生命周期时才建立授权上下文。
+- 每个上下文拥有对应的应用用例和领域模型。跨上下文通过稳定的应用接口或 Port 协作，不导入另一上下文的领域对象；
+  强一致协作由应用层在明确的 Unit of Work 中编排，不用隐式领域事件链代替事务设计。
+- `shared/` 只保存无业务语义、确实被多个上下文使用的技术能力。Outbox/Inbox 的通用实现可以复用，
+  但业务数据、事件映射、Outbox 表和事务归生产者组件所有，不建立共享网络 Outbox 服务。
+
+### 按需建模
+
+- Command Bus、Unit of Work、AsyncLocalStorage、Outbox、Inbox、Saga、独立 Relay 和 Worker 都按实际需求引入，
+  不作为每个 Backend 的固定样板。数据库事务不得跨越远程 HTTP 或消息调用。
+- 领域事件使用过去时表示状态成功改变后的内部业务事实，仅在存在真实消费方或业务反应时创建；
+  它不是命令，不自动等于集成事件或事件溯源记录。对外发布时映射为独立、可版本化的集成事件，不暴露领域对象。
+- 同库强一致更新在一个事务中完成；需要可靠异步对外发布时，业务数据与已定稿的集成事件信封在同一事务写入 Outbox。
+  Writer 是生产者事务内的代码，不是独立进程；Relay 只读取已提交记录、投递并更新投递状态，不虚构领域层或 Command Bus。
+- Relay 和 Worker 可以是当前组件的独立进程入口。Relay 必须具备原子领取或租约、至少一次投递、退避重试、终止失败、
+  保留清理、积压和延迟观测；Worker 使用 Inbox 或等价机制保证幂等，并区分可重试与不可重试错误。
+- 队列的等待、执行、重试和失败是运行状态，不自动写入聚合。`AppointmentCreated` 等事件描述已经发生的事实；
+  Worker 完成或失败仅在业务确实关心该结果时产生新的业务状态和事件。
+- 涉及异步后续处理的关键时序必须标出边界：认证与授权、输入校验、加载聚合、执行领域行为、
+  在同一事务持久化业务数据与 Outbox、提交事务、Relay 投递、Worker 幂等消费。具体步骤按实际用例删减，
+  不在数据库事务中等待 Relay、Worker 或远程服务完成。
+
+### TypeScript 与技术栈条件规则
+
+- 以下约定只在实际技术栈包含对应工具时启用；未确认 Next.js、Prisma、PostgreSQL 或 BullMQ 时不得生成其目录和文件。
+- TypeScript 普通职责文件可使用 `<subject>.<role>.ts`；技术 Adapter 统一使用
+  `<subject>.<technology>.<role>.ts`，且技术名必须准确，例如 `department.prisma.repository.ts`、
+  `outbox.pgsql.store.ts`、`inbox.pgsql.store.ts`、`message.bullmq.publisher.ts`、`appointment.bullmq.worker.ts`。
+  使用 Prisma 时不命名为 `.pgsql.`；只有直接 PostgreSQL/SQL 实现才使用 `.pgsql.`。
+- 已位于领域 `events/` 目录的事件文件使用 `<event>.event.ts`，不重复写成 `.domain-event.ts`。
+  使用 Prisma 的共享技术代码按需放入 `shared/infrastructure/prisma/`；Outbox、Inbox 和消息 Adapter
+  分别放入职责明确的 `shared/infrastructure/outbox/`、`inbox/` 和 `messaging/`，不存在真实复用时留在所属上下文。
+- Next.js 规定的 `route.ts`、`page.tsx`、`layout.tsx`、`middleware.ts` 或当前版本的其他固定文件名保持不变；
+  Backend 组件只在需要时包含 `app/api/**/route.ts`，不为通常属于其他组件的前端页面创建 `frontend/`。
+- Prisma 迁移位于 `prisma/migrations/<timestamp_name>/migration.sql`，Schema 位于 `prisma/schema.prisma`，
+  需要拆分时使用 `prisma/models/*.prisma`；使用 Prisma 时不另建通用根 `migrations/`。
+- 独立进程源码按需放入 `src/processes/`，例如 `src/processes/outbox.ts` 和 `src/processes/worker.ts`；
+  编译输出与命令对应为 `dist/processes/outbox.js`、`node dist/processes/outbox.js` 等，不使用 `dist-processes/`。
+- `.processor.ts` 是消息入口 Adapter，负责反序列化、校验、追踪、Inbox 幂等、调用应用处理器和错误分类；
+  单一简单消息可由 Worker 直接调用处理器，不必单独创建 Processor。
+- `.result.ts` 只表示需要稳定复用的应用用例输出，不表示 HTTP 响应、领域对象、ORM 记录或事件；简单返回类型就地定义。
+- `.port.ts` 只表示应用层拥有的外部或跨上下文依赖抽象；Repository 已经是 Port，保留 `.repository.ts`，
+  不追加 `.port.ts`，也不为没有真实边界的单一内部实现创建接口。
+- 聚合 ID 和简单状态可以保留在 `.aggregate.ts`；只有复用或存在独立不变量时才拆分类型。对象主键默认使用原生 UUIDv4，
+  不自创 ID 算法。只有明确的人机展示或输入需求才增加独立短业务编号；UUIDv7 仍是 UUID，不作为短展示码，
+  仅在明确需要时间有序性或索引局部性时选用。
+- 短业务编号不得替代内部主键或安全令牌；确需 `APT-7K3M9Q2D` 一类编号时，设计必须说明前缀、字符集、
+  随机或序列来源、唯一约束、碰撞重试和是否区分大小写，而不是只给出示例字符串。
+- `test/` 的实际目录和文件由当前组件 `testing.md` 按测试策略确定，最终由 `component.md` 完整列出，
+  不套用与需求无关的固定测试目录示例。
+
 ## 文件关系与设计顺序
 
 ```mermaid
@@ -118,9 +176,64 @@ flowchart LR
 
 ```mermaid
 flowchart LR
-    <上游调用方、当前组件分层、必要外部依赖及关系>
+    caller["上游调用方"]
+
+    subgraph component["<Backend 组件>"]
+        direction LR
+
+        subgraph entry_layer["接入层"]
+            direction TB
+            api["HTTP/API 入口"]
+            relay["Outbox Relay<br/>仅在需要时"]
+            worker["消息 Worker<br/>仅在需要时"]
+        end
+
+        subgraph application_layer["应用层"]
+            direction TB
+            auth_app["认证应用服务"]
+            resource_app["资源应用服务"]
+            booking_app["预约应用服务"]
+        end
+
+        subgraph domain_layer["领域层"]
+            direction TB
+            auth_domain["认证领域"]
+            resource_domain["资源领域"]
+            booking_domain["预约领域"]
+        end
+
+        subgraph adapter_layer["适配层"]
+            direction TB
+            persistence["持久化 Adapter"]
+            policy["授权策略 Adapter"]
+            messaging["消息 Adapter"]
+        end
+
+        subgraph shared_layer["公共技术能力"]
+            direction TB
+            telemetry["日志、追踪与指标"]
+        end
+
+        entry_layer -->|"入口 → 对应用例"| application_layer
+        application_layer -->|"auth_app → auth_domain<br/>resource_app → resource_domain<br/>booking_app → booking_domain"| domain_layer
+        application_layer -->|"Port → Adapter"| adapter_layer
+    end
+
+    subgraph infrastructure["基础设施与下游"]
+        direction TB
+        database[("数据库")]
+        redis[("Redis")]
+        consumer["下游消费者"]
+    end
+
+    caller --> api
+    adapter_layer -->|"技术协议"| infrastructure
 ```
 ````
+
+每层使用一个 `subgraph`，同层上下文模块使用 `direction TB`。应用服务与对应领域模块保持可追踪的纵向对应，
+不创建笼统的共享“领域”节点。公共日志、追踪、数据库会话或消息基础代码可以单列公共技术能力层；
+数据库、Redis、授权引擎和外部消费者仍位于组件边界之外。不存在的上下文、运行入口、层或依赖直接删除。
 
 ## `ddd.md`
 
@@ -343,6 +456,8 @@ sequenceDiagram
 ## 查询模型
 
 ## 事务边界
+
+## 消息一致性
 
 ## 并发控制
 
@@ -764,6 +879,12 @@ Then：<跨组件可观察的最终结果>
 
 ## 故障恢复
 ```
+
+`进程模型` 按运行单元记录职责、源码入口、构建输出、启动命令、依赖、独立扩缩容和关闭方式。
+API、Outbox Relay 与 Worker 可以属于同一逻辑组件但独立启动；不需要的运行单元直接省略。
+使用 BullMQ 时，Redis 是基础设施中间件，BullMQ 是运行在 Redis 之上的消息任务库；
+一个任务由一个 Worker 处理时可以使用任务队列，需要多个独立订阅方各自消费同一事件时应按实际需求选择
+Redis Streams 或其他发布订阅型消息代理，不把 BullMQ 工作队列误当广播总线。
 
 ## `deployment.md`
 

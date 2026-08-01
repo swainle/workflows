@@ -377,6 +377,39 @@ test("supports frontend and backend component design modes", () => {
   assert.match(readme, /`templates\/backend-design\.template\.md`/);
 });
 
+test("defines bounded-context backend runtimes and conditional TypeScript conventions", () => {
+  const backend = readFileSync(path.join(WORKFLOW_ROOT, "templates/backend-design.template.md"), "utf8");
+  const component = readFileSync(path.join(WORKFLOW_ROOT, "stages/component.md"), "utf8");
+  const readme = readFileSync(path.join(WORKFLOW_ROOT, "README.md"), "utf8");
+
+  assert.match(component, /一个逻辑 Backend 组件可以按实际需要提供 HTTP\/API、Outbox Relay 和消息 Worker 等多个独立运行入口/);
+  assert.match(component, /进程不是工作流组件的划分单位/);
+  assert.match(component, /跨上下文通过稳定的应用接口或 Port 协作，不导入对方的领域对象/);
+  assert.match(component, /每个限界上下文的应用服务与对应领域模块保持同名或可追踪的纵向对应/);
+  assert.match(component, /不创建笼统的共享“领域”节点/);
+
+  assert.match(backend, /## 架构、代码与运行约定/);
+  assert.match(backend, /subgraph entry_layer\["接入层"\][\s\S]*subgraph application_layer\["应用层"\][\s\S]*subgraph domain_layer\["领域层"\][\s\S]*subgraph adapter_layer\["适配层"\]/);
+  assert.match(backend, /Writer 是生产者事务内的代码，不是独立进程/);
+  assert.match(backend, /Relay 只读取已提交记录、投递并更新投递状态，不虚构领域层或 Command Bus/);
+  assert.match(backend, /原子领取或租约、至少一次投递、退避重试、终止失败/);
+  assert.match(backend, /在同一事务持久化业务数据与 Outbox、提交事务、Relay 投递、Worker 幂等消费/);
+  assert.match(backend, /Redis 是基础设施中间件，BullMQ 是运行在 Redis 之上的消息任务库/);
+  assert.match(backend, /以下约定只在实际技术栈包含对应工具时启用/);
+  assert.match(backend, /<subject>\.<technology>\.<role>\.ts/);
+  assert.match(backend, /<event>\.event\.ts/);
+  assert.match(backend, /prisma\/migrations\/<timestamp_name>\/migration\.sql/);
+  assert.match(backend, /node dist\/processes\/outbox\.js/);
+  assert.match(backend, /\.processor\.ts` 是消息入口 Adapter/);
+  assert.match(backend, /\.result\.ts` 只表示需要稳定复用的应用用例输出/);
+  assert.match(backend, /\.port\.ts` 只表示应用层拥有的外部或跨上下文依赖抽象/);
+  assert.match(backend, /对象主键默认使用原生 UUIDv4/);
+  assert.match(backend, /UUIDv7 仍是 UUID，不作为短展示码/);
+  assert.match(backend, /APT-7K3M9Q2D/);
+  assert.match(backend, /唯一约束、碰撞重试/);
+  assert.match(readme, /Next\.js、Prisma、PostgreSQL、BullMQ 等目录、命名和运行约定\s*只在组件实际采用相应技术时启用/);
+});
+
 test("separates system, component, and deploy security and observability ownership", () => {
   const system = readFileSync(path.join(WORKFLOW_ROOT, "stages/system.md"), "utf8");
   const component = readFileSync(path.join(WORKFLOW_ROOT, "stages/component.md"), "utf8");
