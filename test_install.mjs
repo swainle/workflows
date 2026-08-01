@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { execFileSync } from "node:child_process";
 import { mkdirSync, mkdtempSync, readdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
@@ -12,6 +13,7 @@ import {
   updateCurrentBranch,
   validateStageReferences,
 } from "./install.mjs";
+import { parseComponentTree, validateComponentTree, validatePromptFile } from "./validate.mjs";
 
 test("describes prompt capabilities with numbered five-point definitions", () => {
   const expected = new Map([
@@ -43,8 +45,7 @@ test("describes prompt capabilities with numbered five-point definitions", () =>
       }
     }
     assert.equal(capabilities.length, count, `${file} capability count`);
-    assert.equal(content.match(/^`````md$/gm)?.length, count, `${file} detail block openings`);
-    assert.equal(content.match(/^`````$/gm)?.length, count, `${file} detail block closings`);
+    assert.doesNotMatch(content, /^`````md$/m, `${file} must use ordinary Markdown for rules`);
     for (const [index, capability] of capabilities.entries()) {
       const id = `${prefix}-${String(index + 1).padStart(3, "0")}`;
       assert.match(capability, new RegExp(`^## ${id}\\n`));
@@ -57,6 +58,50 @@ test("describes prompt capabilities with numbered five-point definitions", () =>
       }
       assert.equal((capability.match(/^- \*\*(Who|When|Where|What|Why)\*\*：/gm) ?? []).length, 5);
     }
+  }
+});
+
+test("automatically validates prompt structure and complete component trees", () => {
+  assert.deepEqual(
+    validatePromptFile(path.join(WORKFLOW_ROOT, "stages/testing.md"), "AI-TEST"),
+    [],
+  );
+  assert.deepEqual(parseComponentTree([
+    "## 目录结构",
+    "",
+    "```text",
+    "apps/api/",
+    "├─ src/",
+    "│  └─ index.ts  入口",
+    "└─ package.json  包配置",
+    "```",
+  ].join("\n")), ["src/index.ts", "package.json"]);
+
+  const root = mkdtempSync(path.join(tmpdir(), "workflows-tree-"));
+  try {
+    const appDir = path.join(root, "app");
+    mkdirSync(path.join(appDir, "src"), { recursive: true });
+    writeFileSync(path.join(appDir, "src", "index.ts"), "export {};\n", "utf8");
+    writeFileSync(path.join(appDir, "package.json"), "{}\n", "utf8");
+    const componentDoc = path.join(root, "component.md");
+    writeFileSync(componentDoc, [
+      "# api",
+      "",
+      "## 目录结构",
+      "",
+      "```text",
+      "apps/api/",
+      "├─ src/",
+      "│  └─ index.ts  入口",
+      "└─ package.json  包配置",
+      "```",
+    ].join("\n"), "utf8");
+    execFileSync("git", ["init", "-q", appDir]);
+    execFileSync("git", ["-C", appDir, "add", "src/index.ts", "package.json"]);
+    assert.deepEqual(validateComponentTree(componentDoc, appDir), []);
+    assert.deepEqual(validateComponentTree(componentDoc, appDir, { strict: true }), []);
+  } finally {
+    rmSync(root, { recursive: true, force: true });
   }
 });
 
@@ -73,13 +118,15 @@ test("lists matched rule identifiers before executing managed instructions", () 
   assert.match(agents, /## AI-011/);
   assert.match(agents, /\*\*What\*\*：提供“命中规则回显”功能/);
   assert.match(agents, /任何实质操作开始前/);
-  assert.match(agents, /命中规则：AI-001、AI-005、AI-006、AI-011、AI-<STAGE>-001/);
-  assert.match(agents, /只列出条件与当前指令实际匹配的规则/);
+  assert.match(agents, /命中规则：AI-001、AI-005、AI-006、AI-007、AI-011、AI-TEST-001、AI-TEST-002/);
+  assert.match(agents, /只把 `When` 在当前时点为真的规则视为命中/);
   assert.match(agents, /根提示词、阶段提示词、模式提示词的顺序排列/);
-  assert.match(agents, /普通自然语言任务不强制回显规则编号/);
+  assert.match(agents, /未命中本工作流的普通自然语言任务不强制回显/);
 });
 
 test("parses the optional selected branch", () => {
+  const readme = readFileSync(path.join(WORKFLOW_ROOT, "README.md"), "utf8");
+  assert.match(readme, /git submodule add -b develop <repository-url> docs\/workflows/);
   assert.equal(parseBranch([]), undefined);
   assert.equal(parseBranch(["--branch", "develop"]), "develop");
   assert.equal(parseBranch(["--workflows-updated", "--branch", "develop"]), "develop");
@@ -260,7 +307,8 @@ test("enforces serial stage read and write boundaries", () => {
 
   const requirement = readFileSync(path.join(WORKFLOW_ROOT, "stages/requirement.md"), "utf8");
   assert.match(requirement, /\| `docs\/requirements\/\*\*` \| 禁止 \| 允许 \| 禁止 \| 禁止 \|/);
-  assert.match(requirement, /\| `docs\/requirements\/REQ-<三位Issue编号>-\*\/\*\*` \| 允许 \| 允许 \| 允许 \| 允许 \|/);
+  assert.match(requirement, /\| `docs\/requirements\/REQ-<至少三位Issue编号>-\*\/\*\*` \| 允许 \| 允许 \| 允许 \| 允许 \|/);
+  assert.match(requirement, /达到或超过三位时保留完整编号，不截断、不取模/);
   assert.doesNotMatch(requirement, /`(?:docs\/system|docs\/component|apps)\/\*\*`/);
 
   const system = readFileSync(path.join(WORKFLOW_ROOT, "stages/system.md"), "utf8");
@@ -297,11 +345,12 @@ test("enforces serial stage read and write boundaries", () => {
   assert.match(acceptance, /\| `test\/acceptance\/\*\*` \| 允许 \| 允许 \| 允许 \| 允许 \|/);
 
   const deploy = readFileSync(path.join(WORKFLOW_ROOT, "stages/deploy.md"), "utf8");
-  for (const pattern of ["docs/requirements/\\*\\*", "docs/system/\\*\\*", "docs/component/\\*\\*", "apps/\\*\\*"]) {
+  for (const pattern of ["docs/requirements/\\*\\*", "docs/system/\\*\\*", "<组件设计目录>/\\*\\*", "apps/\\*\\*"]) {
     assert.match(deploy, new RegExp(`\\| \`${pattern}\` \\| 禁止 \\| 允许 \\| 禁止 \\| 禁止 \\|`));
   }
   assert.match(deploy, /\| `apps\/\*\*` \| 禁止 \| 允许 \| 禁止 \| 禁止 \|/);
-  assert.match(deploy, /\| `apps\/\*\/deploy\/\*\*` \| 允许 \| 允许 \| 允许 \| 允许 \|/);
+  assert.match(deploy, /\| `<组件应用目录>\/Dockerfile` \| 允许 \| 允许 \| 允许 \| 允许 \|/);
+  assert.match(deploy, /\| `<组件应用目录>\/deploy\/\*\*` \| 允许 \| 允许 \| 允许 \| 允许 \|/);
   assert.match(deploy, /\| `deploy\/\*\*` \| 允许 \| 允许 \| 允许 \| 允许 \|/);
   assert.match(deploy, /\| `deploy\/update\/\*\.md` \| 允许 \| 允许 \| 允许 \| 禁止 \|/);
 });
@@ -350,6 +399,15 @@ test("configures component development infrastructure with deploy targets", () =
   assert.match(readme, /`\[deploy\] <组件>` \| 维护目标组件的开发基础设施配置/);
 });
 
+test("resolves nested deploy paths from the C2 component registry", () => {
+  const deploy = readFileSync(path.join(WORKFLOW_ROOT, "stages/deploy.md"), "utf8");
+  assert.match(deploy, /`<组件应用目录>\/Dockerfile`/);
+  assert.match(deploy, /`<组件应用目录>\/deploy\/\*\*`/);
+  assert.match(deploy, /必须从 `docs\/system\/c2\.md` 的目标组件记录解析并规范化/);
+  assert.doesNotMatch(deploy, /`apps\/\*\/Dockerfile`/);
+  assert.doesNotMatch(deploy, /`apps\/\*\/deploy\/\*\*`/);
+});
+
 test("groups requirement test scenarios by acceptance criterion", () => {
   const requirement = readFileSync(path.join(WORKFLOW_ROOT, "stages/requirement.md"), "utf8");
   assert.doesNotMatch(requirement, /`(business|acceptance|permission|migration)\.md`/);
@@ -379,9 +437,9 @@ test("supports frontend and backend component design modes", () => {
   assert.match(component, /\*\*What\*\*：提供“完整组件设计模式”功能/);
   assert.match(component, /### Frontend 模式/);
   assert.match(component, /### Backend 模式/);
-  assert.match(component, /当任务使用 `\[<组件>\] backend <任务>` 时默认采用 DDD/);
+  assert.match(component, /按可验证复杂度条件选择轻量 Backend 或完整 DDD/);
   assert.match(component, /完整读取\s+`docs\/workflows\/templates\/backend-design\.template\.md`/);
-  assert.match(component, /C3 → DDD（每个限界上下文包含状态图与关键时序图）→ 接口和边界 → 机器可读模型 → C4/);
+  assert.match(component, /C3 → 复杂度判断 → 完整 DDD 时的 DDD（每个限界上下文包含状态图与关键时序图）→ 接口和边界 → 机器可读模型 → C4/);
   assert.doesNotMatch(component, /\| `process\.md` \| 后端业务流程 \|/);
   assert.match(component, /组件设计目录不创建 `process\.md`/);
   assert.match(component, /每个适用文件使用模板规定的标题名称和顺序/);
@@ -411,7 +469,10 @@ test("supports frontend and backend component design modes", () => {
   assert.doesNotMatch(backend, /## 一致性与补偿/);
   assert.doesNotMatch(backend, /## 聚合规则/);
   assert.match(component, /一个组件默认对应一个限界上下文/);
-  assert.match(component, /每个限界上下文必须完整包含边界、统一语言、领域结构图、状态图、关键时序图和领域事件列表/);
+  assert.match(component, /完整 DDD 模式的每个限界上下文必须完整包含边界、统一语言、领域结构图、状态图、关键时序图和领域事件列表/);
+  assert.match(backend, /仅当以下条件全部成立时使用轻量 Backend/);
+  assert.match(backend, /上述任一复杂度信号存在时使用完整 DDD/);
+  assert.match(backend, /`ddd\.md` 仅在完整 DDD 模式创建/);
   assert.match(component, /不创建独立的 `state\.md` 或\s+`sequence\.md`/);
   assert.doesNotMatch(backend, /## `process\.md`/);
   assert.match(backend, /system_process\["docs\/system\/process\.md<br\/>跨组件业务流程"\]/);
@@ -569,9 +630,9 @@ test("plans the component test structure before implementing tests", () => {
   assert.match(testing, /任务需要的测试层级或稳定测试文件未在组件设计中规划/);
   assert.match(testing, /语言与工具链说明以及“测试命令”和“局部执行”章节/);
   assert.match(testing, /默认采用 `pnpm` 和 Vitest/);
-  assert.match(testing, /不执行测试、覆盖率、Lint、构建或其他验证命令/);
-  assert.match(testing, /测试未执行，由用户手动执行/);
-  assert.match(testing, /只通过阅读生产代码、测试代码、\s*类型定义和配置进行静态检查/);
+  assert.match(testing, /执行本次受影响测试/);
+  assert.match(testing, /执行当前组件全部测试/);
+  assert.match(testing, /不得把只运行局部测试写成全部测试通过/);
   assert.match(testing, /每个三级标题定义的稳定测试用例作为测试代码规划依据/);
   assert.match(testing, /用例描述必须由三级标题的用例编号和该用例的 `Desc` 组成/);
   assert.match(testing, /测试层级缩写必须与二级标题匹配/);
@@ -583,7 +644,7 @@ test("plans the component test structure before implementing tests", () => {
   assert.match(testing, /不同公开操作、成功与失败分支或独立边界场景合并/);
   assert.match(testing, /接口测试代码放入 `test\/integration\/api\/`/);
   assert.match(testing, /测试报告和覆盖率报告只按用户需要手动导出/);
-  assert.doesNotMatch(testing, /执行项目真实存在的测试命令/);
+  assert.match(testing, /分别报告通过、失败、跳过和未执行的测试范围/);
   assert.match(testing, /新增测试、fixture、支持代码和配置位于 `component\.md` 规划的测试目录中/);
   assert.match(testing, /每个已实现用例位于其 `Src` 指定的测试文件中/);
   assert.match(backend, /本组件使用 <语言和版本>，沿用 <构建或包管理工具>、<测试框架>/);
@@ -598,12 +659,14 @@ test("plans the component test structure before implementing tests", () => {
   assert.match(backend, /### AUTH-INT-SESSION-001[\s\S]*### AUTH-INT-ADAPTER-001[\s\S]*### AUTH-API-LOGIN-001/);
   assert.match(backend, /### AUTH-CON-EVENT-001[\s\S]*### AUTH-CONC-TOKEN-001[\s\S]*### AUTH-E2E-LOGIN-001/);
   assert.match(backend, /\| Infrastructure 纯逻辑测试 \| `INF` \| 纯逻辑技术能力 \|/);
-  assert.match(backend, /消息发布或消费行为由集成测试验证，Schema 结构与版本兼容性由契约测试验证/);
+  assert.match(backend, /消息发布或消费行为由集成测试验证/);
+  assert.match(backend, /组件 E2E 不得声称验证\s*整个跨组件 BP/);
+  assert.doesNotMatch(backend, /跨组件可观察的最终结果|核心跨组件业务链路/);
   assert.match(backend, /> Src：`test\/integration\/api\/http\/login\.test\.ts`/);
   assert.match(backend, /`component\.md` 的完整文件树必须逐个包含所有\s*`Src`/);
   assert.match(backend, /`testing\.md` 只索引项目真实存在的命令/);
   assert.match(backend, /测试报告和覆盖率报告按需由用户手动导出/);
-  assert.match(readme, /`\[web test\] <任务>` \| 编写目标组件测试，不执行测试/);
+  assert.match(readme, /`\[web test\] <任务>` \| 编写并执行目标组件测试/);
   assert.match(readme, /详细规则以模板和对应阶段提示词为准/);
 });
 
@@ -713,16 +776,17 @@ test("lists C2 components by type with development endpoints", () => {
   assert.match(system, /  - HTTP API 地址：`http:\/\/localhost:8080`/);
   assert.match(system, /  - gRPC 地址：`localhost:8081`/);
   assert.match(system, /  - Playground：`http:\/\/localhost:3000`/);
-  assert.match(system, /  - Playground 认证：开发环境无认证/);
-  assert.match(system, /  - 凭据来源：项目开发默认值（仅开发环境）/);
+  assert.match(system, /  - Playground 认证：需要认证/);
+  assert.match(system, /  - 凭据来源：`deploy\/dev\.env` 中的 `<USERNAME_ENV>` 和 `<PASSWORD_ENV>`/);
+  assert.match(system, /  - 本地初始化方式：`deploy\/runbook\.md#<组件或基础设施开发配置>`/);
+  assert.match(system, /不得记录账号、密码、令牌、证书、密钥值或官方默认凭据值/);
   assert.match(system, /  - 官方文档：\[Docker Setup Guide\]\(https:\/\/openfga\.dev\/docs\/getting-started\/setup-openfga\/docker\)/);
   assert.match(system, /基础设施组件不使用表格/);
   assert.match(system, /管理界面未启用认证时明确写“开发环境无认证”/);
   assert.match(system, /没有暴露时直接省略，不写“无”/);
   assert.match(system, /对应版本官方文档/);
-  assert.match(system, /禁止使用环境变量、占位符、`待定` 或 `TODO`/);
-  assert.match(system, /后续部署配置必须使用相同值/);
-  assert.match(system, /不得用于测试、生产或其他环境/);
+  assert.match(system, /凭据来源只记录环境变量名、密钥引用、初始化脚本或 Runbook 位置/);
+  assert.match(system, /测试和生产凭据必须由 `\[deploy\]` 通过独立环境配置或密钥系统注入/);
   assert.match(system, /C2 只记录开发环境端口和地址/);
   assert.match(system, /测试、生产及其他环境由 `\[deploy\]` 维护/);
 });
@@ -733,7 +797,7 @@ test("defines single-purpose component documents and horizontal-first code diagr
   assert.match(component, /\| `component\.md` \| 组件入口文档 \| 始终 \| 概述、设计架构文件索引和完整受版本控制文件结构 \|/);
   assert.match(component, /\| `c3\.md` \|[^|\r\n]+ \| 始终 \|/);
   assert.match(component, /\| `c4\.md` \|[^|\r\n]+ \| 存在需要长期维护的代码结构 \|/);
-  assert.match(component, /\| `ddd\.md` \| 领域设计 \| Backend 模式 \|/);
+  assert.match(component, /\| `ddd\.md` \| 领域设计 \| 完整 DDD 模式 \|/);
   assert.match(component, /# <组件>\r?\n\r?\n## 概述[\s\S]*## 设计架构[\s\S]*\| 文件 \| 作用 \|[\s\S]*## 目录结构/);
   assert.match(component, /“设计架构”表格逐个列出当前组件设计目录内实际存在的全部文件及其唯一作用/);
   assert.match(component, /`component\.md` 除概述、设计架构索引和完整应用文件结构外，不保存其他设计内容/);
@@ -764,8 +828,8 @@ test("defines single-purpose component documents and horizontal-first code diagr
   assert.match(component, /任务处理器可以使用消费者、任务、规则和外部适配器/);
   assert.match(component, /C4 节点按实际情况标注 `ApplicationService`、`AggregateRoot`/);
   assert.doesNotMatch(component, /```mermaid\r?\nclassDiagram/);
-  assert.match(component, /`ddd\.md` 按限界上下文分章/);
-  assert.match(component, /Backend 中简单 CRUD 或纯查询仍在 `ddd\.md` 说明统一语言/);
+  assert.match(component, /完整 DDD 模式的 `ddd\.md` 按限界上下文分章/);
+  assert.match(component, /轻量 Backend 不创建 `ddd\.md`/);
   assert.match(component, /Backend C3 按限界上下文、入口、独立运行单元和实际公共技术能力展示稳定模块/);
   assert.match(component, /异步链路明确展示生产者、Outbox Relay、消息基础设施和 Worker\/下游消费者之间的关系/);
   assert.match(agents, /\| 组件内部结构 \| `C4Component`；展示内部模块、职责、依赖和必要外部关系 \|/);

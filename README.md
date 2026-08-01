@@ -17,7 +17,7 @@
 将仓库作为子模块挂载到宿主项目：
 
 ```bash
-git submodule add -b main <repository-url> docs/workflows
+git submodule add -b develop <repository-url> docs/workflows
 node docs/workflows/install.mjs
 ```
 
@@ -38,9 +38,9 @@ node docs/workflows/install.mjs --branch develop
 | `[system] <任务>` | 维护跨组件系统规范 |
 | `[web] <任务>` | 维护已登记组件的设计规范 |
 | `[web] frontend <任务>` | 启用 Frontend 完整设计模式 |
-| `[api] backend <任务>` | 启用 Backend DDD 设计模式 |
+| `[api] backend <任务>` | 按复杂度启用轻量 Backend 或完整 DDD 设计 |
 | `[web dev] <任务>` | 开发目标组件 |
-| `[web test] <任务>` | 编写目标组件测试，不执行测试 |
+| `[web test] <任务>` | 编写并执行目标组件测试 |
 | `[test] <任务>` | 实现并执行跨组件验收测试 |
 | `[deploy] <任务>` | 维护构建、编排、CI/CD 和部署 |
 | `[deploy] <组件>` | 维护目标组件的开发基础设施配置 |
@@ -62,6 +62,8 @@ Agent 完成指令解析并加载必读提示词后，会在执行实质操作�
 
 ## 结尾控制
 
+以下控制只对本工作流已识别的方括号指令生效：
+
 | 结尾 | 行为 |
 |---|---|
 | `?` 或 `？` | 只回答，不修改文件 |
@@ -79,6 +81,7 @@ Agent 完成指令解析并加载必读提示词后，会在执行实质操作�
 | `templates/backend-design.template.md` | Backend 模式设计规则与文档结构 |
 | `stages/*.md` | 各阶段职责、权限、格式和完成检查 |
 | `install.mjs` | 更新并安装工作流规则 |
+| `validate.mjs` | 校验提示词编号、5W 结构和组件完整文件树 |
 | `test_install.mjs` | 安装器与提示词结构测试 |
 
 详细规则以模板和对应阶段提示词为准，README 不重复维护阶段实现细节。
@@ -89,7 +92,16 @@ Agent 完成指令解析并加载必读提示词后，会在执行实质操作�
 
 ```bash
 node --test test_install.mjs
+node validate.mjs
 ```
+
+校验宿主项目某个组件的文件树是否遗漏实际受版本控制文件：
+
+```bash
+node docs/workflows/validate.mjs --component-doc <组件设计目录>/component.md --app-dir <组件应用目录>
+```
+
+需要设计树与当前文件完全一致时增加 `--strict`；设计阶段允许树中包含尚未实现的规划文件，因此默认只检查遗漏和重复。
 
 ## 许可证
 
