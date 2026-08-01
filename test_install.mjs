@@ -228,7 +228,7 @@ test("requires design-driven development with zero unresolved decisions", () => 
   assert.match(development, /不通过降级行为、隐藏错误、临时分支、TODO、占位值或未声明默认值绕过/);
   assert.match(development, /只有实现映射完整、未确认项为零、设计没有冲突且技术可行性已有证据时，才开始修改代码/);
   assert.match(agents, /未确认项清零后才能修改代码/);
-  assert.match(readme, /信息缺失、\s*设计冲突或可行性无法证明时先提问或退回相应设计阶段，不猜测实现/);
+  assert.match(readme, /详细规则以模板和对应阶段提示词为准/);
 });
 
 test("defines one CRUD permission matrix per stage", () => {
@@ -347,8 +347,7 @@ test("configures component development infrastructure with deploy targets", () =
   assert.match(deploy, /名称优先为 `<基础设施>-init`/);
   assert.match(deploy, /使用 `restart: "no"`/);
   assert.match(deploy, /不执行其中的启动或初始化命令/);
-  assert.match(readme, /`\[deploy\] <组件>` 维护该组件的开发基础设施配置/);
-  assert.match(readme, /JavaScript 和 TypeScript 组件默认使用 `pnpm`/);
+  assert.match(readme, /`\[deploy\] <组件>` \| 维护目标组件的开发基础设施配置/);
 });
 
 test("groups requirement test scenarios by acceptance criterion", () => {
@@ -445,8 +444,8 @@ test("supports frontend and backend component design modes", () => {
   for (const file of ["openapi.json", "asyncapi.json", "authorization.fga", "schema.dbml"]) {
     assert.ok(backend.includes(`### \`${file}\``), `missing Backend model template for ${file}`);
   }
-  assert.match(readme, /\[web\] frontend 设计组件/);
-  assert.match(readme, /\[api\] backend 设计组件/);
+  assert.match(readme, /`\[web\] frontend <任务>`/);
+  assert.match(readme, /`\[api\] backend <任务>`/);
   assert.match(readme, /`templates\/backend-design\.template\.md`/);
 });
 
@@ -483,8 +482,7 @@ test("defines bounded-context backend runtimes and conditional TypeScript conven
   assert.match(backend, /UUIDv7 仍是 UUID，不作为短展示码/);
   assert.match(backend, /APT-7K3M9Q2D/);
   assert.match(backend, /唯一约束、碰撞重试/);
-  assert.match(readme, /Next\.js、Prisma、PostgreSQL、BullMQ 等目录、命名和运行约定\s*只在组件实际采用相应技术时启用/);
-  assert.match(readme, /模板中的图、表、目录、上下文和技术名称都只是格式示例/);
+  assert.match(readme, /图、表、目录、技术、依赖和业务名称均为示例，必须根据当前组件的实际情况调整/);
 });
 
 test("separates system, component, and deploy security and observability ownership", () => {
@@ -605,11 +603,8 @@ test("plans the component test structure before implementing tests", () => {
   assert.match(backend, /`component\.md` 的完整文件树必须逐个包含所有\s*`Src`/);
   assert.match(backend, /`testing\.md` 只索引项目真实存在的命令/);
   assert.match(backend, /测试报告和覆盖率报告按需由用户手动导出/);
-  assert.match(readme, /`component\.md` 的完整文件树同时规划 Fixture、测试支持、单元、集成和并发测试/);
-  assert.match(readme, /组件没有既有测试工具链时默认\s*使用 `pnpm` 和 Vitest/);
-  assert.match(readme, /每个用例[\s\S]*Design、Src 和可选的 BP\/BR\/FR\/AC[\s\S]*Given–When–Then/);
-  assert.match(readme, /DOM、APP、INF、API、INT、CON、CONC 或 E2E/);
-  assert.match(readme, /`\\?\[<组件> test\]` 只根据用户要求修改测试代码/);
+  assert.match(readme, /`\[web test\] <任务>` \| 编写目标组件测试，不执行测试/);
+  assert.match(readme, /详细规则以模板和对应阶段提示词为准/);
 });
 
 test("separates global acceptance from component tests", () => {
@@ -637,7 +632,7 @@ test("separates global acceptance from component tests", () => {
   assert.match(component, /需要启动或断言多个组件[\s\S]*归全局 `\[test\]`/);
   assert.match(testing, /任务要求实现 Requirement TC[\s\S]*应切换全局 `\[test\]`/);
   assert.match(backend, /Requirement TC 或验收跨组件 BP 的场景归全局 `\[test\]`/);
-  assert.match(readme, /全局 `\[test\]` 直接使用需求 TC 作为稳定验收用例 ID/);
+  assert.match(readme, /`\[test\] <任务>` \| 实现并执行跨组件验收测试/);
 });
 
 test("separates runtime and development technology selections", () => {
