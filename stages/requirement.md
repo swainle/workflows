@@ -65,6 +65,8 @@
 
 格式：
 
+> - 根据实际情况修改
+
 ```text
 REQ-<至少三位Issue编号>-<类型>-<三位序号>
 ```
@@ -91,6 +93,8 @@ REQ-<至少三位Issue编号>-<类型>-<三位序号>
 - **Why**：确保需求事实可追溯、格式稳定且不会越过需求阶段边界。
 
 需求目录：
+
+> - 根据实际情况修改
 
 ```text
 docs/requirements/REQ-001-<slug>/
@@ -130,6 +134,8 @@ docs/requirements/REQ-001-<slug>/
 ### 角色、FR 与局部关系图
 
 写入 `requirement.md`。Mermaid 图直接紧跟对应 FR 正文：
+
+> - 根据实际情况修改
 
 ````md
 ## 角色索引
@@ -215,6 +221,8 @@ flowchart LR
 
 写入 `requirement.md`：
 
+> - 根据实际情况修改
+
 ```md
 ## 非功能需求
 
@@ -240,6 +248,8 @@ flowchart LR
 
 每个 BR 写入 `items/` 中的同编号 `.md` 文件：
 
+> - 根据实际情况修改
+
 ```md
 # REQ-001-BR-001 <规则名称>
 
@@ -257,6 +267,8 @@ flowchart LR
 ### FLOW
 
 每个 FLOW 写入 `items/` 中的同编号 `.md` 文件：
+
+> - 根据实际情况修改
 
 ````md
 # REQ-001-FLOW-001 <流程名称>
@@ -284,6 +296,8 @@ flowchart TD
 
 每个 AC 写入 `items/` 中的同编号 `.md` 文件：
 
+> - 根据实际情况修改
+
 ```md
 # REQ-001-AC-001 <验收名称>
 
@@ -302,6 +316,8 @@ flowchart TD
 ### TC
 
 每个 AC 的全部 TC 写入 `features/` 中以 AC 编号命名的 `.feature` 文件：
+
+> - 根据实际情况修改
 
 ```gherkin
 @REQ-001-AC-001
@@ -338,6 +354,8 @@ Feature: <验收目标>
 
 每个 PERM 写入 `items/` 中的同编号 `.md` 文件：
 
+> - 根据实际情况修改
+
 ```md
 # REQ-001-PERM-001 <权限规则名称>
 
@@ -358,6 +376,8 @@ Feature: <验收目标>
 ### MIG
 
 每个 MIG 写入 `items/` 中的同编号 `.md` 文件：
+
+> - 根据实际情况修改
 
 ```md
 # REQ-001-MIG-001 <迁移名称>

@@ -89,11 +89,15 @@ node docs/workflows/install.mjs
 
 ### GitHub Issue 需求
 
+> - 根据实际情况修改
+
 ```text
 [<Issue编号>] <可选补充要求>
 ```
 
 示例：
+
+> - 根据实际情况修改
 
 ```text
 [1] 初始化预约系统
@@ -101,6 +105,8 @@ node docs/workflows/install.mjs
 ```
 
 `[1]` 固定对应 GitHub Issue `#1`。编号不足三位时左侧补零，达到或超过三位时保留完整编号：
+
+> - 根据实际情况修改
 
 ```text
 Issue #1   → docs/requirements/REQ-001-<slug>/
@@ -111,6 +117,8 @@ Issue #1000 → docs/requirements/REQ-1000-<slug>/
 
 ### 组件任务
 
+> - 根据实际情况修改
+
 ```text
 [<组件>] <规范任务>
 [<组件>] frontend <前端设计任务>
@@ -120,6 +128,8 @@ Issue #1000 → docs/requirements/REQ-1000-<slug>/
 ```
 
 示例：
+
+> - 根据实际情况修改
 
 ```text
 [web] 讨论预约页面规范
@@ -140,6 +150,8 @@ Issue #1000 → docs/requirements/REQ-1000-<slug>/
 不得在组件任务中自行创造组件；新增或拆分组件先使用 `[system]` 确认全局架构。
 保留目标：
 
+> - 根据实际情况修改
+
 ```text
 [system]         全局架构、技术和开发约定
 [test]           跨组件验收测试及执行
@@ -152,6 +164,8 @@ Issue #1000 → docs/requirements/REQ-1000-<slug>/
 
 全局验收测试使用：
 
+> - 根据实际情况修改
+
 ```text
 [test] <验收任务>
 ```
@@ -161,6 +175,8 @@ Issue #1000 → docs/requirements/REQ-1000-<slug>/
 精确的 `[test]` 是保留的全局指令，必须优先于 `[<组件>]` 解析，不得把 `test` 当作组件名。
 
 部署升级方案使用：
+
+> - 根据实际情况修改
 
 ```text
 [deploy] update <升级内容>
@@ -225,6 +241,8 @@ Issue #1000 → docs/requirements/REQ-1000-<slug>/
 - **Where**：宿主项目根 `AGENTS.md` 的托管区块与工作流入口。
 - **What**：提供“本地事实来源”功能；具体规则、格式和约束如下。
 - **Why**：确保全局行为可预测、阶段边界一致且操作结果可验证。
+
+> - 根据实际情况修改
 
 ```text
 docs/**                        需求、规范和契约
@@ -309,6 +327,8 @@ Git                            文件历史
    不得判定为命中。`When` 无法得到唯一真假结果时，先修正规则或请求澄清，不猜测。
 4. 在读取或修改项目业务文件、运行项目命令、调用外部系统、提出澄清问题或执行其他任务动作前，
    第一条用户可见回复必须以单独一行输出：
+
+> - 根据实际情况修改
 
 ```text
 命中规则：AI-001、AI-005、AI-006、AI-007、AI-011、AI-TEST-001、AI-TEST-002

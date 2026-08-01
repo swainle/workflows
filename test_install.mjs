@@ -108,9 +108,40 @@ test("automatically validates prompt structure and complete component trees", ()
 test("requires local adaptation declarations for backend mode examples", () => {
   const backend = readFileSync(path.join(WORKFLOW_ROOT, "templates/backend-design.template.md"), "utf8");
   const component = readFileSync(path.join(WORKFLOW_ROOT, "stages/component.md"), "utf8");
-  assert.match(backend, /每个具体范例都必须就近声明“根据当前组件的实际情况调整”/);
+  assert.match(backend, /每个具体范例都必须就近包含固定提示 `> - 根据实际情况修改`/);
+  assert.equal(
+    (backend.match(/^> - 根据实际情况修改\r?\n> 范例适配声明：/gm) ?? []).length,
+    (backend.match(/^> 范例适配声明：/gm) ?? []).length,
+  );
   assert.ok((backend.match(/^> 范例适配声明：/gm) ?? []).length >= 17);
-  assert.match(component, /Backend 模板中的每个具体范例必须就近包含适配声明/);
+  assert.match(component, /Backend 模板中的每个具体范例必须就近包含固定提示 `> - 根据实际情况修改`/);
+});
+
+test("marks every reusable stage template for actual-situation adaptation", () => {
+  const files = [
+    "stages/requirement.md",
+    "stages/system.md",
+    "stages/component.md",
+    "stages/deploy.md",
+    "templates/AGENTS.template.md",
+  ];
+  for (const file of files) {
+    const lines = readFileSync(path.join(WORKFLOW_ROOT, file), "utf8").split(/\r?\n/);
+    let fence = null;
+    for (let index = 0; index < lines.length; index += 1) {
+      const marker = lines[index].match(/^(`{3,}|~{3,})(.*)$/);
+      if (!marker) continue;
+      if (!fence) {
+        fence = { char: marker[1][0], length: marker[1].length };
+        if (file === "templates/AGENTS.template.md" && marker[2].trim() === "bash") continue;
+        let previous = index - 1;
+        while (previous >= 0 && lines[previous] === "") previous -= 1;
+        assert.equal(lines[previous], "> - 根据实际情况修改", `${file}:${index + 1}`);
+      } else if (marker[1][0] === fence.char && marker[1].length >= fence.length) {
+        fence = null;
+      }
+    }
+  }
 });
 
 test("lists matched rule identifiers before executing managed instructions", () => {
