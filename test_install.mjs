@@ -320,9 +320,15 @@ test("supports frontend and backend component design modes", () => {
   assert.doesNotMatch(component, /\| `process\.md` \| 后端业务流程 \|/);
   assert.match(component, /组件设计目录不创建 `process\.md`/);
   assert.match(component, /每个适用文件使用模板规定的标题名称和顺序/);
+  assert.match(component, /模板中的图、表、目录、上下文、技术、运行单元和依赖仅用于说明格式，不是默认设计/);
+  assert.match(component, /不得照抄示例名称/);
   assert.match(component, /Backend 专用 Markdown、机器可读模型及其固定结构统一由/);
   assert.match(component, /Frontend 和 Backend 模式逐项检查各自列出的全部设计关注点/);
   assert.match(backend, /# Backend 组件设计流程与文档模板/);
+  assert.match(backend, /全部是格式与表达示例，\s*不是待复制的默认设计/);
+  assert.match(backend, /必须根据已确认的实际需求逐项替换、增删和重组/);
+  assert.match(backend, /禁止因示例中出现\s*认证、资源、预约、Outbox、Redis、Prisma 或 BullMQ/);
+  assert.match(backend, /尖括号占位符和具体示例名称不得原样进入最终文档/);
   assert.match(backend, /## 文件关系与设计顺序/);
   assert.match(backend, /## `c3\.md`[\s\S]*```mermaid\r?\nC4Component/);
   assert.match(backend, /flowchart LR/);
@@ -392,6 +398,8 @@ test("defines bounded-context backend runtimes and conditional TypeScript conven
   assert.match(backend, /## 架构、代码与运行约定/);
   assert.match(backend, /Container_Boundary\(backend, "<Backend 组件>"\)[\s\S]*Component\(auth_context, "认证上下文"[\s\S]*Component\(booking_context, "预约上下文"/);
   assert.match(backend, /C3 不展开应用层、领域层、Port 或 Adapter/);
+  assert.match(backend, /下图仅演示 `C4Component` 的写法和抽象层级/);
+  assert.match(backend, /都必须按当前组件的真实上下文、运行单元和依赖替换或删除/);
   assert.match(backend, /Writer 是生产者事务内的代码，不是独立进程/);
   assert.match(backend, /Relay 只读取已提交记录、投递并更新投递状态，不虚构领域层或 Command Bus/);
   assert.match(backend, /原子领取或租约、至少一次投递、退避重试、终止失败/);
@@ -410,6 +418,7 @@ test("defines bounded-context backend runtimes and conditional TypeScript conven
   assert.match(backend, /APT-7K3M9Q2D/);
   assert.match(backend, /唯一约束、碰撞重试/);
   assert.match(readme, /Next\.js、Prisma、PostgreSQL、BullMQ 等目录、命名和运行约定\s*只在组件实际采用相应技术时启用/);
+  assert.match(readme, /模板中的图、表、目录、上下文和技术名称都只是格式示例/);
 });
 
 test("separates system, component, and deploy security and observability ownership", () => {

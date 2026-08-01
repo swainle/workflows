@@ -10,6 +10,10 @@
 - 一个事实只由一个文件维护，其他文件使用稳定名称引用，不复制字段、关系、流程或规则。
 - `openapi.json`、`asyncapi.json`、`authorization.fga` 和 `schema.dbml` 是机器可读源文件，Markdown 只引用它们。
 - 系统安全与可观测性基线只从 `docs/system/security.md` 和 `docs/system/observability.md` 引用。
+- 本文件的 Mermaid、表格、目录、文件名、上下文名、技术名、运行单元和依赖全部是格式与表达示例，
+  不是待复制的默认设计。生成组件文档时必须根据已确认的实际需求逐项替换、增删和重组；禁止因示例中出现
+  认证、资源、预约、Outbox、Redis、Prisma 或 BullMQ 就在实际组件中创建对应内容。
+- 只保留“固定标题和顺序”等明确声明为固定的结构规则；尖括号占位符和具体示例名称不得原样进入最终文档。
 
 ## 架构、代码与运行约定
 
@@ -170,6 +174,8 @@ flowchart LR
 
 只允许一级标题和一个 Mermaid `C4Component` 图；完整元素、关系和边界规则以
 `docs/workflows/stages/component.md` 为准。
+下图仅演示 `C4Component` 的写法和抽象层级。认证、资源、预约、Outbox Relay、Worker、Redis 等元素
+都必须按当前组件的真实上下文、运行单元和依赖替换或删除，不构成推荐的固定组件清单。
 
 ````md
 # C3 组件图
