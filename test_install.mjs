@@ -324,6 +324,7 @@ test("supports frontend and backend component design modes", () => {
   assert.match(component, /Frontend 和 Backend 模式逐项检查各自列出的全部设计关注点/);
   assert.match(backend, /# Backend 组件设计流程与文档模板/);
   assert.match(backend, /## 文件关系与设计顺序/);
+  assert.match(backend, /## `c3\.md`[\s\S]*```mermaid\r?\nC4Component/);
   assert.match(backend, /flowchart LR/);
   assert.match(backend, /## 执行流程/);
   assert.match(backend, /不得从框架、数据库表或现有源码反推业务模型/);
@@ -385,11 +386,12 @@ test("defines bounded-context backend runtimes and conditional TypeScript conven
   assert.match(component, /一个逻辑 Backend 组件可以按实际需要提供 HTTP\/API、Outbox Relay 和消息 Worker 等多个独立运行入口/);
   assert.match(component, /进程不是工作流组件的划分单位/);
   assert.match(component, /跨上下文通过稳定的应用接口或 Port 协作，不导入对方的领域对象/);
-  assert.match(component, /每个限界上下文的应用服务与对应领域模块保持同名或可追踪的纵向对应/);
-  assert.match(component, /不创建笼统的共享“领域”节点/);
+  assert.match(component, /Backend C3 按限界上下文、入口、独立运行单元和实际公共技术能力展示稳定模块/);
+  assert.match(component, /上下文内部的分层及应用服务与领域模型的对应关系放入 `ddd\.md` 和 `c4\.md`/);
 
   assert.match(backend, /## 架构、代码与运行约定/);
-  assert.match(backend, /subgraph entry_layer\["接入层"\][\s\S]*subgraph application_layer\["应用层"\][\s\S]*subgraph domain_layer\["领域层"\][\s\S]*subgraph adapter_layer\["适配层"\]/);
+  assert.match(backend, /Container_Boundary\(backend, "<Backend 组件>"\)[\s\S]*Component\(auth_context, "认证上下文"[\s\S]*Component\(booking_context, "预约上下文"/);
+  assert.match(backend, /C3 不展开应用层、领域层、Port 或 Adapter/);
   assert.match(backend, /Writer 是生产者事务内的代码，不是独立进程/);
   assert.match(backend, /Relay 只读取已提交记录、投递并更新投递状态，不虚构领域层或 Command Bus/);
   assert.match(backend, /原子领取或租约、至少一次投递、退避重试、终止失败/);
@@ -668,10 +670,13 @@ test("defines single-purpose component documents and horizontal-first code diagr
   assert.match(component, /目录结构递归列出组件目录内所有应受版本控制的目录和文件/);
   assert.match(component, /不列出依赖目录、构建产物、缓存、日志、临时文件、密钥或其他运行时生成内容/);
   assert.match(component, /一个事实只由一个文件维护/);
-  assert.match(component, /`c3\.md` 使用 `flowchart LR`/);
-  assert.match(component, /# C3 组件图\r?\n\r?\n```mermaid\r?\nflowchart LR/);
-  assert.match(component, /`c3\.md` 只包含一级标题和一个 `flowchart LR` Mermaid 代码块/);
-  assert.doesNotMatch(component, /C4Component/);
+  assert.match(component, /`c3\.md` 使用 `C4Component`/);
+  assert.match(component, /# C3 组件图\r?\n\r?\n```mermaid\r?\nC4Component/);
+  assert.match(component, /`c3\.md` 只包含一级标题和一个 `C4Component` Mermaid 代码块/);
+  assert.match(component, /Container_Boundary\(component, "<组件>"\)/);
+  assert.match(component, /Component\(entry, "组件入口"/);
+  assert.match(component, /ContainerDb_Ext\(database, "数据库"/);
+  assert.match(component, /Rel\(caller, entry, "调用", "协议"\)/);
   assert.match(component, /`c4\.md` 使用一个代码总览和按业务能力划分的详细章节/);
   assert.match(component, /所有图统一使用 `flowchart LR`/);
   assert.match(component, /# C4 代码图\r?\n\r?\n## 总览\r?\n\r?\n```mermaid\r?\nflowchart LR/);
@@ -691,19 +696,9 @@ test("defines single-purpose component documents and horizontal-first code diagr
   assert.doesNotMatch(component, /```mermaid\r?\nclassDiagram/);
   assert.match(component, /`ddd\.md` 按限界上下文分章/);
   assert.match(component, /Backend 中简单 CRUD 或纯查询仍在 `ddd\.md` 说明统一语言/);
-  assert.match(component, /subgraph component\["<组件>"\]\r?\n\s+direction LR/);
-  assert.match(component, /subgraph entry_layer\["接入层"\]\r?\n\s+direction TB/);
-  assert.match(component, /subgraph capability_layer\["核心能力层"\]\r?\n\s+direction TB/);
-  assert.match(component, /subgraph adapter_layer\["适配层"\]\r?\n\s+direction TB/);
-  assert.match(component, /subgraph infrastructure\["基础设施与下游"\]\r?\n\s+direction TB/);
-  assert.match(component, /基础设施使用当前组件之外的兄弟 `subgraph`/);
-  assert.match(component, /跨层关系连接分层 `subgraph`/);
-  assert.match(component, /“源模块 → 目标模块”、用途和协议/);
-  assert.match(component, /异步链路按“生产者 → 队列或消息代理 → 消费者”从左到右排列/);
-  assert.doesNotMatch(component, /^\s*}\s*$/m);
-  assert.match(component, /callers -->\|"caller → entry<br\/>调用 · 协议"\| entry_layer/);
-  assert.match(component, /queue -->\|"交付任务<br\/>消息协议"\| consumer/);
-  assert.match(agents, /\| 组件内部结构 \| `flowchart LR`；主分层从左到右、分层内部从上到下 \|/);
+  assert.match(component, /Backend C3 按限界上下文、入口、独立运行单元和实际公共技术能力展示稳定模块/);
+  assert.match(component, /异步链路明确展示生产者、Outbox Relay、消息基础设施和 Worker\/下游消费者之间的关系/);
+  assert.match(agents, /\| 组件内部结构 \| `C4Component`；展示内部模块、职责、依赖和必要外部关系 \|/);
   assert.match(agents, /\| 组件代码结构 \| `flowchart`；先总览后按业务能力分章，主分层从左到右、分层内部从上到下 \|/);
 });
 

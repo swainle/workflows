@@ -298,58 +298,33 @@ Command、Handler、Factory、DomainService 或 DomainEvent。
 
 ## C3 和 C4 文件格式
 
-`c3.md` 使用 `flowchart LR` 描述当前组件内部的长期结构，主分层从左到右，
-每个分层内部从上到下：
+`c3.md` 使用 `C4Component` 描述当前组件内部的长期模块、职责、依赖和必要外部关系：
 
 ````md
 # C3 组件图
 
 ```mermaid
-flowchart LR
-    subgraph callers["上游调用方"]
-        direction TB
-        caller["上游调用方"]
-    end
+C4Component
+    title <组件> · C3 组件图
 
-    subgraph component["<组件>"]
-        direction LR
+    Person_Ext(caller, "上游调用方", "调用当前组件")
 
-        subgraph entry_layer["接入层"]
-            direction TB
-            entry["组件入口<br/>技术<br/>接收并分发请求、事件或用户操作"]
-        end
+    Container_Boundary(component, "<组件>") {
+        Component(entry, "组件入口", "技术", "接收并分发请求、事件或用户操作")
+        Component(capability_a, "核心能力 A", "技术", "承担一类稳定职责")
+        Component(capability_b, "核心能力 B", "技术", "承担另一类稳定职责")
+        Component(shared, "公共技术能力", "技术", "提供实际复用的无业务语义能力")
+    }
 
-        subgraph capability_layer["核心能力层"]
-            direction TB
-            capability_a["核心能力 A<br/>技术<br/>承担一类稳定职责"]
-            capability_b["核心能力 B<br/>技术<br/>承担另一类稳定职责"]
-            capability_c["核心能力 C<br/>技术<br/>承担第三类稳定职责"]
-        end
+    ContainerDb_Ext(database, "数据库", "数据库技术", "持久化数据")
+    System_Ext(downstream, "外部系统或消息基础设施", "必要外部依赖")
 
-        subgraph adapter_layer["适配层"]
-            direction TB
-            storage_adapter["数据适配器<br/>技术<br/>访问持久化数据"]
-            policy_adapter["策略适配器<br/>技术<br/>访问外部策略服务"]
-            message_adapter["消息适配器<br/>技术<br/>发布异步任务或事件"]
-        end
-
-        entry_layer -->|"entry → capability_a / capability_b / capability_c<br/>分发"| capability_layer
-        capability_layer -->|"capability_a → storage_adapter<br/>capability_b → policy_adapter<br/>capability_c → message_adapter"| adapter_layer
-    end
-
-    subgraph infrastructure["基础设施与下游"]
-        direction TB
-        database[("数据库<br/>持久化数据")]
-        policy_engine["授权引擎<br/>外部授权服务"]
-        queue[("队列或缓存<br/>异步任务与缓存")]
-        consumer["下游消费者<br/>消费异步任务"]
-        queue -->|"交付任务<br/>消息协议"| consumer
-    end
-
-    callers -->|"caller → entry<br/>调用 · 协议"| entry_layer
-    adapter_layer -->|"storage_adapter → database<br/>读写 · 数据库协议"| infrastructure
-    adapter_layer -->|"policy_adapter → policy_engine<br/>调用 · 协议"| infrastructure
-    adapter_layer -->|"message_adapter → queue<br/>生产任务 · 消息协议"| infrastructure
+    Rel(caller, entry, "调用", "协议")
+    Rel(entry, capability_a, "分发")
+    Rel(entry, capability_b, "分发")
+    Rel(capability_a, database, "读写", "数据库协议")
+    Rel(capability_b, downstream, "调用或发布", "协议")
+    Rel(capability_a, shared, "使用")
 ```
 ````
 
@@ -435,20 +410,14 @@ flowchart LR
 ```
 ````
 
-- `c3.md` 只包含一级标题和一个 `flowchart LR` Mermaid 代码块，不包含概述、正文、列表、表格或图外说明。
+- `c3.md` 只包含一级标题和一个 `C4Component` Mermaid 代码块，不包含概述、正文、列表、表格或图外说明。
 - C3 图只展示当前组件内部的主要模块、职责、依赖方向和必要的外部组件，不展开类和函数。
-- 上游调用方、当前组件和基础设施从左到右排列；当前组件使用一个主 `subgraph` 和
-  `direction LR`，内部按实际结构使用接入、核心能力和适配等嵌套 `subgraph`。
-- 每个内部分层使用 `direction TB`，使同层模块从上到下排列；分层名称和数量按前端、后端、
-  任务处理器或其他组件的真实结构确定，不存在的层级直接省略。
-- Backend 的当前组件内部按实际需要使用接入层、应用层、领域层、适配层和独立公共技术能力层；
-  每个限界上下文的应用服务与对应领域模块保持同名或可追踪的纵向对应，不创建笼统的共享“领域”节点。
-  HTTP/API、Outbox Relay 和消息 Worker 等运行入口属于接入层，业务规则仍进入对应上下文的应用层和领域层。
-- 基础设施使用当前组件之外的兄弟 `subgraph`；数据库、缓存、消息代理、授权引擎和下游消费者
-  按实际依赖放入其中，不放入当前组件边界。
-- 为避免 Mermaid 忽略子图方向，跨层关系连接分层 `subgraph`，并在标签中明确写出
-  “源模块 → 目标模块”、用途和协议；同层关系直接连接实际模块节点。
-- 异步链路按“生产者 → 队列或消息代理 → 消费者”从左到右排列。
+- 当前组件使用一个 `Container_Boundary`，内部模块使用 `Component`；上游调用方和数据库、缓存、
+  消息代理、授权引擎及下游消费者使用适合的外部 C4 元素，位于当前组件边界之外。
+- 每个关系使用 `Rel` 明确用途和必要协议；不存在的模块或外部依赖直接省略。
+- Backend C3 按限界上下文、入口、独立运行单元和实际公共技术能力展示稳定模块，不用 C3 元素模拟
+  接入层、应用层、领域层和适配层。上下文内部的分层及应用服务与领域模型的对应关系放入 `ddd.md` 和 `c4.md`。
+- 异步链路明确展示生产者、Outbox Relay、消息基础设施和 Worker/下游消费者之间的关系。
 - `c4.md` 包含一级标题、一个“总览”章节和按实际业务能力创建的详细章节。
 - 总览使用一个 `flowchart LR`，只展示模块、业务能力及主要依赖，不展示字段或函数。
 - 每个详细章节只描述一个业务能力并使用一个 `flowchart LR`；图仍过大时继续按内聚的子能力拆分章节。
@@ -568,8 +537,8 @@ accessibility:
 - `component.md` 只包含概述、设计架构文件索引和完整的受版本控制文件结构；
   索引覆盖设计目录内全部实际文件且作用唯一。
 - `component.md` 的完整文件结构包含实际需要的测试层级、测试文件、fixture、支持代码和配置；没有通配符、空测试目录或重复的测试方案正文。
-- `c3.md` 只有一级标题和一个 `flowchart LR` Mermaid 图，没有其他说明；图中只包含当前组件的
-  主要内部模块和必要外部依赖，主分层从左到右、分层内部从上到下。
+- `c3.md` 只有一级标题和一个 `C4Component` Mermaid 图，没有其他说明；图中只包含当前组件的
+  主要内部模块、职责、依赖和必要外部关系，不展开类、函数或内部代码分层。
 - 需要长期维护代码结构时，`c4.md` 使用一个代码总览和按业务能力划分的详细 `flowchart LR`；总览不展示函数，详细章节只展示关键公开函数，所有图均为主分层从左到右、分层内部从上到下。
 - Backend 模式下，`ddd.md` 的每个限界上下文完整记录边界、统一语言、领域结构、状态图、关键时序图
   以及领域事件，不创建独立的 `state.md` 或 `sequence.md`，不复制系统流程、C4、DBML 或契约内容。

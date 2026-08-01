@@ -168,72 +168,50 @@ flowchart LR
 
 ## `c3.md`
 
-只允许一级标题和一个 Mermaid `flowchart LR` 图；完整分层、关系和布局规则以
+只允许一级标题和一个 Mermaid `C4Component` 图；完整元素、关系和边界规则以
 `docs/workflows/stages/component.md` 为准。
 
 ````md
 # C3 组件图
 
 ```mermaid
-flowchart LR
-    caller["上游调用方"]
+C4Component
+    title <Backend 组件> · C3 组件图
 
-    subgraph component["<Backend 组件>"]
-        direction LR
+    Person_Ext(caller, "上游调用方", "调用当前 Backend")
 
-        subgraph entry_layer["接入层"]
-            direction TB
-            api["HTTP/API 入口"]
-            relay["Outbox Relay<br/>仅在需要时"]
-            worker["消息 Worker<br/>仅在需要时"]
-        end
+    Container_Boundary(backend, "<Backend 组件>") {
+        Component(api, "HTTP/API 入口", "实际技术", "认证请求并分发到对应上下文")
+        Component(auth_context, "认证上下文", "应用与领域模块", "认证与会话能力")
+        Component(resource_context, "资源上下文", "应用与领域模块", "资源与排班能力")
+        Component(booking_context, "预约上下文", "应用与领域模块", "预约生命周期与规则")
+        Component(outbox_relay, "Outbox Relay", "独立运行入口 · 按需", "投递已提交的集成事件")
+        Component(worker, "消息 Worker", "独立运行入口 · 按需", "幂等处理异步任务")
+        Component(shared, "公共技术能力", "按需", "日志、追踪及实际复用的基础代码")
+    }
 
-        subgraph application_layer["应用层"]
-            direction TB
-            auth_app["认证应用服务"]
-            resource_app["资源应用服务"]
-            booking_app["预约应用服务"]
-        end
+    ContainerDb_Ext(database, "数据库", "实际数据库", "业务数据、Outbox 与 Inbox")
+    ContainerDb_Ext(redis, "Redis", "消息基础设施", "BullMQ 或其他实际消息机制")
+    System_Ext(policy_engine, "授权引擎", "外部策略服务")
+    System_Ext(consumer, "下游消费者", "消费集成事件")
 
-        subgraph domain_layer["领域层"]
-            direction TB
-            auth_domain["认证领域"]
-            resource_domain["资源领域"]
-            booking_domain["预约领域"]
-        end
-
-        subgraph adapter_layer["适配层"]
-            direction TB
-            persistence["持久化 Adapter"]
-            policy["授权策略 Adapter"]
-            messaging["消息 Adapter"]
-        end
-
-        subgraph shared_layer["公共技术能力"]
-            direction TB
-            telemetry["日志、追踪与指标"]
-        end
-
-        entry_layer -->|"入口 → 对应用例"| application_layer
-        application_layer -->|"auth_app → auth_domain<br/>resource_app → resource_domain<br/>booking_app → booking_domain"| domain_layer
-        application_layer -->|"Port → Adapter"| adapter_layer
-    end
-
-    subgraph infrastructure["基础设施与下游"]
-        direction TB
-        database[("数据库")]
-        redis[("Redis")]
-        consumer["下游消费者"]
-    end
-
-    caller --> api
-    adapter_layer -->|"技术协议"| infrastructure
+    Rel(caller, api, "调用", "HTTPS/JSON")
+    Rel(api, auth_context, "执行认证用例")
+    Rel(api, resource_context, "执行资源用例")
+    Rel(api, booking_context, "执行预约用例")
+    Rel(resource_context, policy_engine, "检查权限", "实际协议")
+    Rel(booking_context, database, "持久化业务数据与 Outbox", "数据库协议")
+    Rel(outbox_relay, database, "领取并更新 Outbox", "数据库协议")
+    Rel(outbox_relay, redis, "发布任务或事件", "实际消息协议")
+    Rel(redis, worker, "交付任务", "实际消息协议")
+    Rel(redis, consumer, "按实际机制交付事件", "实际消息协议")
 ```
 ````
 
-每层使用一个 `subgraph`，同层上下文模块使用 `direction TB`。应用服务与对应领域模块保持可追踪的纵向对应，
-不创建笼统的共享“领域”节点。公共日志、追踪、数据库会话或消息基础代码可以单列公共技术能力层；
-数据库、Redis、授权引擎和外部消费者仍位于组件边界之外。不存在的上下文、运行入口、层或依赖直接删除。
+每个真实限界上下文、入口和独立运行单元使用一个 `Component`；公共日志、追踪、数据库会话或消息基础代码
+只有实际复用时才作为公共技术组件。C3 不展开应用层、领域层、Port 或 Adapter；这些分层及上下文内部代码关系
+由 `ddd.md` 和 `c4.md` 展示。数据库、Redis、授权引擎和外部消费者位于组件边界之外；不存在的上下文、
+运行入口或依赖直接删除。
 
 ## `ddd.md`
 
