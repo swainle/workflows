@@ -646,9 +646,10 @@ test("supports frontend and backend component design modes", () => {
   assert.match(backend, /同级创建或更新 `c3\.md` 和 `interface\.md`/);
   assert.match(backend, /不互相作为设计前置/);
   assert.match(backend, /\*\*What\*\*：提供“`c3\.md`”功能[\s\S]*```mermaid\r?\nC4Component/);
-  assert.match(backend, /Rel\(web, http, "访问 API", "HTTPS"\)/);
-  assert.match(backend, /Rel\(booking, outbox, "记录预约事件"\)/);
-  assert.match(backend, /Rel\(otel, otelcol, "导出遥测数据", "OTLP"\)/);
+  assert.match(backend, /title backend 组件图/);
+  assert.match(backend, /Container_Boundary\(consumer_layout, "消息消费者"\)[\s\S]*System_Ext\(worker, "worker"/);
+  assert.match(backend, /C3 图不绘制关系连线，不使用 `Rel`、`BiRel` 或带方向的关系语法/);
+  assert.doesNotMatch(backend, /\b(?:BiRel|Rel(?:_[DULR])?)\(/);
   assert.match(backend, /flowchart LR/);
   assert.match(backend, /\*\*What\*\*：提供“执行流程”功能/);
   assert.match(backend, /不得从框架、数据库表或现有源码反推业务模型/);
@@ -725,12 +726,12 @@ test("defines bounded-context backend runtimes and conditional TypeScript conven
   assert.match(component, /上下文内部的代码分层及应用服务与领域模型的映射放入 `coding\.md` 和 `c4\.md`/);
 
   assert.match(backend, /\*\*What\*\*：提供“架构、代码与运行约定”功能/);
-  assert.match(backend, /Container_Boundary\(web_layout, "前端展示"\)[\s\S]*Container_Boundary\(context_layout, "上下文"\)[\s\S]*Container_Boundary\(infra_layout, "基础设施"\)/);
+  assert.match(backend, /Container_Boundary\(caller_layout, "调用方"\)[\s\S]*Container_Boundary\(context_layout, "上下文"\)[\s\S]*Container_Boundary\(consumer_layout, "消息消费者"\)[\s\S]*Container_Boundary\(infra_layout, "基础设施"\)/);
   assert.match(backend, /UpdateLayoutConfig\(\$c4ShapeInRow="5", \$c4BoundaryInRow="1"\)/);
   assert.match(backend, /组件信息、对象、技术版本、架构、框架和职责必须根据实际情况调整/);
   assert.match(backend, /C3 不展开应用层、领域层、Port 或 Adapter/);
   assert.match(backend, /下图仅演示 `C4Component` 的写法和抽象层级/);
-  assert.match(backend, /都必须按当前组件的真实上下文、运行单元和依赖替换或删除/);
+  assert.match(backend, /都必须按当前组件的真实上下文、运行单元和外部对象替换或删除/);
   assert.match(backend, /Writer 是生产者事务内的代码，不是独立进程/);
   assert.match(backend, /Relay 只读取已提交记录、投递并更新投递状态，不虚构领域层或 Command Bus/);
   assert.match(backend, /原子领取或租约、至少一次投递、退避重试、终止失败/);
@@ -1018,8 +1019,8 @@ test("defines single-purpose component documents and horizontal-first code diagr
   assert.match(component, /一个事实只由一个文件维护/);
   assert.match(component, /`c3\.md` 使用 `C4Component`/);
   assert.match(component, /# C3 组件图\r?\n\r?\n```mermaid\r?\nC4Component/);
-  assert.match(component, /Rel\(caller, entry, "<调用用途>", "<协议>"\)/);
-  assert.match(component, /关系默认使用 `Rel\(<来源>, <目标>, "<用途>", "<协议或技术>"\)`/);
+  assert.match(component, /不绘制关系连线/);
+  assert.doesNotMatch(component, /\b(?:BiRel|Rel(?:_[DULR])?)\(/);
   assert.match(component, /`c3\.md` 只包含一级标题和一个 `C4Component` Mermaid 代码块/);
   assert.match(component, /Container_Boundary\(caller_layout, "<展示或调用方>"\)/);
   assert.match(component, /Container_Boundary\(context_layout, "上下文"\)/);
@@ -1047,7 +1048,7 @@ test("defines single-purpose component documents and horizontal-first code diagr
   assert.match(component, /轻量 Backend 不创建 `ddd\.md`/);
   assert.match(component, /Backend C3 按限界上下文、入口、独立运行单元和实际公共技术能力展示稳定模块/);
   assert.match(component, /异步链路明确展示生产者、Outbox Relay、消息基础设施和 Worker\/下游消费者之间的关系/);
-  assert.match(agents, /\| 组件内部结构 \| `C4Component`；展示内部模块、职责、依赖和必要外部关系 \|/);
+  assert.match(agents, /\| 组件内部结构 \| `C4Component`；展示内部模块、职责和必要外部对象，不绘制关系连线 \|/);
   assert.match(agents, /\| 组件代码结构 \| `flowchart`；先总览后按业务能力分章，主分层从左到右、分层内部从上到下 \|/);
 });
 

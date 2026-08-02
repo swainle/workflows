@@ -221,10 +221,10 @@ flowchart LR
 - **What**：提供“`c3.md`”功能；具体规则、格式和约束如下。
 - **Why**：确保 Backend 设计由实际业务边界驱动且不会机械照抄范例。
 
-只允许一级标题和一个 Mermaid `C4Component` 图；完整元素、关系和边界规则以
+只允许一级标题和一个 Mermaid `C4Component` 图；完整元素和边界规则以
 `docs/workflows/stages/component.md` 为准。
-下图仅演示 `C4Component` 的写法和抽象层级。认证、资源、预约、Outbox Relay、Worker、Redis 等元素
-都必须按当前组件的真实上下文、运行单元和依赖替换或删除，不构成推荐的固定组件清单。
+下图仅演示 `C4Component` 的写法和抽象层级。认证、资源、预约、事件投递、Worker、Redis 等元素
+都必须按当前组件的真实上下文、运行单元和外部对象替换或删除，不构成推荐的固定组件清单。
 
 > - 范例适配声明：以下 C3 内容必须根据当前组件的实际边界、上下文、入口和依赖调整。
 
@@ -233,59 +233,42 @@ flowchart LR
 
 ```mermaid
 C4Component
-    title api 组件图
+    title backend 组件图
 
-    Container_Boundary(web_layout, "前端展示") {
-        System_Ext(web, "Web 前端", "Next.js 16, React 19")
+    Container_Boundary(caller_layout, "调用方") {
+        System_Ext(web, "Web 前端", "Next.js 16, React 19 · 浏览科室医生，创建管理预约")
     }
 
     Container_Boundary(context_layout, "上下文") {
-        Component(http, "HTTP 中间件", "实际框架", "JWT")
-        Component(policy, "Authorization", "实际架构", "授权关系检查")
-        Component(otel, "遥测", "实际技术", "日志、指标、Trace 导出")
-        Component(identity, "Authentication", "实际架构", "注册、登录、刷新、登出")
-        Component(resource, "Resource", "实际架构", "科室/医生/排班 CRUD")
-        Component(booking, "Booking", "实际架构", "预约创建、取消、查询")
-        Component(administration, "Administration", "实际架构", "Dashboard 统计、用户启停")
-        Component(outbox, "Outbox", "实际架构", "事件入队与消费")
-        Component(worker, "Worker", "实际框架", "消费异步任务、发送通知")
+        Component(http, "HTTP 中间件", "Next.js 16", "JWT 校验 · role 提取 · 限流 · requestId")
+        Component(auth, "Auth 认证", "认证上下文", "注册、登录、登出、Token 续期、Session 管理")
+        Component(resource, "Resource 资源", "资源上下文", "科室、医生、排班管理、号源设定")
+        Component(booking, "Booking 预约", "预约上下文", "预约创建与取消、取消窗口守卫")
+        Component(admin, "Admin 管理", "管理上下文", "后台统计、用户启停、强制取消")
+        Component(publisher, "事件投递", "BullMQ + Post-Commit Hook", "事务提交后投递领域事件")
+
+        Container_Boundary(consumer_layout, "消息消费者") {
+            System_Ext(worker, "worker", "BullMQ Worker 5, Prisma 6 · 消费通知事件并写入通知记录")
+        }
     }
 
     Container_Boundary(infra_layout, "基础设施") {
-        System_Ext(pg, "PostgreSQL 16", "持久化数据")
-        System_Ext(redis, "Redis 7", "队列与缓存")
+        System_Ext(pg, "PostgreSQL 16", "持久化业务数据")
+        System_Ext(redis, "Redis 7", "会话缓存、限流、排班缓存")
+        System_Ext(redismq, "RedisMQ 7", "BullMQ 消息队列")
         System_Ext(fga, "OpenFGA 1.4", "授权引擎")
-        System_Ext(otelcol, "OTel Collector", "遥测收集")
+        System_Ext(otelcol, "OTel Collector", "遥测采集")
     }
-
-    Rel(web, http, "访问 API", "HTTPS")
-    Rel(http, identity, "执行身份操作")
-    Rel(http, resource, "执行资源操作")
-    Rel(http, booking, "执行预约操作")
-    Rel(http, administration, "执行管理操作")
-    Rel(http, policy, "检查授权关系")
-    Rel(identity, pg, "读写身份数据", "SQL")
-    Rel(resource, pg, "读写资源数据", "SQL")
-    Rel(policy, fga, "查询授权关系", "HTTP")
-    Rel(booking, pg, "读写预约数据", "SQL")
-    Rel(administration, pg, "读写管理数据", "SQL")
-    Rel(booking, outbox, "记录预约事件")
-    Rel(outbox, redis, "发布异步任务", "Redis")
-    Rel(redis, worker, "分发异步任务", "Redis")
-    Rel(http, otel, "记录遥测信号")
-    Rel(worker, otel, "记录遥测信号")
-    Rel(otel, otelcol, "导出遥测数据", "OTLP")
 
     UpdateLayoutConfig($c4ShapeInRow="5", $c4BoundaryInRow="1")
 ```
 ````
 
-每个真实限界上下文、入口和独立运行单元使用一个 `Component`；公共日志、追踪、数据库会话或消息基础代码
-只有实际复用时才作为公共技术组件。C3 不展开应用层、领域层、Port 或 Adapter；这些分层及上下文内部代码关系
+每个真实限界上下文和入口使用一个 `Component`；独立消息消费者按范例放入嵌套边界并使用 `System_Ext`。
+公共日志、追踪、数据库会话或消息基础代码只有实际复用时才作为公共技术组件。C3 不展开应用层、领域层、Port 或 Adapter；这些分层及上下文内部代码关系
 由 `ddd.md` 和 `c4.md` 展示。组件信息、对象、技术版本、架构、框架和职责必须根据实际情况调整；
 不存在的展示层、上下文、运行入口或基础设施直接删除，不保留空边界或示例空字符串。
-关系使用 `Rel(<来源>, <目标>, "<用途>", "<协议或技术>")`；第四个参数不适用时省略，关系方向、用途和协议
-必须来自真实调用或依赖。需要调整连线布局时可使用 `Rel_D`、`Rel_U`、`Rel_L` 或 `Rel_R`，不得借布局方向改变依赖语义。
+C3 图不绘制关系连线，不使用 `Rel`、`BiRel` 或带方向的关系语法。
 
 ## AI-BACKEND-006
 

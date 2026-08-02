@@ -368,7 +368,7 @@ Command、Handler、Factory、DomainService 或 DomainEvent。
 - **What**：提供“C3 和 C4 文件格式”功能；具体规则、格式和约束如下。
 - **Why**：确保组件设计按真实边界完整落地且不复制上游事实。
 
-`c3.md` 使用 `C4Component` 描述当前组件内部的长期模块、职责、依赖和必要外部关系：
+`c3.md` 使用 `C4Component` 描述当前组件内部的长期模块、职责和必要外部对象，不绘制关系连线：
 
 > - 根据实际情况修改
 
@@ -393,12 +393,6 @@ C4Component
         System_Ext(database, "<数据库>", "<实际版本与用途>")
         System_Ext(infrastructure, "<缓存、消息、授权或遥测设施>", "<实际版本与用途>")
     }
-
-    Rel(caller, entry, "<调用用途>", "<协议>")
-    Rel(entry, context_a, "<委派用途>")
-    Rel(context_a, context_b, "<协作用途>")
-    Rel(context_a, database, "<读写用途>", "<协议>")
-    Rel(context_b, infrastructure, "<依赖用途>", "<协议>")
 
     UpdateLayoutConfig($c4ShapeInRow="5", $c4BoundaryInRow="1")
 ```
@@ -491,8 +485,8 @@ flowchart LR
 - `c3.md` 只包含一级标题和一个 `C4Component` Mermaid 代码块，不包含概述、正文、列表、表格或图外说明。
 - C3 图按展示或调用方、业务上下文、基础设施三个 `Container_Boundary` 组织；不存在的区域直接省略，不创建空边界。
 - 展示或调用方和基础设施使用 `System_Ext`，当前组件的入口、中间件、业务上下文、对象和独立运行单元使用 `Component`。
-- 关系默认使用 `Rel(<来源>, <目标>, "<用途>", "<协议或技术>")`，第四个参数不适用时省略；来源与目标表达真实依赖方向，
-  标签写业务用途，不只写“调用”。需要调整连线布局时可使用 `Rel_D`、`Rel_U`、`Rel_L` 或 `Rel_R`，但不得改变真实依赖语义。
+- C3 图不使用 `Rel`、`BiRel`、`Rel_D`、`Rel_U`、`Rel_L` 或 `Rel_R`；组件协作顺序由系统 `process.md`、
+  接口由 `interface.md` 与机器可读契约、代码依赖由 `c4.md` 分别维护。
 - 组件信息、对象名称、技术版本、架构、框架和职责全部根据当前项目事实填写，不照抄模板示例或保留空字符串。
 - 使用 `UpdateLayoutConfig($c4ShapeInRow="5", $c4BoundaryInRow="1")` 保持每个边界独占一行、边界内对象横向排列。
 - Backend C3 按限界上下文、入口、独立运行单元和实际公共技术能力展示稳定模块，不用 C3 元素模拟
@@ -651,7 +645,7 @@ accessibility:
 - `component.md` 的完整文件结构包含实际需要的测试层级、测试文件、fixture、支持代码和配置；没有通配符、空测试目录或重复的测试方案正文。
 - 已执行组件文件树自动校验且没有遗漏实际受版本控制文件；要求设计与当前文件完全一致时使用了 `--strict`。
 - `c3.md` 只有一级标题和一个 `C4Component` Mermaid 图，没有其他说明；图中只包含当前组件的
-  主要内部模块、职责、依赖和必要外部关系，不展开类、函数或内部代码分层。
+  主要内部模块、职责和必要外部对象，不绘制关系连线，不展开类、函数或内部代码分层。
 - 需要长期维护代码结构时，`c4.md` 使用一个代码总览和按业务能力划分的详细 `flowchart LR`；总览不展示函数，详细章节只展示关键公开函数，所有图均为主分层从左到右、分层内部从上到下。
 - Backend 完整 DDD 模式下，`ddd.md` 的每个限界上下文记录领域命令、统一语言、业务规则和一致性，
   按需记录领域事件、状态图和时序图；不创建独立的 `state.md` 或 `sequence.md`，不复制系统流程、C4、DBML 或契约内容。
