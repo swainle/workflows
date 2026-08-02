@@ -646,6 +646,9 @@ test("supports frontend and backend component design modes", () => {
   assert.match(backend, /同级创建或更新 `c3\.md` 和 `interface\.md`/);
   assert.match(backend, /不互相作为设计前置/);
   assert.match(backend, /\*\*What\*\*：提供“`c3\.md`”功能[\s\S]*```mermaid\r?\nC4Component/);
+  assert.match(backend, /Rel\(web, http, "访问 API", "HTTPS"\)/);
+  assert.match(backend, /Rel\(booking, outbox, "记录预约事件"\)/);
+  assert.match(backend, /Rel\(otel, otelcol, "导出遥测数据", "OTLP"\)/);
   assert.match(backend, /flowchart LR/);
   assert.match(backend, /\*\*What\*\*：提供“执行流程”功能/);
   assert.match(backend, /不得从框架、数据库表或现有源码反推业务模型/);
@@ -1015,6 +1018,8 @@ test("defines single-purpose component documents and horizontal-first code diagr
   assert.match(component, /一个事实只由一个文件维护/);
   assert.match(component, /`c3\.md` 使用 `C4Component`/);
   assert.match(component, /# C3 组件图\r?\n\r?\n```mermaid\r?\nC4Component/);
+  assert.match(component, /Rel\(caller, entry, "<调用用途>", "<协议>"\)/);
+  assert.match(component, /关系默认使用 `Rel\(<来源>, <目标>, "<用途>", "<协议或技术>"\)`/);
   assert.match(component, /`c3\.md` 只包含一级标题和一个 `C4Component` Mermaid 代码块/);
   assert.match(component, /Container_Boundary\(caller_layout, "<展示或调用方>"\)/);
   assert.match(component, /Container_Boundary\(context_layout, "上下文"\)/);

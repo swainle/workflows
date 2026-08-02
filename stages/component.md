@@ -394,6 +394,12 @@ C4Component
         System_Ext(infrastructure, "<缓存、消息、授权或遥测设施>", "<实际版本与用途>")
     }
 
+    Rel(caller, entry, "<调用用途>", "<协议>")
+    Rel(entry, context_a, "<委派用途>")
+    Rel(context_a, context_b, "<协作用途>")
+    Rel(context_a, database, "<读写用途>", "<协议>")
+    Rel(context_b, infrastructure, "<依赖用途>", "<协议>")
+
     UpdateLayoutConfig($c4ShapeInRow="5", $c4BoundaryInRow="1")
 ```
 ````
@@ -485,6 +491,8 @@ flowchart LR
 - `c3.md` 只包含一级标题和一个 `C4Component` Mermaid 代码块，不包含概述、正文、列表、表格或图外说明。
 - C3 图按展示或调用方、业务上下文、基础设施三个 `Container_Boundary` 组织；不存在的区域直接省略，不创建空边界。
 - 展示或调用方和基础设施使用 `System_Ext`，当前组件的入口、中间件、业务上下文、对象和独立运行单元使用 `Component`。
+- 关系默认使用 `Rel(<来源>, <目标>, "<用途>", "<协议或技术>")`，第四个参数不适用时省略；来源与目标表达真实依赖方向，
+  标签写业务用途，不只写“调用”。需要调整连线布局时可使用 `Rel_D`、`Rel_U`、`Rel_L` 或 `Rel_R`，但不得改变真实依赖语义。
 - 组件信息、对象名称、技术版本、架构、框架和职责全部根据当前项目事实填写，不照抄模板示例或保留空字符串。
 - 使用 `UpdateLayoutConfig($c4ShapeInRow="5", $c4BoundaryInRow="1")` 保持每个边界独占一行、边界内对象横向排列。
 - Backend C3 按限界上下文、入口、独立运行单元和实际公共技术能力展示稳定模块，不用 C3 元素模拟

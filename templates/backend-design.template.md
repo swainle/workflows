@@ -258,6 +258,24 @@ C4Component
         System_Ext(otelcol, "OTel Collector", "遥测收集")
     }
 
+    Rel(web, http, "访问 API", "HTTPS")
+    Rel(http, identity, "执行身份操作")
+    Rel(http, resource, "执行资源操作")
+    Rel(http, booking, "执行预约操作")
+    Rel(http, administration, "执行管理操作")
+    Rel(http, policy, "检查授权关系")
+    Rel(identity, pg, "读写身份数据", "SQL")
+    Rel(resource, pg, "读写资源数据", "SQL")
+    Rel(policy, fga, "查询授权关系", "HTTP")
+    Rel(booking, pg, "读写预约数据", "SQL")
+    Rel(administration, pg, "读写管理数据", "SQL")
+    Rel(booking, outbox, "记录预约事件")
+    Rel(outbox, redis, "发布异步任务", "Redis")
+    Rel(redis, worker, "分发异步任务", "Redis")
+    Rel(http, otel, "记录遥测信号")
+    Rel(worker, otel, "记录遥测信号")
+    Rel(otel, otelcol, "导出遥测数据", "OTLP")
+
     UpdateLayoutConfig($c4ShapeInRow="5", $c4BoundaryInRow="1")
 ```
 ````
@@ -266,6 +284,8 @@ C4Component
 只有实际复用时才作为公共技术组件。C3 不展开应用层、领域层、Port 或 Adapter；这些分层及上下文内部代码关系
 由 `ddd.md` 和 `c4.md` 展示。组件信息、对象、技术版本、架构、框架和职责必须根据实际情况调整；
 不存在的展示层、上下文、运行入口或基础设施直接删除，不保留空边界或示例空字符串。
+关系使用 `Rel(<来源>, <目标>, "<用途>", "<协议或技术>")`；第四个参数不适用时省略，关系方向、用途和协议
+必须来自真实调用或依赖。需要调整连线布局时可使用 `Rel_D`、`Rel_U`、`Rel_L` 或 `Rel_R`，不得借布局方向改变依赖语义。
 
 ## AI-BACKEND-006
 
