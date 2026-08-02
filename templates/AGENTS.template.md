@@ -324,7 +324,6 @@ Git                            文件历史
 | 组件内部结构 | `C4Component`；展示内部模块、职责、依赖和必要外部关系 |
 | 组件代码结构 | `flowchart`；先总览后按业务能力分章，主分层从左到右、分层内部从上到下 |
 | 跨组件业务流程和调用顺序 | `sequenceDiagram` |
-| 构建流程 | `flowchart` |
 | 组件内部调用时序 | `sequenceDiagram` |
 | 状态转换 | `stateDiagram-v2` |
 | 数据关系 | `erDiagram` |

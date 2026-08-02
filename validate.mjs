@@ -1032,10 +1032,10 @@ test("defines single-purpose component documents and horizontal-first code diagr
   assert.match(agents, /\| 组件代码结构 \| `flowchart`；先总览后按业务能力分章，主分层从左到右、分层内部从上到下 \|/);
 });
 
-test("groups business processes by role and uses flowcharts for builds", () => {
+test("groups business processes by role and delegates deployment flows", () => {
   const agents = readFileSync(path.join(WORKFLOW_ROOT, "templates/AGENTS.template.md"), "utf8");
   const system = readFileSync(path.join(WORKFLOW_ROOT, "stages/system.md"), "utf8");
-  assert.match(agents, /\| 构建流程 \| `flowchart` \|/);
+  assert.doesNotMatch(agents, /\| 构建流程 \| `flowchart` \|/);
   assert.match(agents, /\| 组件内部调用时序 \| `sequenceDiagram` \|/);
   assert.match(system, /### <用户角色>/);
   assert.match(system, /### 通用/);
@@ -1049,7 +1049,8 @@ test("groups business processes by role and uses flowcharts for builds", () => {
   assert.match(system, /只有失败会改变跨组件协作、触发补偿或产生独立业务结果时才使用 `alt`/);
   assert.match(system, /BP 编号在整个 `process\.md`[\s\S]*中唯一且保持稳定/);
   assert.match(system, /阈值、计算、领域不变量和判断条件\s+仍以需求项为准/);
-  assert.match(system, /构建流程使用 `flowchart`/);
+  assert.doesNotMatch(system, /## 构建流程/);
+  assert.match(system, /构建、CI\/CD、发布、部署和回滚流程不写入 `process\.md`，统一由 `<deploy>` 阶段设计和维护/);
 });
 
 test("installs AGENTS.md idempotently without changing host rules", () => {
