@@ -912,15 +912,16 @@ test("lays out C1 peers horizontally and levels vertically", () => {
 });
 
 test("lists C2 components by type with development endpoints", () => {
+  const agents = readFileSync(path.join(WORKFLOW_ROOT, "templates/AGENTS.template.md"), "utf8");
   const system = readFileSync(path.join(WORKFLOW_ROOT, "stages/system.md"), "utf8");
   assert.doesNotMatch(system, /^## (?:概述|组件边界|依赖方向)$/m);
   assert.ok(system.lastIndexOf("## 容器图") < system.lastIndexOf("## 组件清单"));
   assert.match(system, /### 前端组件/);
   assert.match(system, /### 后端组件/);
-  assert.match(system, /\| 组件 \| 应用 \| 设计 \|/);
-  assert.match(system, /\| `web` \| `apps\/web\/` \| `docs\/component\/web\/` \|/);
-  assert.match(system, /\| `api` \| `apps\/api\/` \| `docs\/component\/api\/` \|/);
-  assert.match(system, /\| `worker` \| `apps\/worker\/` \| `docs\/component\/worker\/` \|/);
+  assert.ok((system.match(/^\| 组件名称 \| 暴露端口 \| 访问路径 \| 协议 \| 说明 \|$/gm) ?? []).length >= 3);
+  assert.match(system, /\| `web` \| `3000` \| `\/` \| HTTP \| 职责：Web 前端；应用：`apps\/web\/`；设计：`docs\/component\/web\/` \|/);
+  assert.match(system, /\| `api` \| `3001`<br>`3001`<br>`3001` \| `\/api\/v1`<br>`\/api\/v1\/doc`<br>`\/api\/v1\/openapi\.json` \| HTTPS\/JSON<br>HTTPS<br>HTTPS \|/);
+  assert.match(system, /\| `worker` \| `不暴露` \| `不暴露` \| `不暴露` \| 职责：处理异步任务；应用：`apps\/worker\/`；设计：`docs\/component\/worker\/` \|/);
   assert.match(system, /## 容器图\r?\n\r?\n```mermaid\r?\nflowchart LR/);
   assert.match(system, /subgraph system\["系统"\]\r?\n\s+direction LR/);
   assert.match(system, /subgraph frontend_layer\["前端组件"\]\r?\n\s+direction TB/);
@@ -937,30 +938,21 @@ test("lists C2 components by type with development endpoints", () => {
   assert.match(system, /每个组件类型内部使用 `direction TB`，使同类组件从上到下排列/);
   assert.match(system, /跨层关系连接层级 `subgraph`/);
   assert.match(system, /标签中明确写出“源组件 → 目标组件”、用途和协议/);
-  assert.match(system, /- `web`\r?\n  - 暴露端口：`3000`\r?\n  - 访问地址：`http:\/\/localhost:3000\/`/);
-  assert.match(system, /- `api`\r?\n  - 暴露端口：`3001`\r?\n  - 访问地址：`http:\/\/localhost:3001\/`/);
-  assert.match(system, /  - OpenAPI 契约：`http:\/\/localhost:3001\/api\/v1\/openapi\.json`/);
-  assert.match(system, /  - AsyncAPI 契约：`http:\/\/localhost:3001\/api\/v1\/asyncapi\.json`/);
   assert.match(system, /### 基础设施组件/);
-  assert.doesNotMatch(system, /\| `(?:redis|openfga)` \|/);
-  assert.match(system, /- `redis`\r?\n  - 暴露端口：`6379`\r?\n  - 访问地址：`redis:\/\/localhost:6379`/);
-  assert.match(system, /- `openfga`\r?\n  - 暴露端口：`8080`、`8081`、`3000`/);
-  assert.match(system, /  - HTTP API 地址：`http:\/\/localhost:8080`/);
-  assert.match(system, /  - gRPC 地址：`localhost:8081`/);
-  assert.match(system, /  - Playground：`http:\/\/localhost:3000`/);
-  assert.match(system, /  - Playground 认证：需要认证/);
-  assert.match(system, /  - 凭据来源：`deploy\/dev\.env` 中的 `<USERNAME_ENV>` 和 `<PASSWORD_ENV>`/);
-  assert.match(system, /  - 本地初始化方式：`deploy\/runbook\.md#<组件或基础设施开发配置>`/);
+  assert.match(system, /\| `<基础设施名称>` \| `<项目确认的暴露端口>` \| `<官方文档确认的访问路径>` \| `<官方文档确认的协议>` \|/);
+  assert.match(system, /版本：`<technology\.md 中的具体版本>`；官方文档：\[对应版本官方文档\]\(<URL>\)/);
   assert.match(system, /不得记录账号、密码、令牌、证书、密钥值或官方默认凭据值/);
-  assert.match(system, /  - 官方文档：\[Docker Setup Guide\]\(https:\/\/openfga\.dev\/docs\/getting-started\/setup-openfga\/docker\)/);
-  assert.match(system, /基础设施组件不使用表格/);
-  assert.match(system, /管理界面未启用认证时明确写“开发环境无认证”/);
-  assert.match(system, /没有暴露时直接省略，不写“无”/);
+  assert.match(system, /所有组件分类统一使用规定的五列表格/);
+  assert.match(system, /不使用记忆、镜像默认值、博客、搜索摘要或非官方教程作结论/);
+  assert.match(system, /官方文档无法确认时停止并向用户说明缺少依据/);
+  assert.match(system, /官方文档声明的默认或监听端口不等于项目实际暴露端口/);
+  assert.match(system, /状态未知时先询问，不填猜测值/);
   assert.match(system, /对应版本官方文档/);
   assert.match(system, /凭据来源只记录环境变量名、密钥引用、初始化脚本或 Runbook 位置/);
   assert.match(system, /测试和生产凭据必须由 `\[deploy\]` 通过独立环境配置或密钥系统注入/);
-  assert.match(system, /C2 只记录开发环境端口和地址/);
+  assert.match(system, /C2 只记录开发环境端口、路径和协议/);
   assert.match(system, /测试、生产及其他环境由 `\[deploy\]` 维护/);
+  assert.match(agents, /从该组件表格行“说明”列的固定字段“应用：`<路径>`；设计：`<路径>`”解析/);
 });
 
 test("defines single-purpose component documents and horizontal-first code diagrams", () => {
