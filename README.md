@@ -45,6 +45,8 @@ node docs/workflows/install.mjs --branch develop
 | `[deploy] <任务>` | 维护构建、编排、CI/CD 和部署 |
 | `[deploy] <组件>` | 维护目标组件的开发基础设施配置 |
 | `[deploy] update <任务>` | 生成正式系统升级方案 |
+| `[web] frontend opt <文件> <意见>` | 按 Frontend 模板前置依赖优化一个现有设计文件 |
+| `[api] backend opt <文件> <意见>` | 按 Backend 模板前置依赖优化一个现有设计文件 |
 
 组件名必须已登记在宿主项目的 `docs/system/c2.md`。Frontend 与 Backend 模式只增强组件设计阶段，不是独立阶段。
 

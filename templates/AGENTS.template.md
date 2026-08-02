@@ -123,6 +123,8 @@ Issue #1000 → docs/requirements/REQ-1000-<slug>/
 [<组件>] <规范任务>
 [<组件>] frontend <前端设计任务>
 [<组件>] backend <后端设计任务>
+[<组件>] frontend opt <目标文件> <意见>
+[<组件>] backend opt <目标文件> <意见>
 [<组件> dev] <开发任务>
 [<组件> test] <测试任务>
 ```
@@ -135,6 +137,8 @@ Issue #1000 → docs/requirements/REQ-1000-<slug>/
 [web] 讨论预约页面规范
 [web] frontend 设计预约前端
 [booking-api] backend 设计预约后端
+[web] frontend opt layout.md 调整页面布局边界
+[booking-api] backend opt ddd.md 调整聚合边界
 [web dev] 调整登录按钮圆角
 [web test] 验证登录页面
 [booking-api] 讨论预约接口
@@ -145,7 +149,8 @@ Issue #1000 → docs/requirements/REQ-1000-<slug>/
 组件任务使用该组件表格行声明的组件应用目录和组件设计目录，不根据组件名称猜测路径。
 `frontend` 和 `backend` 只能作为 `[<组件>]` 后的第一个任务词，用于启用
 `stages/component.md` 中对应的完整组件设计模式；它们不是组件名或独立阶段，
-不得写入方括号，也不适用于 `dev` 或 `test` 任务。
+不得写入方括号，也不适用于 `dev` 或 `test` 任务。`opt` 只能紧跟模式词，表示按模板依赖顺序优化
+当前组件设计目录内的一个现有文件；具体读取和修改范围由 `stages/component.md` 定义。
 组件类型与设计模式明显冲突时停止，说明应使用 `[system]` 调整组件划分。
 不得在组件任务中自行创造组件；新增或拆分组件先使用 `[system]` 确认全局架构。
 保留目标：

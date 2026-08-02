@@ -137,7 +137,7 @@ test("describes prompt capabilities with numbered five-point definitions", () =>
     ["templates/AGENTS.template.md", { prefix: "AI", count: 12 }],
     ["stages/requirement.md", { prefix: "AI-REQUIREMENT", count: 9 }],
     ["stages/system.md", { prefix: "AI-SYSTEM", count: 14 }],
-    ["stages/component.md", { prefix: "AI-COMPONENT", count: 13 }],
+    ["stages/component.md", { prefix: "AI-COMPONENT", count: 14 }],
     ["stages/development.md", { prefix: "AI-DEV", count: 9 }],
     ["stages/testing.md", { prefix: "AI-TEST", count: 8 }],
     ["stages/acceptance.md", { prefix: "AI-ACCEPTANCE", count: 9 }],
@@ -498,6 +498,26 @@ test("enforces serial stage read and write boundaries", () => {
   assert.match(deploy, /\| `<组件应用目录>\/deploy\/\*\*` \| 允许 \| 允许 \| 允许 \| 允许 \|/);
   assert.match(deploy, /\| `deploy\/\*\*` \| 允许 \| 允许 \| 允许 \| 允许 \|/);
   assert.match(deploy, /\| `deploy\/update\/\*\.md` \| 允许 \| 允许 \| 允许 \| 禁止 \|/);
+});
+
+test("optimizes one component design file using only template prerequisites", () => {
+  const agents = readFileSync(path.join(WORKFLOW_ROOT, "templates/AGENTS.template.md"), "utf8");
+  const component = readFileSync(path.join(WORKFLOW_ROOT, "stages/component.md"), "utf8");
+  const readme = readFileSync(path.join(WORKFLOW_ROOT, "README.md"), "utf8");
+
+  assert.match(agents, /\[<组件>\] frontend opt <目标文件> <意见>/);
+  assert.match(agents, /\[<组件>\] backend opt <目标文件> <意见>/);
+  assert.match(agents, /`opt` 只能紧跟模式词/);
+  assert.match(component, /\*\*What\*\*：提供“模板单文件优化”功能/);
+  assert.match(component, /目标文件本身/);
+  assert.match(component, /位于目标之前、且当前实际存在的设计文件/);
+  assert.match(component, /同级文件不互为前置依赖/);
+  assert.match(component, /不得读取目标之后的设计文件/);
+  assert.match(component, /不得读取组件源码、测试、验收或部署文件/);
+  assert.match(component, /\| `<目标之前的设计依赖文件>` \| 禁止 \| 允许 \| 禁止 \| 禁止 \|/);
+  assert.match(component, /\| `<目标文件>` \| 禁止 \| 允许 \| 允许 \| 禁止 \|/);
+  assert.match(component, /不创建、删除、移动、重命名或顺手修改模板、前置文件及关联文件/);
+  assert.match(readme, /\| `\[api\] backend opt <文件> <意见>` \|/);
 });
 
 test("separates stable runbook guidance from generated update plans", () => {
