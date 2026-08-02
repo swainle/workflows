@@ -107,10 +107,10 @@ OpenAPI `operationId`，消费方不复制提供方契约。能由 URL、表单�
 模板中的图、表、目录、上下文、技术、运行单元和依赖仅用于说明格式，不是默认设计。除模板明确声明的
 固定标题与顺序外，执行时必须依据当前组件的真实需求替换、增删和重组全部示例内容，不得照抄示例名称，
 也不得因为模板出现某项技术或能力就创建无真实用途的模块、文件或依赖。
-Backend 模板中的每个具体范例必须就近包含固定提示 `> - 根据实际情况修改`，并明确具体调整范围；缺少该提示的范例
+Backend 模板中的每个具体范例必须就近包含单行提示 `> - 范例适配声明：<具体调整范围>`；缺少该提示的范例
 不得作为可执行模板使用，必须先补充声明或仅将其视为说明材料。
 
-Backend 按“C3 → 复杂度判断 → 完整 DDD 时的 DDD（每个限界上下文包含状态图与关键时序图）→ 接口和边界 → 机器可读模型 → C4 →
+Backend 按“复杂度判断 → 完整 DDD 时先完成 DDD（每个限界上下文包含状态图与关键时序图）→ 同级产出 C3 与接口 → 边界 → 机器可读模型 → C4 →
 配置、密钥、可观测性、测试与运行 → 部署交付 → component.md 汇总”的依赖顺序设计。
 每个适用文件使用模板规定的标题名称和顺序；仅完整 DDD 模式创建 `ddd.md`，且其中每个限界上下文完整保留固定章节，
 其他不适用的可选文件或章节直接省略，不创建空文件，
@@ -375,26 +375,24 @@ Command、Handler、Factory、DomainService 或 DomainEvent。
 
 ```mermaid
 C4Component
-    title <组件> · C3 组件图
+    title <组件> 组件图
 
-    Person_Ext(caller, "上游调用方", "调用当前组件")
-
-    Container_Boundary(component, "<组件>") {
-        Component(entry, "组件入口", "技术", "接收并分发请求、事件或用户操作")
-        Component(capability_a, "核心能力 A", "技术", "承担一类稳定职责")
-        Component(capability_b, "核心能力 B", "技术", "承担另一类稳定职责")
-        Component(shared, "公共技术能力", "技术", "提供实际复用的无业务语义能力")
+    Container_Boundary(caller_layout, "<展示或调用方>") {
+        System_Ext(caller, "<调用方组件>", "<实际技术、框架与作用>")
     }
 
-    ContainerDb_Ext(database, "数据库", "数据库技术", "持久化数据")
-    System_Ext(downstream, "外部系统或消息基础设施", "必要外部依赖")
+    Container_Boundary(context_layout, "上下文") {
+        Component(entry, "<入口或中间件>", "<实际技术>", "<职责>")
+        Component(context_a, "<业务上下文或对象 A>", "<实际架构或框架>", "<职责>")
+        Component(context_b, "<业务上下文或对象 B>", "<实际架构或框架>", "<职责>")
+    }
 
-    Rel(caller, entry, "调用", "协议")
-    Rel(entry, capability_a, "分发")
-    Rel(entry, capability_b, "分发")
-    Rel(capability_a, database, "读写", "数据库协议")
-    Rel(capability_b, downstream, "调用或发布", "协议")
-    Rel(capability_a, shared, "使用")
+    Container_Boundary(infra_layout, "基础设施") {
+        System_Ext(database, "<数据库>", "<实际版本与用途>")
+        System_Ext(infrastructure, "<缓存、消息、授权或遥测设施>", "<实际版本与用途>")
+    }
+
+    UpdateLayoutConfig($c4ShapeInRow="5", $c4BoundaryInRow="1")
 ```
 ````
 
@@ -483,10 +481,10 @@ flowchart LR
 ````
 
 - `c3.md` 只包含一级标题和一个 `C4Component` Mermaid 代码块，不包含概述、正文、列表、表格或图外说明。
-- C3 图只展示当前组件内部的主要模块、职责、依赖方向和必要的外部组件，不展开类和函数。
-- 当前组件使用一个 `Container_Boundary`，内部模块使用 `Component`；上游调用方和数据库、缓存、
-  消息代理、授权引擎及下游消费者使用适合的外部 C4 元素，位于当前组件边界之外。
-- 每个关系使用 `Rel` 明确用途和必要协议；不存在的模块或外部依赖直接省略。
+- C3 图按展示或调用方、业务上下文、基础设施三个 `Container_Boundary` 组织；不存在的区域直接省略，不创建空边界。
+- 展示或调用方和基础设施使用 `System_Ext`，当前组件的入口、中间件、业务上下文、对象和独立运行单元使用 `Component`。
+- 组件信息、对象名称、技术版本、架构、框架和职责全部根据当前项目事实填写，不照抄模板示例或保留空字符串。
+- 使用 `UpdateLayoutConfig($c4ShapeInRow="5", $c4BoundaryInRow="1")` 保持每个边界独占一行、边界内对象横向排列。
 - Backend C3 按限界上下文、入口、独立运行单元和实际公共技术能力展示稳定模块，不用 C3 元素模拟
   接入层、应用层、领域层和适配层。上下文内部的分层及应用服务与领域模型的对应关系放入 `ddd.md` 和 `c4.md`。
 - 异步链路明确展示生产者、Outbox Relay、消息基础设施和 Worker/下游消费者之间的关系。

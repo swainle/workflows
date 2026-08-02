@@ -81,8 +81,7 @@ Agent 完成指令解析并加载必读提示词后，会在执行实质操作�
 | `templates/backend-design.template.md` | Backend 模式设计规则与文档结构 |
 | `stages/*.md` | 各阶段职责、权限、格式和完成检查 |
 | `install.mjs` | 更新并安装工作流规则 |
-| `validate.mjs` | 校验提示词编号、5W 结构和组件完整文件树 |
-| `test_install.mjs` | 安装器与提示词结构测试 |
+| `validate.mjs` | 校验提示词编号、5W 结构和组件完整文件树，并执行安装器与提示词结构测试 |
 
 详细规则以模板和对应阶段提示词为准，README 不重复维护阶段实现细节。
 
@@ -91,7 +90,6 @@ Agent 完成指令解析并加载必读提示词后，会在执行实质操作�
 需要 Git 和支持内置测试运行器的 Node.js：
 
 ```bash
-node --test test_install.mjs
 node validate.mjs
 ```
 
