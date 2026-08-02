@@ -44,7 +44,7 @@ node docs/workflows/install.mjs --branch develop
 | `<web test> <任务>` | 编写并执行目标组件测试 |
 | `<test> <任务>` | 实现并执行跨组件验收测试 |
 | `<deploy> <任务>` | 维护构建、编排、CI/CD 和部署 |
-| `<deploy api> <任务>` | 维护目标组件的开发基础设施配置 |
+| `<api deploy> <任务>` | 维护目标组件的开发基础设施配置 |
 | `<deploy update> <任务>` | 生成正式系统升级方案 |
 | `<web> frontend opt <文件> <意见>` | 按 Frontend 模板前置依赖优化一个现有设计文件 |
 | `<api> backend opt <文件> <意见>` | 按 Backend 模板前置依赖优化一个现有设计文件 |

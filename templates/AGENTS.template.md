@@ -95,7 +95,7 @@ node docs/workflows/install.mjs
 
 1. 纯数字：GitHub Issue 需求，例如 `<12>`；
 2. 保留全局指令：`<system>`、`<test>`、`<deploy>`、`<deploy update>`；
-3. `<deploy 组件名>`：目标组件的开发基础设施；
+3. `<组件名 deploy>`：目标组件的开发基础设施；
 4. `<组件名 dev>` 或 `<组件名 test>`：目标组件的开发或测试阶段；
 5. `<组件名>`：目标组件的设计阶段。
 
@@ -143,6 +143,7 @@ Issue #1000 → docs/requirements/REQ-1000-<slug>/
 <组件> backend opt <目标文件> <意见>
 <组件 dev> <开发任务>
 <组件 test> <测试任务>
+<组件 deploy> <开发基础设施任务>
 ```
 
 示例：
@@ -160,6 +161,7 @@ Issue #1000 → docs/requirements/REQ-1000-<slug>/
 <web test> 验证登录页面
 <booking-api> 讨论预约接口
 <booking-api dev> 实现创建预约接口
+<booking-api deploy> 更新开发环境配置
 ```
 
 `<组件>` 必须对应 `docs/system/c2.md` 组件清单中已声明的组件。
@@ -167,7 +169,7 @@ Issue #1000 → docs/requirements/REQ-1000-<slug>/
 不根据组件名称猜测路径。
 `frontend` 和 `backend` 只能作为 `<组件>` 指令头后的第一个任务词，用于启用
 `stages/component.md` 中对应的完整组件设计模式；它们不是组件名或独立阶段，
-不得写入指令头，也不适用于 `dev` 或 `test` 任务。`opt` 可直接跟在指令头后，或紧跟
+不得写入指令头，也不适用于 `dev`、`test` 或 `deploy` 任务。`opt` 可直接跟在指令头后，或紧跟
 `frontend`、`backend`，表示按当前组件设计顺序或所选模板依赖顺序优化一个现有文件；
 具体读取和修改范围由 `stages/component.md` 定义。
 组件类型与设计模式明显冲突时停止，说明应使用 `<system>` 调整组件划分。
@@ -180,10 +182,10 @@ Issue #1000 → docs/requirements/REQ-1000-<slug>/
 <system>         全局架构、技术和开发约定
 <test>           跨组件验收测试及执行
 <deploy>         组件构建、全局编排、CI/CD、发布和回滚
-<deploy 组件>   当前组件的开发基础设施、初始化和启动说明
+<组件 deploy>   当前组件的开发基础设施、初始化和启动说明
 ```
 
-`<deploy 组件>` 中的组件名必须精确匹配 `docs/system/c2.md` 组件清单；
+`<组件 deploy>` 中的组件名必须精确匹配 `docs/system/c2.md` 组件清单；
 该指令按 `stages/deploy.md` 更新组件开发配置，不是生产部署，也不创建升级方案。
 
 全局验收测试使用：
@@ -227,7 +229,7 @@ Issue #1000 → docs/requirements/REQ-1000-<slug>/
 | `<组件 test>` | `docs/workflows/stages/testing.md` |
 | `<test>` | `docs/workflows/stages/acceptance.md` |
 | `<system>` | `docs/workflows/stages/system.md` |
-| `<deploy>`、`<deploy 组件>`、`<deploy update>` | `docs/workflows/stages/deploy.md` |
+| `<deploy>`、`<组件 deploy>`、`<deploy update>` | `docs/workflows/stages/deploy.md` |
 
 阶段文件不存在或无法完整读取时停止，不修改任何文件。
 

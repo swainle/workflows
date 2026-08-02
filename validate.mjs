@@ -564,16 +564,16 @@ test("configures component development infrastructure with deploy targets", () =
   const deploy = readFileSync(path.join(WORKFLOW_ROOT, "stages/deploy.md"), "utf8");
   const readme = readFileSync(path.join(WORKFLOW_ROOT, "README.md"), "utf8");
 
-  assert.match(agents, /<deploy 组件>\s+当前组件的开发基础设施、初始化和启动说明/);
+  assert.match(agents, /<组件 deploy>\s+当前组件的开发基础设施、初始化和启动说明/);
   assert.match(agents, /组件名必须精确匹配 `docs\/system\/c2\.md` 组件清单/);
   assert.match(deploy, /\| `deploy\/init\/\*\*` \| 开发基础设施初始化 \|/);
-  assert.match(deploy, /`<deploy 组件>` 只新增或更新该组件的 `### <组件>`/);
+  assert.match(deploy, /`<组件 deploy>` 只新增或更新该组件的 `### <组件>`/);
   assert.match(deploy, /Compose 使用默认的\s+`\.env` 和 `compose\.yml`/);
   assert.match(deploy, /JavaScript 和 TypeScript 组件默认使用 `pnpm`/);
   assert.match(deploy, /名称优先为 `<基础设施>-init`/);
   assert.match(deploy, /使用 `restart: "no"`/);
   assert.match(deploy, /不执行其中的启动或初始化命令/);
-  assert.match(readme, /`<deploy api> <任务>` \| 维护目标组件的开发基础设施配置/);
+  assert.match(readme, /`<api deploy> <任务>` \| 维护目标组件的开发基础设施配置/);
 });
 
 test("resolves nested deploy paths from the C2 component registry", () => {
@@ -609,7 +609,7 @@ test("supports frontend and backend component design modes", () => {
   assert.match(agents, /<组件> frontend <前端设计任务>/);
   assert.match(agents, /<组件> backend <后端设计任务>/);
   assert.match(agents, /`frontend` 和 `backend` 只能作为 `<组件>` 指令头后的第一个任务词/);
-  assert.match(agents, /不得写入指令头，也不适用于 `dev` 或 `test` 任务/);
+  assert.match(agents, /不得写入指令头，也不适用于 `dev`、`test` 或 `deploy` 任务/);
   assert.doesNotMatch(agents, /<组件> ddd <DDD设计任务>/);
   assert.match(component, /\*\*What\*\*：提供“完整组件设计模式”功能/);
   assert.match(component, /### Frontend 模式/);

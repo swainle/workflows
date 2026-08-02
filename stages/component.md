@@ -141,7 +141,7 @@ Command、Handler、Factory、DomainService 或 DomainEvent。
 - 语言、框架、ORM、数据库和消息库的目录及命名规则只在组件实际采用对应技术时启用；框架规定的固定文件名优先保留。
 - `<subject>.<role>.ts` 可用于表达 TypeScript 文件职责；技术 Adapter 统一使用能准确反映实现的
   `<subject>.<technology>.<role>.ts`，不把 ORM 实现标成数据库驱动，也不为简单返回值或单一内部实现拆出空抽象。
-- 实际部署文件仍由 `<deploy 组件>` 维护；`runtime.md` 和 `deployment.md`
+- 实际部署文件仍由 `<组件 deploy>` 维护；`runtime.md` 和 `deployment.md`
   只声明提供给部署阶段的组件运行与交付要求。
 
 ### 跨阶段权威边界
@@ -663,7 +663,7 @@ accessibility:
 
 语法为 `<组件> opt <目标文件> <可选意见>`、`<组件> frontend opt <目标文件> <可选意见>` 或
 `<组件> backend opt <目标文件> <可选意见>`。`frontend`、`backend` 和意见均可省略；
-`opt` 不适用于 `<组件 dev>` 或 `<组件 test>`。`<目标文件>` 使用相对于组件设计目录的路径，
+`opt` 不适用于 `<组件 dev>`、`<组件 test>` 或 `<组件 deploy>`。`<目标文件>` 使用相对于组件设计目录的路径，
 必须是已存在的 `.md` 文件，不包含 `..`，一次只能指定一个文件。
 
 执行时完整读取 `stages/component.md`。未指定模板时使用本文件声明的通用组件设计顺序；Frontend 使用
