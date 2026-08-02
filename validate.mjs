@@ -700,9 +700,23 @@ test("supports frontend and backend component design modes", () => {
     assert.ok(backend.includes(`**What**：提供“\`${file}\`”功能`), `missing Backend template for ${file}`);
   }
   assert.match(backend, /`component\.md`、`c3\.md`、`coding\.md` 和 `testing\.md` 始终创建/);
+  assert.match(backend, /## 稳定错误码[\s\S]*## 协议映射[\s\S]*\| 错误码 \| 协议 \| Code \| 对外含义 \|/);
+  assert.match(backend, /\| `AUTH_FORBIDDEN` \| HTTP \| `403` \| 当前身份无权执行该操作 \|/);
+  assert.match(backend, /`Code` 是该错误映射到当前协议后的状态码，例如 HTTP `403`/);
+  assert.match(component, /\| `errors\.md` \| 后端错误处理 \| 存在失败场景 \| 错误分类、稳定错误码、协议 Code 映射、重试和脱敏 \|/);
   assert.match(backend, /coding --> c4/);
   assert.match(backend, /coding --> testing/);
   assert.match(backend, /# 编码规范[\s\S]*## 架构映射[\s\S]*## 目录约定[\s\S]*## 文件命名[\s\S]*## 编码规范[\s\S]*## 依赖方向[\s\S]*## 例外/);
+  assert.match(backend, /\| Command \| `<action>\.command\.ts` \|/);
+  assert.match(backend, /\| Handler \| `<action>\.handler\.ts` \|/);
+  assert.match(backend, /\| Query \| `<action>\.query\.ts` \|/);
+  assert.match(backend, /\| Aggregate \| `<subject>\.aggregate\.ts` \|/);
+  assert.match(backend, /\| Entity \| `entity\.ts` 或 `<subject>\.entity\.ts` \|/);
+  assert.match(backend, /\| Value Object \| `value-object\.ts` 或 `<subject>\.value-object\.ts` \|/);
+  assert.match(backend, /同一聚合或业务能力内只有字段、类型和简单校验的 Entity 可以合并到 `entity\.ts`/);
+  assert.match(backend, /\| Domain Event \| `<event>\.event\.ts` \|/);
+  assert.match(backend, /\| Repository Adapter \| `<subject>\.<technology>\.repository\.ts` \|/);
+  assert.match(backend, /不适用的角色直接删除/);
   assert.match(backend, /精确且完整的文件树仍只由 `component\.md` 维护/);
   assert.match(component, /\| `coding\.md` \| 后端编码规范 \| 始终 \|/);
   assert.match(development, /任何生产代码任务都必须读取索引中的 `coding\.md`/);

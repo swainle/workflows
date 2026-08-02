@@ -70,6 +70,29 @@
   `<subject>.<technology>.<role>.ts`，且技术名必须准确，例如 `department.prisma.repository.ts`、
   `outbox.pgsql.store.ts`、`inbox.pgsql.store.ts`、`message.bullmq.publisher.ts`、`appointment.bullmq.worker.ts`。
   使用 Prisma 时不命名为 `.pgsql.`；只有直接 PostgreSQL/SQL 实现才使用 `.pgsql.`。
+- TypeScript 文件名的 `<action>`、`<subject>` 和 `<event>` 使用英文 `kebab-case`，导出的类型使用 `PascalCase`。
+  仅为当前设计实际存在的角色采用以下后缀，不为凑齐表格创建 Command、Handler、Query、Result、领域对象、Port 或 Adapter：
+
+  | 角色 | 文件命名 | 创建条件 |
+  |---|---|---|
+  | Command | `<action>.command.ts` | 存在改变业务状态的应用用例 |
+  | Handler | `<action>.handler.ts` | Command 或 Query 需要独立编排 |
+  | Query | `<action>.query.ts` | 存在独立查询用例 |
+  | Result | `<action>.result.ts` | 输出需要跨入口或调用方稳定复用 |
+  | Aggregate | `<subject>.aggregate.ts` | 对象负责维护事务边界与不变量 |
+  | Entity | `entity.ts` 或 `<subject>.entity.ts` | 简单相关实体可合并；具有独立行为或生命周期时拆分 |
+  | Value Object | `value-object.ts` 或 `<subject>.value-object.ts` | 简单相关值对象可合并；具有独立不变量或复用价值时拆分 |
+  | Domain Policy | `<subject>.policy.ts` | 纯领域规则不自然属于单个实体或值对象 |
+  | Domain Service | `<subject>.domain-service.ts` | 领域行为必须协调多个领域对象且无自然归属 |
+  | Domain Event | `<event>.event.ts` | 聚合成功改变后存在真实业务反应 |
+  | Repository | `<subject>.repository.ts` | 应用或领域需要持久化 Port |
+  | Port | `<subject>.port.ts` | 应用层依赖真实外部或跨上下文能力 |
+  | Adapter | `<subject>.<technology>.adapter.ts` | 存在 Port 的技术实现 |
+  | Repository Adapter | `<subject>.<technology>.repository.ts` | 存在 Repository 的技术实现 |
+  | Processor | `<event>.processor.ts` | 消息入口需要独立完成校验、幂等和错误分类 |
+- 同一聚合或业务能力内只有字段、类型和简单校验的 Entity 可以合并到 `entity.ts`，Value Object 可以合并到
+  `value-object.ts`；出现独立行为、独立生命周期、复杂不变量、跨聚合复用或文件明显难以阅读时，再拆为
+  `<subject>.entity.ts` 或 `<subject>.value-object.ts`。
 - 已位于领域 `events/` 目录的事件文件使用 `<event>.event.ts`，不重复写成 `.domain-event.ts`。
   使用 Prisma 的共享技术代码按需放入 `shared/infrastructure/prisma/`；Outbox、Inbox 和消息 Adapter
   分别放入职责明确的 `shared/infrastructure/outbox/`、`inbox/` 和 `messaging/`，不存在真实复用时留在所属上下文。
@@ -496,10 +519,18 @@ sequenceDiagram
 
 ## 协议映射
 
+| 错误码 | 协议 | Code | 对外含义 |
+|---|---|---|---|
+| `AUTH_FORBIDDEN` | HTTP | `403` | 当前身份无权执行该操作 |
+
 ## 重试策略
 
 ## 敏感信息保护
 ```
+
+- “错误码”是组件内稳定的业务或应用错误标识；`Code` 是该错误映射到当前协议后的状态码，例如 HTTP `403`。
+- 每个对外可观察错误按实际协议填写一行；HTTP、gRPC 或消息错误分别使用对应协议的 Code，不把 HTTP 状态码当作稳定错误码。
+- HTTP 错误响应的 Schema 和操作级响应仍由 `openapi.json` 维护，`errors.md` 只维护分类和映射规则。
 
 ## AI-BACKEND-012
 
@@ -670,7 +701,21 @@ flowchart LR
 
 | 文件类别 | 命名模式 | 示例或固定文件名 |
 |---|---|---|
-| <实际类别> | `<命名模式>` | `<实际示例>` |
+| Command | `<action>.command.ts` | `register-user.command.ts` |
+| Handler | `<action>.handler.ts` | `register-user.handler.ts` |
+| Query | `<action>.query.ts` | `get-user.query.ts` |
+| Result | `<action>.result.ts` | `register-user.result.ts` |
+| Aggregate | `<subject>.aggregate.ts` | `user.aggregate.ts` |
+| Entity | `entity.ts` 或 `<subject>.entity.ts` | `entity.ts`；拆分时 `session.entity.ts` |
+| Value Object | `value-object.ts` 或 `<subject>.value-object.ts` | `value-object.ts`；拆分时 `email.value-object.ts` |
+| Domain Policy | `<subject>.policy.ts` | `registration.policy.ts` |
+| Domain Service | `<subject>.domain-service.ts` | `pricing.domain-service.ts` |
+| Domain Event | `<event>.event.ts` | `user-registered.event.ts` |
+| Repository | `<subject>.repository.ts` | `user.repository.ts` |
+| Port | `<subject>.port.ts` | `password-hasher.port.ts` |
+| Adapter | `<subject>.<technology>.adapter.ts` | `mailer.smtp.adapter.ts` |
+| Repository Adapter | `<subject>.<technology>.repository.ts` | `user.prisma.repository.ts` |
+| Processor | `<event>.processor.ts` | `user-registered.processor.ts` |
 
 ## 编码规范
 
@@ -696,6 +741,8 @@ flowchart LR
 - `coding.md` 记录长期有效的工程规则，不逐个复制生产文件；精确且完整的文件树仍只由 `component.md` 维护。
 - 架构映射使用 DDD、C3 和接口中的稳定名称，不重新定义领域规则、组件边界或契约；后续 `c4.md` 遵循本文件的目录、命名和依赖规则。
 - 目录与文件命名必须符合当前实际语言、框架和工具链；框架规定的固定文件名优先。
+- TypeScript 组件的“文件命名”表从 AI-BACKEND-002 的角色后缀中选择实际使用的行，不适用的角色直接删除；
+  同一简单用例允许合并类型或就地定义返回值，不机械拆分文件。
 - 编码规则必须能够通过现有 Lint、Formatter、类型检查、构建或明确评审规则验证，不写无法执行的偏好。
 - 没有真实例外时保留“例外”标题并删除表格；存在例外时必须说明范围和验证方式。
 
