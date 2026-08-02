@@ -179,8 +179,8 @@ Command、Handler、Factory、DomainService 或 DomainEvent。
 | 文件 | 作用 | 创建条件 | 可修改内容 |
 |---|---|---|---|
 | `component.md` | 组件入口文档 | 始终 | 概述、设计架构文件索引和完整受版本控制文件结构 |
-| `c3.md` | 组件内部结构和依赖关系图 | 始终 | 当前组件的 C3 Mermaid 图 |
-| `c4.md` | 关键代码单元和依赖关系 | 存在需要长期维护的代码结构 | 当前组件的主要代码结构 |
+| `architecture.md` | 组件内部结构和依赖关系图 | 始终 | 当前组件的组件架构图 |
+| `structure.md` | 关键代码单元和依赖关系 | 存在需要长期维护的代码结构 | 当前组件的主要代码结构 |
 
 ### Frontend 文件
 
@@ -254,7 +254,7 @@ Command、Handler、Factory、DomainService 或 DomainEvent。
 | 文件 | 作用 |
 |---|---|
 | `component.md` | 组件概述、设计文件索引和完整文件结构 |
-| `c3.md` | <当前组件的实际作用> |
+| `architecture.md` | <当前组件的实际作用> |
 | `<实际设计文件>` | <该文件维护的唯一设计关注点> |
 
 ## 目录结构
@@ -279,7 +279,7 @@ Command、Handler、Factory、DomainService 或 DomainEvent。
 - `component.md` 除概述、设计架构索引和完整应用文件结构外，不保存其他设计内容。
 - 目录结构递归列出组件目录内所有应受版本控制的目录和文件，并在文件后简述职责。
 - 不列出依赖目录、构建产物、缓存、日志、临时文件、密钥或其他运行时生成内容。
-- 目录中的职责与 C3 模块保持一致；具体代码单元及依赖放入 `c4.md`。
+- 目录中的职责与组件架构模块保持一致；具体代码单元及依赖放入 `structure.md`。
 - 更新后执行 `node docs/workflows/validate.mjs --component-doc <组件设计目录>/component.md --app-dir <组件应用目录>`，
   校验实际受版本控制文件没有被目录结构遗漏；只有要求设计与当前文件完全一致时才增加 `--strict`。
 
@@ -370,12 +370,12 @@ Command、Handler、Factory、DomainService 或 DomainEvent。
 - **What**：提供“C3 和 C4 文件格式”功能；具体规则、格式和约束如下。
 - **Why**：确保组件设计按真实边界完整落地且不复制上游事实。
 
-`c3.md` 使用 `C4Component` 描述当前组件内部的长期模块、职责和必要外部对象，不绘制关系连线：
+`architecture.md` 使用 `C4Component` 描述当前组件内部的长期模块、职责和必要外部对象，不绘制关系连线：
 
 > - 根据实际情况修改
 
 ````md
-# C3 组件图
+# 组件架构
 
 ```mermaid
 C4Component
@@ -400,12 +400,12 @@ C4Component
 ```
 ````
 
-`c4.md` 使用一个代码总览和按业务能力划分的详细章节。所有图统一使用 `flowchart LR`，主分层从左到右排列，每个分层内部从上到下排列：
+`structure.md` 使用一个代码总览和按业务能力划分的详细章节。所有图统一使用 `flowchart LR`，主分层从左到右排列，每个分层内部从上到下排列：
 
 > - 根据实际情况修改
 
 ````md
-# C4 代码图
+# 代码结构
 
 ## 总览
 
@@ -484,18 +484,18 @@ flowchart LR
 ```
 ````
 
-- `c3.md` 只包含一级标题和一个 `C4Component` Mermaid 代码块，不包含概述、正文、列表、表格或图外说明。
+- `architecture.md` 只包含一级标题和一个 `C4Component` Mermaid 代码块，不包含概述、正文、列表、表格或图外说明。
 - C3 图按展示或调用方、业务上下文、基础设施三个 `Container_Boundary` 组织；不存在的区域直接省略，不创建空边界。
 - 展示或调用方和基础设施使用 `System_Ext`，当前组件的入口、中间件、业务上下文、对象和独立运行单元使用 `Component`。
 - C3 图不使用 `Rel`、`BiRel`、`Rel_D`、`Rel_U`、`Rel_L` 或 `Rel_R`；组件协作顺序由系统 `process.md`、
-  接口由 `interface.md` 与机器可读契约、代码依赖由 `c4.md` 分别维护。
+  接口由 `interface.md` 与机器可读契约、代码依赖由 `structure.md` 分别维护。
 - 组件信息、对象名称、技术版本、架构、框架和职责全部根据当前项目事实填写，不照抄模板示例或保留空字符串。
 - 使用 `UpdateLayoutConfig($c4ShapeInRow="5", $c4BoundaryInRow="1")` 保持每个边界独占一行、边界内对象横向排列。
 - Backend C3 按限界上下文、入口、独立运行单元和实际公共技术能力展示稳定模块，不用 C3 元素模拟
-  接入层、应用层、领域层和适配层。上下文内部的代码分层及应用服务与领域模型的映射放入 `coding.md` 和 `c4.md`。
+  接入层、应用层、领域层和适配层。上下文内部的代码分层及应用服务与领域模型的映射放入 `coding.md` 和 `structure.md`。
 - C3 异步部分只列出生产者、内嵌 Outbox Relay、消息基础设施和 Worker/下游消费者，不绘制关系连线；
   Relay 不作为独立运行单元。
-- `c4.md` 包含一级标题、一个“总览”章节和按实际业务能力创建的详细章节。
+- `structure.md` 包含一级标题、一个“总览”章节和按实际业务能力创建的详细章节。
 - 总览使用一个 `flowchart LR`，只展示模块、业务能力及主要依赖，不展示字段或函数。
 - 每个详细章节只描述一个业务能力并使用一个 `flowchart LR`；图仍过大时继续按内聚的子能力拆分章节。
 - C4 各图的主分层按依赖方向从左到右排列；每个分层使用 `subgraph` 和 `direction TB`，使同层代码单元从上到下排列。
@@ -529,12 +529,12 @@ Backend 专用 Markdown、机器可读模型及其固定结构统一由
 - 领域事件使用过去时表达聚合成功改变后发生的领域事实，仅在存在真实消费方或业务反应时创建；
   它不是命令，也不自动等于集成事件或事件溯源记录。对外发布时映射为独立、可版本化的集成事件，
   不直接暴露领域对象；消息重试等队列运行状态不写入业务聚合，除非业务明确需要相应状态和事件。
-- 领域命令表只保留“命令、说明”两列；Handler、领域对象和 Result 的代码映射由 `coding.md` 和 `c4.md` 维护。
+- 领域命令表只保留“命令、说明”两列；Handler、领域对象和 Result 的代码映射由 `coding.md` 和 `structure.md` 维护。
 - 一致性表只保留“事务边界、要求”两列，只表达必须原子成立的业务状态与事件；Command Bus、Outbox、
   事务中间件、重试和锁等技术实现放入相应技术设计文件。
 - Command Bus 与 Handler/Middleware 映射放入 `coding.md`；Unit of Work、Outbox、Inbox 的事务和一致性设计放入
-  `data-access.md`；Relay、Processor 和 Worker 的代码关系放入 `c4.md`，`runtime.md` 记录 Relay 的现有宿主进程和 Worker 的独立入口。
-- `ddd.md` 展示概念角色和关键公开业务行为；`c4.md` 使用相同稳定名称展示实现代码单元、
+  `data-access.md`；Relay、Processor 和 Worker 的代码关系放入 `structure.md`，`runtime.md` 记录 Relay 的现有宿主进程和 Worker 的独立入口。
+- `ddd.md` 展示概念角色和关键公开业务行为；`structure.md` 使用相同稳定名称展示实现代码单元、
   包、Port、Adapter 和依赖，不重复 DDD 的业务语义。
 - 数据库字段和约束、HTTP Schema、异步消息结构分别由 `schema.dbml`、`openapi.json` 和 `asyncapi.json` 维护，不写入 `ddd.md`。
 - 轻量 Backend 不创建 `ddd.md`，只在 `component.md` 概述记录业务词汇、边界、设计强度和不采用完整 DDD 的事实依据；
@@ -553,7 +553,7 @@ Backend 专用 Markdown、机器可读模型及其固定结构统一由
 - 没有非公开操作不创建 OpenFGA。
 - 没有数据模型变化不创建 DBML。
 - 对外提供的 Swagger UI、OpenAPI 和 AsyncAPI 必须通过 HTTP(S) API 暴露，并以
-  完整 URL 登记在 `docs/system/c2.md` 对应组件的开发接口信息中；登记缺失或不一致时切换
+  完整 URL 登记在 `docs/system/system.md` 对应组件的开发接口信息中；登记缺失或不一致时切换
   `<system>` 更新。
 - `openapi.json` 和 `asyncapi.json` 是提供方维护的契约源文件；其他组件通过 C2
   登记的 URL 读取，不直接依赖提供方的仓库文件路径。
@@ -627,7 +627,7 @@ accessibility:
 - **What**：提供“执行步骤”功能；具体规则、格式和约束如下。
 - **Why**：确保组件设计按真实边界完整落地且不复制上游事实。
 
-1. 从 `docs/system/c2.md` 组件清单的当前组件表格行解析应用目录和设计目录，并读取其开发环境端口、访问地址和接口文档。
+1. 从 `docs/system/system.md` 组件清单的当前组件表格行解析应用目录和设计目录，并读取其开发环境端口、访问地址和接口文档。
 2. 读取相关需求、系统规范、当前组件规范和契约，不读取源码、测试或部署文件。
 3. 识别任务是否以 `frontend` 或 `backend` 开头；Backend 模式额外完整读取并执行
    `docs/workflows/templates/backend-design.template.md`，Frontend 模式执行本文件对应规则。
@@ -649,15 +649,15 @@ accessibility:
   索引覆盖设计目录内全部实际文件且作用唯一。
 - `component.md` 的完整文件结构包含实际需要的测试层级、测试文件、fixture、支持代码和配置；没有通配符、空测试目录或重复的测试方案正文。
 - 已执行组件文件树自动校验且没有遗漏实际受版本控制文件；要求设计与当前文件完全一致时使用了 `--strict`。
-- `c3.md` 只有一级标题和一个 `C4Component` Mermaid 图，没有其他说明；图中只包含当前组件的
+- `architecture.md` 只有一级标题和一个 `C4Component` Mermaid 图，没有其他说明；图中只包含当前组件的
   主要内部模块、职责和必要外部对象，不绘制关系连线，不展开类、函数或内部代码分层。
-- 需要长期维护代码结构时，`c4.md` 使用一个代码总览和按业务能力划分的详细 `flowchart LR`；总览不展示函数，详细章节只展示关键公开函数，所有图均为主分层从左到右、分层内部从上到下。
+- 需要长期维护代码结构时，`structure.md` 使用一个代码总览和按业务能力划分的详细 `flowchart LR`；总览不展示函数，详细章节只展示关键公开函数，所有图均为主分层从左到右、分层内部从上到下。
 - Backend 完整 DDD 模式下，`ddd.md` 的每个限界上下文记录领域命令、统一语言、业务规则和一致性，
   按需记录领域事件、状态图和时序图；不创建独立的 `state.md` 或 `sequence.md`，不复制系统流程、C4、DBML 或契约内容。
 - Backend 轻量模式下不创建 `ddd.md`，`component.md` 概述已记录轻量判定条件且没有遗漏任何完整 DDD 触发信号。
 - Backend 模式下始终创建 `coding.md`；工程规则与实际技术栈一致，`component.md` 的完整文件树符合其目录和命名规则，
   `coding.md` 不重复维护完整文件树。
-- Backend 存在 `c4.md` 时，`component.md` 的完整文件树覆盖其中实际代码单元，并保持分层、稳定名称和依赖方向一致。
+- Backend 存在 `structure.md` 时，`component.md` 的完整文件树覆盖其中实际代码单元，并保持分层、稳定名称和依赖方向一致。
 - Backend 的 `component.md` 读取 `testing.md`，完整文件树覆盖其中实际测试文件、Fixture、支持代码、配置和精确 `Src`，
   不复制测试策略正文。
 - Backend 模式下，适用文件遵循 `docs/workflows/templates/backend-design.template.md`
@@ -688,8 +688,8 @@ AI-COMPONENT-005 的文件顺序；Backend 额外完整读取 `templates/backend
 2. 目标文件本身；
 3. 当前设计顺序或所选模板依赖图中直接或间接位于目标之前、且当前实际存在的设计文件。
 
-同级文件不互为前置依赖；例如完整 DDD 模式下优化 `c3.md` 不读取同级的 `interface.md`，优化
-`interface.md` 也不读取 `c3.md`。不得读取目标之后的设计文件，也不得读取组件源码、测试、验收或部署文件。
+同级文件不互为前置依赖；例如完整 DDD 模式下优化 `architecture.md` 不读取同级的 `interface.md`，优化
+`interface.md` 也不读取 `architecture.md`。不得读取目标之后的设计文件，也不得读取组件源码、测试、验收或部署文件。
 
 `opt` 模式使用以下收窄权限替代 AI-COMPONENT-002 对组件设计目录的写权限：
 

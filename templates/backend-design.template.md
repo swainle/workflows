@@ -11,7 +11,7 @@
 - 使用 `<组件> backend <任务>` 启用 Backend 组件设计模式，并按复杂度选择轻量设计或完整 DDD。
 - 执行前必须先读取 `docs/workflows/stages/component.md`；本文件只补充 Backend 的设计顺序和
   固定文档结构，文件权限、创建条件、通用 C3/C4 格式及跨阶段边界仍以该阶段文件为准。
-- `component.md`、`c3.md`、`coding.md` 和 `testing.md` 始终创建；`ddd.md` 仅在完整 DDD 模式创建，其他文件仅在满足创建条件时创建。
+- `component.md`、`architecture.md`、`coding.md` 和 `testing.md` 始终创建；`ddd.md` 仅在完整 DDD 模式创建，其他文件仅在满足创建条件时创建。
 - 先在 `component.md` 概述中记录 `设计强度：轻量 Backend` 或 `设计强度：完整 DDD`，并列出触发判断的实际事实。
 - 仅当以下条件全部成立时使用轻量 Backend：任务只是简单 CRUD、纯查询或数据转换；没有独立领域不变量或
   有业务含义的状态生命周期；没有跨实体强一致事务、并发竞争、补偿流程或领域事件；没有多个统一语言边界。
@@ -139,7 +139,7 @@ flowchart LR
 
     subgraph structure["2. 结构"]
         direction TB
-        c3["c3.md<br/>组件结构"]
+        c3["architecture.md<br/>组件结构"]
         interface["interface.md<br/>接口原则"]
     end
 
@@ -165,7 +165,7 @@ flowchart LR
         direction TB
         background["background.md<br/>后台任务"]
         worker["worker.md<br/>异步任务"]
-        c4["c4.md<br/>代码结构"]
+        c4["structure.md<br/>代码结构"]
         configuration["configuration.md<br/>配置"]
         secrets["secrets.md<br/>密钥"]
         observability["observability.md<br/>可观测性"]
@@ -243,7 +243,7 @@ flowchart LR
    一致性要求，以及实际存在的领域事件、状态图和时序图；时序图引用系统 `process.md` 的稳定 BP 编号，
    不复制跨组件业务流程或接口调用细节。
    轻量 Backend 不创建 `ddd.md`，业务词汇、边界和“不采用完整 DDD”的事实依据只记录在 `component.md` 概述。
-2. **结构**：以已确认的领域设计为共同输入，同级创建或更新 `c3.md` 和 `interface.md`：前者表达组件边界、
+2. **结构**：以已确认的领域设计为共同输入，同级创建或更新 `architecture.md` 和 `interface.md`：前者表达组件边界、
    主要内部模块、上游调用方和必要外部依赖，后者表达稳定操作边界；两者位于同一组件设计目录，
    不互相作为设计前置。轻量 Backend 直接从已确认的需求、系统规范和组件概述生成这两个同级文件。
 3. **专项**：按实际边界设计认证、授权、输入校验、错误处理和数据访问，并始终根据 DDD、C3、
@@ -251,11 +251,11 @@ flowchart LR
 4. **模型**：由提供方分别维护机器可读模型：`interface.md` 对应 `openapi.json` 或 `asyncapi.json`，
    `authorization.md` 对应 `authorization.fga`，`data-access.md` 对应 `schema.dbml`。
 5. **工程**：机器可读模型稳定后，按需用 `background.md` 设计由现有进程托管的后台任务，用 `worker.md` 设计由独立
-   Worker 运行单元执行的异步任务；再用 `c4.md` 落实应用用例、领域对象、Task、Processor、Port、Adapter 及依赖方向，
-   并遵循 `coding.md` 的目录、命名和依赖规则。随后完成配置、密钥、可观测性和测试设计，最后以 `c4.md`、
+   Worker 运行单元执行的异步任务；再用 `structure.md` 落实应用用例、领域对象、Task、Processor、Port、Adapter 及依赖方向，
+   并遵循 `coding.md` 的目录、命名和依赖规则。随后完成配置、密钥、可观测性和测试设计，最后以 `structure.md`、
    `background.md` 和 `worker.md` 为直接输入汇总 `runtime.md`；不存在的任务文件不作为输入。
 6. **交付**：用 `deployment.md` 汇总交给 `<deploy>` 阶段的交付要求；最后读取 `coding.md`、`testing.md`、按需存在的
-   `background.md`、`worker.md` 和 `c4.md` 并更新 `component.md`，使设计架构索引覆盖设计目录内全部实际文件，
+   `background.md`、`worker.md` 和 `structure.md` 并更新 `component.md`，使设计架构索引覆盖设计目录内全部实际文件，
    并使完整文件树落实 C3、C4、编码规范、测试策略和运行要求。
 
 每个阶段发现上游设计不成立时先回到对应文件修正；不得通过下游文档复制或覆盖上游事实。
@@ -265,7 +265,7 @@ flowchart LR
 - **Who**：处理 `<组件> backend <任务>` 的组件设计 Agent。
 - **When**：Backend 组件需要创建或更新组件内部模块、入口、运行单元和必要外部依赖图时。
 - **Where**：当前 Backend 组件设计目录与本模式模板。
-- **What**：提供“`c3.md`”功能；具体规则、格式和约束如下。
+- **What**：提供“`architecture.md`”功能；具体规则、格式和约束如下。
 - **Why**：确保 Backend 设计由实际业务边界驱动且不会机械照抄范例。
 
 只允许一级标题和一个 Mermaid `C4Component` 图；完整元素和边界规则以
@@ -276,7 +276,7 @@ flowchart LR
 > - 范例适配声明：以下 C3 内容必须根据当前组件的实际边界、上下文、入口和依赖调整。
 
 ````md
-# C3 组件图
+# 组件架构
 
 ```mermaid
 C4Component
@@ -313,7 +313,7 @@ C4Component
 
 每个真实限界上下文和入口使用一个 `Component`；独立消息消费者按范例放入嵌套边界并使用 `System_Ext`。
 公共日志、追踪、数据库会话或消息基础代码只有实际复用时才作为公共技术组件。C3 不展开应用层、领域层、Port 或 Adapter；这些分层及上下文内部代码关系
-由 `ddd.md` 和 `c4.md` 展示。组件信息、对象、技术版本、架构、框架和职责必须根据实际情况调整；
+由 `ddd.md` 和 `structure.md` 展示。组件信息、对象、技术版本、架构、框架和职责必须根据实际情况调整；
 不存在的展示层、上下文、运行入口或基础设施直接删除，不保留空边界或示例空字符串。
 C3 图不绘制关系连线，不使用 `Rel`、`BiRel` 或带方向的关系语法。
 
@@ -393,14 +393,14 @@ sequenceDiagram
 - 一个组件默认对应一个限界上下文；只有确实存在不同统一语言和模型边界时才增加上下文章节。
 - 每个上下文必须包含领域命令、统一语言、业务规则和一致性；领域事件、状态图和时序图仅在实际存在时保留，
   不创建空章节或占位内容。各上下文独立维护自己的术语、规则、生命周期、协作和事件。
-- 领域命令仅记录命令及其业务意图；Handler、领域对象和 Result 的代码映射由 `coding.md` 和 `c4.md` 维护。
+- 领域命令仅记录命令及其业务意图；Handler、领域对象和 Result 的代码映射由 `coding.md` 和 `structure.md` 维护。
 - 一致性只描述事务边界及必须原子成立的业务状态和事件要求；Command Bus、Outbox、事务中间件、
-  重试和锁等技术实现由 `c3.md`、`coding.md`、`data-access.md` 或配置文件维护。
+  重试和锁等技术实现由 `architecture.md`、`coding.md`、`data-access.md` 或配置文件维护。
 - 状态图和时序图归属对应限界上下文，不创建独立的 `state.md` 或 `sequence.md`。
 - 时序图只表达领域行为，引用系统 `process.md` 中的稳定 BP 编号，不重复跨组件业务流程，
   也不展开接口参数、消息载荷、超时、重试等技术细节。
 - 不在 `ddd.md` 中罗列全部字段、私有方法、ORM 模型或简单数据载体；代码结构、数据库结构和
-  接口结构分别由 `c4.md`、`schema.dbml` 和 OpenAPI/AsyncAPI 维护。
+  接口结构分别由 `structure.md`、`schema.dbml` 和 OpenAPI/AsyncAPI 维护。
 
 ## AI-BACKEND-007
 
@@ -673,13 +673,13 @@ sequenceDiagram
 - **Who**：处理 `<组件> backend <任务>` 的组件设计 Agent。
 - **When**：当前 Backend 存在需要长期维护的应用、领域、Port、Adapter 或进程代码结构时。
 - **Where**：当前 Backend 组件设计目录与本模式模板。
-- **What**：提供“`c4.md`”功能；具体规则、格式和约束如下。
+- **What**：提供“`structure.md`”功能；具体规则、格式和约束如下。
 - **Why**：确保 Backend 设计由实际业务边界驱动且不会机械照抄范例。
 
 > - 范例适配声明：以下 C4 内容必须根据当前组件实际代码分层、业务能力和依赖方向调整。
 
 ````md
-# C4 代码图
+# 代码结构
 
 ## 总览
 
@@ -719,7 +719,7 @@ flowchart LR
 ```
 ````
 
-- `c4.md` 在实际采用时展示 Command Bus、Handler、Unit of Work、Outbox Writer、Inbox、Task、Relay、Processor 和 Worker
+- `structure.md` 在实际采用时展示 Command Bus、Handler、Unit of Work、Outbox Writer、Inbox、Task、Relay、Processor 和 Worker
   等稳定代码单元及其依赖；不存在的机制不创建节点。
 - 事务与消息语义引用 `data-access.md`，命令、事件和契约引用 DDD、接口及机器可读模型，C4 不重复规则或字段。
 
@@ -975,7 +975,7 @@ flowchart LR
 ````
 
 - `coding.md` 记录长期有效的工程规则，不逐个复制生产文件；精确且完整的文件树仍只由 `component.md` 维护。
-- 架构映射使用 DDD、C3 和接口中的稳定名称，不重新定义领域规则、组件边界或契约；后续 `c4.md` 遵循本文件的目录、命名和依赖规则。
+- 架构映射使用 DDD、C3 和接口中的稳定名称，不重新定义领域规则、组件边界或契约；后续 `structure.md` 遵循本文件的目录、命名和依赖规则。
 - Command Bus 只在多个用例需要统一分派或共享 Middleware 时采用；少量用例可由入口直接调用 Handler。
 - 应用执行管线必须写明实际 Middleware 顺序和事务包围范围；认证、授权、校验、日志、追踪和事务不按示例机械启用。
 - Unit of Work、Outbox Writer 和 Inbox 的代码职责遵循 `data-access.md` 的一致性设计；后台任务功能与时序遵循
@@ -1320,7 +1320,7 @@ Then：<当前组件边界内可观察的最终结果、状态和必要副作用
 ## AI-BACKEND-020
 
 - **Who**：处理 `<组件> backend <任务>` 的组件设计 Agent。
-- **When**：`c4.md` 及按需存在的 `background.md`、`worker.md` 已完成，Backend 需要汇总进程入口、依赖、启动关闭、健康或恢复要求时。
+- **When**：`structure.md` 及按需存在的 `background.md`、`worker.md` 已完成，Backend 需要汇总进程入口、依赖、启动关闭、健康或恢复要求时。
 - **Where**：当前 Backend 组件设计目录与本模式模板。
 - **What**：提供“`runtime.md`”功能；具体规则、格式和约束如下。
 - **Why**：确保 Backend 设计由实际业务边界驱动且不会机械照抄范例。
@@ -1345,7 +1345,7 @@ Then：<当前组件边界内可观察的最终结果、状态和必要副作用
 ## 故障恢复
 ```
 
-`runtime.md` 只以 `c4.md`、`background.md` 和 `worker.md` 为直接设计输入：`c4.md` 提供稳定代码单元、入口和依赖，
+`runtime.md` 只以 `structure.md`、`background.md` 和 `worker.md` 为直接设计输入：`structure.md` 提供稳定代码单元、入口和依赖，
 `background.md` 提供宿主进程及后台任务生命周期，`worker.md` 提供独立 Worker 运行单元及其异步任务。
 `进程模型` 汇总这些输入，按运行单元记录职责、源码入口、构建输出、启动命令、依赖、独立扩缩容和关闭方式；
 不得在 `runtime.md` 中新增上游设计未声明的任务、入口或代码单元。
@@ -1396,7 +1396,7 @@ Redis Streams 或其他发布订阅型消息代理，不把 BullMQ 工作队列�
 
 > - 范例适配声明：以下组件汇总和目录必须根据当前组件实际文件完整调整，不得保留示例文件或省略实际文件。
 
-最后读取 `coding.md`、`testing.md` 和实际存在的 `background.md`、`worker.md`、`c4.md` 并更新 `component.md`，使其索引覆盖所有实际文件，并记录符合编码规范、代码设计和测试策略的完整受版本控制文件树。
+最后读取 `coding.md`、`testing.md` 和实际存在的 `background.md`、`worker.md`、`structure.md` 并更新 `component.md`，使其索引覆盖所有实际文件，并记录符合编码规范、代码设计和测试策略的完整受版本控制文件树。
 
 ````md
 # <组件>
@@ -1410,14 +1410,14 @@ Redis Streams 或其他发布订阅型消息代理，不把 BullMQ 工作队列�
 | 文件 | 作用 |
 |---|---|
 | `component.md` | 组件概述、设计文件索引和完整文件结构 |
-| `c3.md` | <当前组件的实际作用> |
+| `architecture.md` | <当前组件的实际作用> |
 | `coding.md` | 架构映射、目录、文件命名、编码和依赖规则 |
 | `testing.md` | 测试层级、测试文件、Fixture、支持代码、配置和命令 |
 | `<实际设计文件>` | <该文件维护的唯一设计关注点> |
 
 ## 目录结构
 
-目录与文件命名遵循 `coding.md`；存在 `c4.md` 时，代码单元、分层和依赖方向与其保持一致；测试结构遵循 `testing.md`。
+目录与文件命名遵循 `coding.md`；存在 `structure.md` 时，代码单元、分层和依赖方向与其保持一致；测试结构遵循 `testing.md`。
 
 ```text
 <组件应用目录>/
@@ -1430,7 +1430,7 @@ Redis Streams 或其他发布订阅型消息代理，不把 BullMQ 工作队列�
 ````
 
 `component.md` 只维护概述、设计架构索引和完整文件树，不复制其他文件的设计正文。目录树必须符合
-`coding.md` 的架构映射、目录职责和文件命名规则；存在 `c4.md` 时还必须覆盖其中实际代码单元，并保持稳定名称、
+`coding.md` 的架构映射、目录职责和文件命名规则；存在 `structure.md` 时还必须覆盖其中实际代码单元，并保持稳定名称、
 分层和依赖方向一致；必须覆盖 `testing.md` 中实际测试文件、Fixture、支持代码、配置和精确 `Src`。
 发现冲突时先修正对应设计，不在 `component.md` 中另建一套规则。
 

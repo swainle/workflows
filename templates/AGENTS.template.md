@@ -164,7 +164,7 @@ Issue #1000 → docs/requirements/REQ-1000-<slug>/
 <booking-api deploy> 更新开发环境配置
 ```
 
-`<组件>` 必须对应 `docs/system/c2.md` 组件清单中已声明的组件。
+`<组件>` 必须对应 `docs/system/system.md` 组件清单中已声明的组件。
 组件任务从该组件表格行“说明”列的固定字段“应用：`<路径>`；设计：`<路径>`”解析组件应用目录和组件设计目录，
 不根据组件名称猜测路径。
 `frontend` 和 `backend` 只能作为 `<组件>` 指令头后的第一个任务词，用于启用
@@ -185,7 +185,7 @@ Issue #1000 → docs/requirements/REQ-1000-<slug>/
 <组件 deploy>   当前组件的开发基础设施、初始化和启动说明
 ```
 
-`<组件 deploy>` 中的组件名必须精确匹配 `docs/system/c2.md` 组件清单；
+`<组件 deploy>` 中的组件名必须精确匹配 `docs/system/system.md` 组件清单；
 该指令按 `stages/deploy.md` 更新组件开发配置，不是生产部署，也不创建升级方案。
 
 全局验收测试使用：
@@ -329,8 +329,8 @@ Git                            文件历史
 | 数据关系 | `erDiagram` |
 | Git 工作流 | `gitGraph` |
 
-一个图只回答一个主要问题。`docs/system/c1.md` 始终包含系统上下文图，
-`docs/system/c2.md` 始终包含容器图；
+一个图只回答一个主要问题。`docs/system/context.md` 始终包含系统上下文图，
+`docs/system/system.md` 始终包含容器图；
 其他场景没有复杂关系时不为形式创建图。
 
 ## AI-011
