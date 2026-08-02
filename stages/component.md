@@ -650,7 +650,11 @@ accessibility:
 - Backend 完整 DDD 模式下，`ddd.md` 的每个限界上下文记录领域命令、统一语言、业务规则和一致性，
   按需记录领域事件、状态图和时序图；不创建独立的 `state.md` 或 `sequence.md`，不复制系统流程、C4、DBML 或契约内容。
 - Backend 轻量模式下不创建 `ddd.md`，`component.md` 概述已记录轻量判定条件且没有遗漏任何完整 DDD 触发信号。
-- Backend 模式下始终创建 `coding.md`；工程规则与实际技术栈一致，完整文件树没有在其中重复维护。
+- Backend 模式下始终创建 `coding.md`；工程规则与实际技术栈一致，`component.md` 的完整文件树符合其目录和命名规则，
+  `coding.md` 不重复维护完整文件树。
+- Backend 存在 `c4.md` 时，`component.md` 的完整文件树覆盖其中实际代码单元，并保持分层、稳定名称和依赖方向一致。
+- Backend 的 `component.md` 读取 `testing.md`，完整文件树覆盖其中实际测试文件、Fixture、支持代码、配置和精确 `Src`，
+  不复制测试策略正文。
 - Backend 模式下，适用文件遵循 `docs/workflows/templates/backend-design.template.md`
   的依赖顺序和固定章节，机器可读模型分别来自接口、授权和数据访问设计。
 - 使用 `frontend` 或 `backend` 模式时，额外通过“模式完成检查”。

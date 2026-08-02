@@ -706,6 +706,9 @@ test("supports frontend and backend component design modes", () => {
   assert.match(component, /\| `errors\.md` \| 后端错误处理 \| 存在失败场景 \| 错误分类、稳定错误码、协议 Code 映射、重试和脱敏 \|/);
   assert.match(backend, /coding --> c4/);
   assert.match(backend, /coding --> testing/);
+  assert.match(backend, /coding --> component/);
+  assert.match(backend, /c4 --> component/);
+  assert.match(backend, /testing --> component/);
   assert.match(backend, /# 编码规范[\s\S]*## 架构映射[\s\S]*## 目录约定[\s\S]*## 文件命名[\s\S]*## 编码规范[\s\S]*## 依赖方向[\s\S]*## 例外/);
   assert.match(backend, /\| Command \| `<action>\.command\.ts` \|/);
   assert.match(backend, /\| Handler \| `<action>\.handler\.ts` \|/);
@@ -718,7 +721,15 @@ test("supports frontend and backend component design modes", () => {
   assert.match(backend, /\| Repository Adapter \| `<subject>\.<technology>\.repository\.ts` \|/);
   assert.match(backend, /不适用的角色直接删除/);
   assert.match(backend, /精确且完整的文件树仍只由 `component\.md` 维护/);
+  assert.match(backend, /最后读取 `coding\.md`、`testing\.md` 和实际存在的 `c4\.md` 并更新 `component\.md`/);
+  assert.match(backend, /目录与文件命名遵循 `coding\.md`；存在 `c4\.md` 时，代码单元、分层和依赖方向与其保持一致/);
+  assert.match(backend, /目录树必须符合\s*`coding\.md` 的架构映射、目录职责和文件命名规则/);
+  assert.match(backend, /存在 `c4\.md` 时还必须覆盖其中实际代码单元，并保持稳定名称、\s*分层和依赖方向一致/);
+  assert.match(backend, /必须覆盖 `testing\.md` 中实际测试文件、Fixture、支持代码、配置和精确 `Src`/);
   assert.match(component, /\| `coding\.md` \| 后端编码规范 \| 始终 \|/);
+  assert.match(component, /`component\.md` 的完整文件树符合其目录和命名规则/);
+  assert.match(component, /Backend 存在 `c4\.md` 时，`component\.md` 的完整文件树覆盖其中实际代码单元/);
+  assert.match(component, /Backend 的 `component\.md` 读取 `testing\.md`/);
   assert.match(development, /任何生产代码任务都必须读取索引中的 `coding\.md`/);
   for (const file of ["openapi.json", "asyncapi.json", "authorization.fga", "schema.dbml"]) {
     assert.ok(backend.includes(`### \`${file}\``), `missing Backend model template for ${file}`);
