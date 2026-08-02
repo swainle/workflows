@@ -1030,9 +1030,14 @@ test("groups business processes by role and uses flowcharts for builds", () => {
   assert.match(system, /### 通用/);
   assert.match(system, /### 系统/);
   assert.match(system, /#### BP-001 <跨组件业务流程>/);
+  assert.match(system, /#### BP-001 <跨组件业务流程>\r?\n\r?\n- 关联需求：<FR、BR、AC 或 PERM 编号>\r?\n\r?\n```mermaid\r?\nsequenceDiagram/);
   assert.match(system, /关联需求：<FR、BR、AC 或 PERM 编号>/);
+  assert.match(system, /正文只保留“关联需求”和时序图/);
+  assert.match(system, /默认只画主成功路径/);
+  assert.match(system, /同一组件内部的连续步骤合并，不展示方法、类、内部模块、协议细节或普通技术异常/);
+  assert.match(system, /只有失败会改变跨组件协作、触发补偿或产生独立业务结果时才使用 `alt`/);
   assert.match(system, /BP 编号在整个 `process\.md`[\s\S]*中唯一且保持稳定/);
-  assert.match(system, /阈值、计算、领域不变量和判断条件仍以需求项为准/);
+  assert.match(system, /阈值、计算、领域不变量和判断条件\s+仍以需求项为准/);
   assert.match(system, /构建流程使用 `flowchart`/);
 });
 
