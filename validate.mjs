@@ -898,14 +898,19 @@ test("separates global acceptance from component tests", () => {
   assert.match(readme, /`<test> <任务>` \| 实现并执行跨组件验收测试/);
 });
 
-test("separates runtime and development technology selections", () => {
+test("separates runtime components and component documentation", () => {
   const system = readFileSync(path.join(WORKFLOW_ROOT, "stages/system.md"), "utf8");
   assert.match(system, /### 运行组件/);
   assert.match(system, /\| 组件名称 \| 容器镜像 Tag \| 说明 \|/);
-  assert.match(system, /### 开发组件/);
+  assert.match(system, /### 组件文档/);
+  assert.match(system, /#### 开发技术文档/);
   assert.match(system, /\| 技术名称 \| 文档 \| 说明 \|/);
+  assert.match(system, /#### 组件技术文档/);
+  assert.match(system, /\| 组件名称 \| 文档 \| 说明 \|/);
   assert.match(system, /运行组件只使用“组件名称”“容器镜像 Tag”“说明”三列/);
-  assert.match(system, /开发组件只使用“技术名称”“文档”“说明”三列/);
+  assert.match(system, /开发技术文档只使用“技术名称”“文档”“说明”三列/);
+  assert.match(system, /组件技术文档只使用“组件名称”“文档”“说明”三列/);
+  assert.match(system, /组件名称必须存在于“运行组件”表/);
   assert.match(system, /技术名称同时写明具体版本或 `<主版本>\.x`/);
   assert.match(system, /<repo>:<组件>-v<version>/);
   assert.match(system, /测试、生产及其他环境的运行组件必须全部容器化/);
