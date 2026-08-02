@@ -142,7 +142,7 @@ test("describes prompt capabilities with numbered five-point definitions", () =>
     ["stages/testing.md", { prefix: "AI-TEST", count: 8 }],
     ["stages/acceptance.md", { prefix: "AI-ACCEPTANCE", count: 9 }],
     ["stages/deploy.md", { prefix: "AI-DEPLOY", count: 10 }],
-    ["templates/backend-design.template.md", { prefix: "AI-BACKEND", count: 22 }],
+    ["templates/backend-design.template.md", { prefix: "AI-BACKEND", count: 24 }],
   ]);
 
   for (const [file, { prefix, count }] of expected) {
@@ -622,7 +622,8 @@ test("supports frontend and backend component design modes", () => {
   assert.match(component, /### Backend 模式/);
   assert.match(component, /按可验证复杂度条件选择轻量 Backend 或完整 DDD/);
   assert.match(component, /完整读取\s+`docs\/workflows\/templates\/backend-design\.template\.md`/);
-  assert.match(component, /复杂度判断 → 完整 DDD 时先完成 DDD（领域命令、语言、规则与一致性）→ 同级产出 C3 与接口 →\s*专项设计（包含 coding\.md）→ 机器可读模型 → C4/);
+  assert.match(component, /分析 → 结构 → 专项 → 模型 → 工程 → 交付/);
+  assert.match(component, /工程阶段按需完成\s*`background\.md`、`worker\.md`、C4/);
   assert.doesNotMatch(component, /\| `process\.md` \| 后端业务流程 \|/);
   assert.match(component, /组件设计目录不创建 `process\.md`/);
   assert.match(component, /每个适用文件使用模板规定的标题名称和顺序/);
@@ -688,6 +689,8 @@ test("supports frontend and backend component design modes", () => {
     "errors.md",
     "data-access.md",
     "coding.md",
+    "background.md",
+    "worker.md",
     "c4.md",
     "configuration.md",
     "secrets.md",
@@ -728,8 +731,8 @@ test("supports frontend and backend component design modes", () => {
   assert.match(backend, /### Outbox[\s\S]*\| 生产用例 \| 事务内 Writer \| 集成事件 \| Relay 或 Publisher \| 投递语义 \|/);
   assert.match(backend, /### Inbox[\s\S]*\| 消费入口 \| 幂等键 \| 原子写入 \| 重复消息结果 \| 保留策略 \|/);
   assert.match(backend, /业务写入与 Outbox 记录必须由同一 Unit of Work 原子提交/);
-  assert.match(backend, /`c4\.md` 在实际采用时展示 Command Bus、Handler、Unit of Work、Outbox Writer、Inbox、Relay、Processor 和 Worker/);
-  assert.match(backend, /最后读取 `coding\.md`、`testing\.md` 和实际存在的 `c4\.md` 并更新 `component\.md`/);
+  assert.match(backend, /`c4\.md` 在实际采用时展示 Command Bus、Handler、Unit of Work、Outbox Writer、Inbox、Task、Relay、Processor 和 Worker/);
+  assert.match(backend, /最后读取 `coding\.md`、`testing\.md` 和实际存在的 `background\.md`、`worker\.md`、`c4\.md` 并更新 `component\.md`/);
   assert.match(backend, /目录与文件命名遵循 `coding\.md`；存在 `c4\.md` 时，代码单元、分层和依赖方向与其保持一致/);
   assert.match(backend, /目录树必须符合\s*`coding\.md` 的架构映射、目录职责和文件命名规则/);
   assert.match(backend, /存在 `c4\.md` 时还必须覆盖其中实际代码单元，并保持稳定名称、\s*分层和依赖方向一致/);
@@ -746,6 +749,31 @@ test("supports frontend and backend component design modes", () => {
   assert.match(readme, /`<web> frontend <任务>`/);
   assert.match(readme, /`<api> backend <任务>`/);
   assert.match(readme, /`templates\/backend-design\.template\.md`/);
+});
+
+test("designs background and worker tasks in the backend engineering phase", () => {
+  const backend = readFileSync(path.join(WORKFLOW_ROOT, "templates/backend-design.template.md"), "utf8");
+  const component = readFileSync(path.join(WORKFLOW_ROOT, "stages/component.md"), "utf8");
+  const readme = readFileSync(path.join(WORKFLOW_ROOT, "README.md"), "utf8");
+
+  assert.match(backend, /subgraph analysis\["1\. 分析"\][\s\S]*subgraph structure\["2\. 结构"\][\s\S]*subgraph specialty\["3\. 专项"\][\s\S]*subgraph models\["4\. 模型"\][\s\S]*subgraph engineering\["5\. 工程"\][\s\S]*subgraph delivery\["6\. 交付"\]/);
+  assert.match(backend, /asyncapi --> worker/);
+  assert.match(backend, /background --> c4/);
+  assert.match(backend, /worker --> c4/);
+  assert.match(backend, /\*\*What\*\*：提供“`background\.md`”功能[\s\S]*# 后台任务/);
+  assert.match(backend, /\*\*What\*\*：提供“`worker\.md`”功能[\s\S]*# 异步任务/);
+  assert.match(backend, /每个二级标题表示一个后台任务/);
+  assert.match(backend, /每个二级标题表示一个异步任务/);
+  assert.match(backend, /每个三级标题表示一个“动词 \+ 业务对象”的功能点/g);
+  assert.match(backend, /> Src：`src\/cache\/infrastructure\/background\/cache-cleanup\.task\.ts`[\s\S]*> Host：`api`[\s\S]*> 触发方式：每小时定时执行/);
+  assert.match(backend, /> Src：`src\/notification\/infrastructure\/messaging\/wechat-notification\.processor\.ts`[\s\S]*> Runtime：`notification-worker`[\s\S]*> AsyncAPI：`asyncapi\.json#\/channels\/notification\.wechat`[\s\S]*> Topic：`notification\.wechat`/);
+  assert.match(backend, /### 清除过期 Cache[\s\S]*运行方式：[\s\S]*```mermaid\r?\nsequenceDiagram/);
+  assert.match(backend, /### 发送微信通知[\s\S]*运行方式：[\s\S]*```mermaid\r?\nsequenceDiagram/);
+  assert.match(backend, /后台任务随宿主进程启动和停止，不拥有独立启动命令、健康检查、部署或扩缩容单元/);
+  assert.match(backend, /`worker\.md` 只维护异步任务功能、消费约束和运行时序/);
+  assert.match(component, /\| `background\.md` \| 后台任务 \| 存在由 API 或 Worker 进程托管的后台任务 \|/);
+  assert.match(component, /\| `worker\.md` \| 异步任务 \| 存在由独立 Worker 运行单元执行的异步任务 \|/);
+  assert.match(readme, /分析 → 结构 → 专项 → 模型 → 工程 → 交付/);
 });
 
 test("defines bounded-context backend runtimes and conditional TypeScript conventions", () => {

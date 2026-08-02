@@ -126,20 +126,24 @@
 - **What**：提供“文件关系与设计顺序”功能；具体规则、格式和约束如下。
 - **Why**：确保 Backend 设计由实际业务边界驱动且不会机械照抄范例。
 
-> - 范例适配声明：下图必须根据当前组件实际存在的设计文件和依赖关系调整；固定设计顺序除外。
+> - 范例适配声明：下图必须根据当前组件实际存在的设计文件和依赖关系调整；六阶段顺序除外。
 
 ```mermaid
 flowchart LR
-    ddd["ddd.md<br/>领域命令、规则与一致性"]
     system_process["docs/system/process.md<br/>跨组件业务流程"]
 
-    subgraph domain_outputs["领域设计后的同级输出"]
+    subgraph analysis["1. 分析"]
+        direction TB
+        ddd["ddd.md<br/>领域命令、规则与一致性"]
+    end
+
+    subgraph structure["2. 结构"]
         direction TB
         c3["c3.md<br/>组件结构"]
         interface["interface.md<br/>接口原则"]
     end
 
-    subgraph specialty["专项设计"]
+    subgraph specialty["3. 专项"]
         direction TB
         authentication["authentication.md<br/>认证"]
         authorization["authorization.md<br/>授权"]
@@ -149,7 +153,7 @@ flowchart LR
         coding["coding.md<br/>编码规范"]
     end
 
-    subgraph contracts["机器可读模型"]
+    subgraph models["4. 模型"]
         direction TB
         openapi["openapi.json"]
         asyncapi["asyncapi.json"]
@@ -157,10 +161,11 @@ flowchart LR
         schema["schema.dbml"]
     end
 
-    c4["c4.md<br/>代码结构"]
-
-    subgraph operation["工程与运行"]
+    subgraph engineering["5. 工程"]
         direction TB
+        background["background.md<br/>后台任务"]
+        worker["worker.md<br/>异步任务"]
+        c4["c4.md<br/>代码结构"]
         configuration["configuration.md<br/>配置"]
         secrets["secrets.md<br/>密钥"]
         observability["observability.md<br/>可观测性"]
@@ -168,8 +173,11 @@ flowchart LR
         runtime["runtime.md<br/>运行"]
     end
 
-    deployment["deployment.md<br/>部署交付"]
-    component["component.md<br/>最终索引与完整文件树"]
+    subgraph delivery["6. 交付"]
+        direction TB
+        deployment["deployment.md<br/>部署交付"]
+        component["component.md<br/>最终索引与完整文件树"]
+    end
 
     system_process -.->|"引用，不复制"| ddd
     ddd --> c3
@@ -188,6 +196,13 @@ flowchart LR
     authorization --> openfga
     data_access --> schema
 
+    coding --> background
+    data_access --> background
+    coding --> worker
+    data_access --> worker
+    asyncapi --> worker
+    background --> c4
+    worker --> c4
     c3 --> c4
     openapi --> c4
     asyncapi --> c4
@@ -220,27 +235,27 @@ flowchart LR
 - **What**：提供“执行流程”功能；具体规则、格式和约束如下。
 - **Why**：确保 Backend 设计由实际业务边界驱动且不会机械照抄范例。
 
-1. 根据 C2 组件清单确定当前组件的应用目录、设计目录和外部连接，读取相关需求、系统规范、
-   现有组件规范及当前组件提供的契约。
-2. 根据 AI-BACKEND-001 的客观条件选择设计强度，并在 `component.md` 概述记录结论与触发事实。
-3. 完整 DDD 模式先在 `ddd.md` 中按限界上下文分章，记录领域命令、统一语言、业务规则、
+1. **分析**：根据 C2 组件清单确定应用目录、设计目录和外部连接，读取相关需求、系统规范、现有组件规范及当前组件契约；
+   再根据 AI-BACKEND-001 的客观条件选择设计强度，并在 `component.md` 概述记录结论与触发事实。完整 DDD 模式在
+   `ddd.md` 中按限界上下文分章，记录领域命令、统一语言、业务规则、
    一致性要求，以及实际存在的领域事件、状态图和时序图；时序图引用系统 `process.md` 的稳定 BP 编号，
    不复制跨组件业务流程或接口调用细节。
    轻量 Backend 不创建 `ddd.md`，业务词汇、边界和“不采用完整 DDD”的事实依据只记录在 `component.md` 概述。
-4. 以已确认的领域设计为共同输入，同级创建或更新 `c3.md` 和 `interface.md`：前者表达组件边界、
+2. **结构**：以已确认的领域设计为共同输入，同级创建或更新 `c3.md` 和 `interface.md`：前者表达组件边界、
    主要内部模块、上游调用方和必要外部依赖，后者表达稳定操作边界；两者位于同一组件设计目录，
    不互相作为设计前置。轻量 Backend 直接从已确认的需求、系统规范和组件概述生成这两个同级文件。
-5. 进入专项设计：按实际边界设计认证、授权、输入校验、错误处理和数据访问，并始终根据 DDD、C3、
+3. **专项**：按实际边界设计认证、授权、输入校验、错误处理和数据访问，并始终根据 DDD、C3、
    接口、组件概述和实际技术栈完成 `coding.md`；不得从框架、数据库表或现有源码反推业务模型。
-6. 由提供方分别维护机器可读模型：`interface.md` 对应 `openapi.json` 或 `asyncapi.json`，
+4. **模型**：由提供方分别维护机器可读模型：`interface.md` 对应 `openapi.json` 或 `asyncapi.json`，
    `authorization.md` 对应 `authorization.fga`，`data-access.md` 对应 `schema.dbml`。
-7. 在业务行为、接口、编码规范和机器可读模型稳定后，用 `c4.md` 设计应用用例、领域对象、Port、
-   Adapter 及依赖方向，并遵循 `coding.md` 的目录、命名和依赖规则。
-8. 根据前述设计完成配置、密钥、可观测性、测试和运行要求，再用 `deployment.md`
-   汇总交给 `<deploy>` 阶段的交付要求。
-9. 最后读取 `coding.md`、`testing.md` 和实际存在的 `c4.md` 并更新 `component.md`，使设计架构索引覆盖设计目录内全部实际文件，
+5. **工程**：机器可读模型稳定后，按需用 `background.md` 设计由现有进程托管的后台任务，用 `worker.md` 设计由独立
+   Worker 运行单元执行的异步任务；再用 `c4.md` 落实应用用例、领域对象、Task、Processor、Port、Adapter 及依赖方向，
+   并遵循 `coding.md` 的目录、命名和依赖规则。随后完成配置、密钥、可观测性、测试和运行要求。
+6. **交付**：用 `deployment.md` 汇总交给 `<deploy>` 阶段的交付要求；最后读取 `coding.md`、`testing.md`、按需存在的
+   `background.md`、`worker.md` 和 `c4.md` 并更新 `component.md`，使设计架构索引覆盖设计目录内全部实际文件，
    并使完整文件树落实 C3、C4、编码规范、测试策略和运行要求。
-10. 每一步发现上游设计不成立时先回到对应文件修正；不得通过下游文档复制或覆盖上游事实。
+
+每个阶段发现上游设计不成立时先回到对应文件修正；不得通过下游文档复制或覆盖上游事实。
 
 ## AI-BACKEND-005
 
@@ -701,7 +716,7 @@ flowchart LR
 ```
 ````
 
-- `c4.md` 在实际采用时展示 Command Bus、Handler、Unit of Work、Outbox Writer、Inbox、Relay、Processor 和 Worker
+- `c4.md` 在实际采用时展示 Command Bus、Handler、Unit of Work、Outbox Writer、Inbox、Task、Relay、Processor 和 Worker
   等稳定代码单元及其依赖；不存在的机制不创建节点。
 - 事务与消息语义引用 `data-access.md`，命令、事件和契约引用 DDD、接口及机器可读模型，C4 不重复规则或字段。
 
@@ -791,7 +806,8 @@ flowchart LR
 - 架构映射使用 DDD、C3 和接口中的稳定名称，不重新定义领域规则、组件边界或契约；后续 `c4.md` 遵循本文件的目录、命名和依赖规则。
 - Command Bus 只在多个用例需要统一分派或共享 Middleware 时采用；少量用例可由入口直接调用 Handler。
 - 应用执行管线必须写明实际 Middleware 顺序和事务包围范围；认证、授权、校验、日志、追踪和事务不按示例机械启用。
-- Unit of Work、Outbox Writer 和 Inbox 的代码职责遵循 `data-access.md` 的一致性设计；Relay 的宿主进程以及 Worker 的独立入口遵循 `runtime.md`。
+- Unit of Work、Outbox Writer 和 Inbox 的代码职责遵循 `data-access.md` 的一致性设计；后台任务功能与时序遵循
+  `background.md`，异步任务功能与时序遵循 `worker.md`，宿主进程和 Worker 独立入口遵循 `runtime.md`。
 - 目录与文件命名必须符合当前实际语言、框架和工具链；框架规定的固定文件名优先。
 - TypeScript 组件的“文件命名”表从 AI-BACKEND-002 的角色后缀中选择实际使用的行，不适用的角色直接删除；
   同一简单用例允许合并类型或就地定义返回值，不机械拆分文件。
@@ -1159,7 +1175,8 @@ Then：<当前组件边界内可观察的最终结果、状态和必要副作用
 
 `进程模型` 按运行单元记录职责、源码入口、构建输出、启动命令、依赖、独立扩缩容和关闭方式。
 API 与 Worker 可以属于同一逻辑组件但独立启动；Outbox Relay 必须托管在其中一个现有进程内，
-`进程模型` 记录宿主、启动和停止时机，但不为 Relay 创建独立进程、命令、健康检查或扩缩容单元。
+其功能与运行时序记录在 `background.md`，`进程模型` 只记录宿主、启动和停止时机，不为 Relay 创建独立进程、命令、健康检查或扩缩容单元。
+`worker.md` 中每个异步任务必须归属本文件已登记的 Worker 运行单元；需要独立启动、健康检查或扩缩容的执行单元不得伪装成后台任务。
 使用 BullMQ 时，Redis 是基础设施中间件，BullMQ 是运行在 Redis 之上的消息任务库；
 一个任务由一个 Worker 处理时可以使用任务队列，需要多个独立订阅方各自消费同一事件时应按实际需求选择
 Redis Streams 或其他发布订阅型消息代理，不把 BullMQ 工作队列误当广播总线。
@@ -1204,7 +1221,7 @@ Redis Streams 或其他发布订阅型消息代理，不把 BullMQ 工作队列�
 
 > - 范例适配声明：以下组件汇总和目录必须根据当前组件实际文件完整调整，不得保留示例文件或省略实际文件。
 
-最后读取 `coding.md`、`testing.md` 和实际存在的 `c4.md` 并更新 `component.md`，使其索引覆盖所有实际文件，并记录符合编码规范、代码设计和测试策略的完整受版本控制文件树。
+最后读取 `coding.md`、`testing.md` 和实际存在的 `background.md`、`worker.md`、`c4.md` 并更新 `component.md`，使其索引覆盖所有实际文件，并记录符合编码规范、代码设计和测试策略的完整受版本控制文件树。
 
 ````md
 # <组件>
@@ -1241,3 +1258,143 @@ Redis Streams 或其他发布订阅型消息代理，不把 BullMQ 工作队列�
 `coding.md` 的架构映射、目录职责和文件命名规则；存在 `c4.md` 时还必须覆盖其中实际代码单元，并保持稳定名称、
 分层和依赖方向一致；必须覆盖 `testing.md` 中实际测试文件、Fixture、支持代码、配置和精确 `Src`。
 发现冲突时先修正对应设计，不在 `component.md` 中另建一套规则。
+
+## AI-BACKEND-023
+
+- **Who**：处理 `<组件> backend <任务>` 的组件设计 Agent。
+- **When**：当前 Backend 存在由 API 或 Worker 等现有进程托管、没有独立运行入口的后台任务时。
+- **Where**：当前 Backend 组件设计目录与本模式模板。
+- **What**：提供“`background.md`”功能；具体规则、格式和约束如下。
+- **Why**：确保进程内后台任务的功能、生命周期和执行约束可以独立验证且不与进程设计混合。
+
+> - 范例适配声明：以下任务、路径、宿主、触发方式、功能点和时序必须根据当前组件实际后台任务调整；固定标题层级和表达格式除外。
+
+````md
+# 后台任务
+
+## 缓存清理
+
+> Src：`src/cache/infrastructure/background/cache-cleanup.task.ts`
+> Host：`api`
+> 触发方式：每小时定时执行
+> 配置：`CACHE_CLEANUP_INTERVAL`
+> 并发：同一时刻只允许一个实例执行
+> Test：`testing.md#CACHE-INT-CLEANUP-001`
+
+### 清除过期 Cache
+
+扫描已经超过有效期的缓存记录，并按批次完成清理。
+
+运行方式：
+
+```mermaid
+sequenceDiagram
+    autonumber
+    participant Scheduler as API Scheduler
+    participant Task as CacheCleanupTask
+    participant Handler as ClearExpiredCacheHandler
+    participant Cache as CacheRepository
+
+    Scheduler->>Task: 到达执行时间
+    Task->>Handler: execute(now, batchSize)
+    Handler->>Cache: deleteExpired(now, batchSize)
+    Cache-->>Handler: 返回清理数量
+    Handler-->>Task: 返回执行结果
+    Task-->>Scheduler: 记录执行指标
+```
+
+约束：
+
+- 重复执行不得影响有效缓存。
+- 单批处理数量受配置限制。
+- 宿主进程关闭时停止启动新批次。
+````
+
+- `background.md` 只使用“后台任务”一级标题；每个二级标题表示一个后台任务，不创建“通用规则”“运行方式”或其他非任务二级标题。
+- 任务元信息必须紧跟二级标题并使用连续 Markdown 引用行；`Src`、`Host` 和 `触发方式` 必填，其他仅记录当前任务实际需要的配置、
+  并发、锁或租约、超时、失败恢复、观测和测试引用，不保留空字段。
+- `Src` 是当前组件应用目录下精确的生产文件相对路径，不得写目录、通配符、候选路径或尚未规划的文件，并必须由
+  `component.md` 完整文件树收录；`Host` 必须引用 `runtime.md` 中已登记的现有运行单元。
+- 每个三级标题表示一个“动词 + 业务对象”的功能点。每个功能点依次包含简短描述、`运行方式：` 和一个 Mermaid
+  `sequenceDiagram`，再按需记录约束与验证依据；不使用“运行方式”“错误处理”等通用三级标题。
+- 时序图只描述当前功能点，必须展示真实触发方、Task、应用入口和必要依赖，不把多个独立功能合并到一张图中，
+  也不复制接口字段、领域规则或跨组件业务流程。
+- 后台任务随宿主进程启动和停止，不拥有独立启动命令、健康检查、部署或扩缩容单元；一旦需要这些能力，改用
+  `worker.md` 和 `runtime.md` 建模为独立 Worker 运行单元。Scheduler、Poller、Outbox Relay、缓存刷新和数据清理仅在真实存在时记录。
+
+## AI-BACKEND-024
+
+- **Who**：处理 `<组件> backend <任务>` 的组件设计 Agent。
+- **When**：当前 Backend 存在通过队列、消息或事件触发并由独立 Worker 运行单元执行的异步任务时。
+- **Where**：当前 Backend 组件设计目录与本模式模板。
+- **What**：提供“`worker.md`”功能；具体规则、格式和约束如下。
+- **Why**：确保异步任务的消费功能、投递语义和运行过程由正式契约驱动并可以独立验证。
+
+> - 范例适配声明：以下任务、路径、运行单元、消息契约、Topic、功能点和时序必须根据当前组件实际异步任务调整；固定标题层级和表达格式除外。
+
+````md
+# 异步任务
+
+## 微信通知
+
+> Src：`src/notification/infrastructure/messaging/wechat-notification.processor.ts`
+> Runtime：`notification-worker`
+> AsyncAPI：`asyncapi.json#/channels/notification.wechat`
+> Topic：`notification.wechat`
+> Consumer：`wechat-notification-worker`
+> 投递语义：至少一次
+> 幂等键：`messageId`
+> 重试：指数退避，最多 5 次
+> DLQ：`notification.wechat.dlq`
+> Test：`testing.md#NOTIFICATION-INT-WECHAT-001`
+
+### 发送微信通知
+
+消费微信通知消息，并通过应用入口向目标用户发送通知。
+
+运行方式：
+
+```mermaid
+sequenceDiagram
+    autonumber
+    participant Topic as notification.wechat
+    participant Worker as NotificationWorker
+    participant Inbox as InboxStore
+    participant Handler as SendWechatNotificationHandler
+    participant Wechat as 微信接口
+
+    Topic->>Worker: 投递通知消息
+    Worker->>Inbox: 查询 messageId
+    alt 已经处理
+        Inbox-->>Worker: 已完成
+        Worker-->>Topic: ACK
+    else 尚未处理
+        Inbox-->>Worker: 未处理
+        Worker->>Handler: execute(message)
+        Handler->>Wechat: 发送通知
+        Wechat-->>Handler: 返回发送结果
+        Handler->>Inbox: 记录处理成功
+        Handler-->>Worker: 返回成功
+        Worker-->>Topic: ACK
+    end
+```
+
+约束：
+
+- 消息必须通过 AsyncAPI 契约校验。
+- 外部接口失败时不得提前确认消息。
+- 重复消息不得重复产生业务副作用。
+````
+
+- `worker.md` 只使用“异步任务”一级标题；每个二级标题表示一个异步任务，不按 Worker 进程、Topic 或错误类型创建非任务二级标题。
+- 任务元信息必须紧跟二级标题并使用连续 Markdown 引用行；`Src`、`Runtime`、`AsyncAPI` 和 `Topic` 必填，其他仅记录
+  当前任务实际需要的 Consumer、投递语义、幂等键、顺序、超时、重试、DLQ、并发、观测和测试引用，不保留空字段。
+- `Src` 是当前组件应用目录下精确的生产文件相对路径，必须由 `component.md` 完整文件树收录；`Runtime` 必须引用
+  `runtime.md` 中已登记、具有独立入口的 Worker 运行单元。
+- `AsyncAPI` 必须使用文件内引用指向 `asyncapi.json` 中实际存在的 Channel；`Topic` 必须与该 Channel 的实际名称一致。
+  `worker.md` 不复制消息字段、Schema、Header 或版本规则，也不自行定义契约之外的 Topic。
+- 每个三级标题表示一个“动词 + 业务对象”的功能点。每个功能点依次包含简短描述、`运行方式：` 和一个 Mermaid
+  `sequenceDiagram`，再按需记录约束与验证依据；时序图必须展示消息投递、契约校验、幂等判断、应用入口、必要外部依赖和确认时机，
+  不适用的参与者和步骤直接删除。
+- 投递语义、Inbox/Outbox、事务和幂等存储引用 `data-access.md`，消息格式引用 `asyncapi.json`，进程启动、关闭、健康检查、
+  资源和扩缩容引用 `runtime.md`；`worker.md` 只维护异步任务功能、消费约束和运行时序。
