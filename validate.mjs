@@ -622,7 +622,7 @@ test("supports frontend and backend component design modes", () => {
   assert.match(component, /### Backend 模式/);
   assert.match(component, /按可验证复杂度条件选择轻量 Backend 或完整 DDD/);
   assert.match(component, /完整读取\s+`docs\/workflows\/templates\/backend-design\.template\.md`/);
-  assert.match(component, /复杂度判断 → 完整 DDD 时先完成 DDD（每个限界上下文包含状态图与关键时序图）→ 同级产出 C3 与接口 → 边界 → 机器可读模型 → C4/);
+  assert.match(component, /复杂度判断 → 完整 DDD 时先完成 DDD（领域命令、语言、规则与一致性）→ 同级产出 C3 与接口 → 边界 → 机器可读模型 → C4/);
   assert.doesNotMatch(component, /\| `process\.md` \| 后端业务流程 \|/);
   assert.match(component, /组件设计目录不创建 `process\.md`/);
   assert.match(component, /每个适用文件使用模板规定的标题名称和顺序/);
@@ -645,19 +645,19 @@ test("supports frontend and backend component design modes", () => {
   assert.match(backend, /flowchart LR/);
   assert.match(backend, /\*\*What\*\*：提供“执行流程”功能/);
   assert.match(backend, /不得从框架、数据库表或现有源码反推业务模型/);
-  assert.match(backend, /\*\*What\*\*：提供“`ddd\.md`”功能[\s\S]*## <限界上下文名称>[\s\S]*### 边界[\s\S]*### 统一语言/);
-  assert.match(backend, /### 领域结构[\s\S]*```mermaid\r?\nflowchart LR[\s\S]*subgraph application\["应用层"\][\s\S]*direction TB/);
-  assert.match(backend, /«Application Service»/);
-  assert.match(backend, /subgraph domain\["领域层"\][\s\S]*«Aggregate Root»[\s\S]*«Entity»[\s\S]*«Value Object»[\s\S]*«Domain Service»/);
-  assert.match(backend, /subgraph boundary\["领域端口与事件"\][\s\S]*«Repository»[\s\S]*«Domain Event»/);
-  assert.match(backend, /领域结构图使用 `flowchart LR` 模拟类图，不使用 `classDiagram`/);
+  assert.match(backend, /\*\*What\*\*：提供“`ddd\.md`”功能[\s\S]*# DDD 设计文档[\s\S]*## <ContextName> <中文名称>/);
+  assert.match(backend, /### 领域命令[\s\S]*\| 命令 \| 说明 \|[\s\S]*### 统一语言/);
+  assert.match(backend, /\| 对象 \| 术语 \| 定义 \|[\s\S]*### 业务规则[\s\S]*\| 对象 \| 规则 \| 违反结果 \|/);
+  assert.match(backend, /### 领域事件[\s\S]*\| 事件 \| 触发条件 \| 字段 \|/);
   assert.match(backend, /### 状态图[\s\S]*```mermaid\r?\nstateDiagram-v2/);
-  assert.match(backend, /### 关键时序[\s\S]*```mermaid\r?\nsequenceDiagram/);
-  assert.match(backend, /\| 领域事件 \| 产生聚合 \| 触发条件 \| 消费方 \| 业务含义 \|/);
+  assert.match(backend, /### 一致性[\s\S]*\| 事务边界 \| 要求 \|/);
+  assert.match(backend, /### 时序图[\s\S]*```mermaid\r?\nsequenceDiagram/);
+  assert.doesNotMatch(backend, /### 领域结构/);
   assert.doesNotMatch(backend, /## 一致性与补偿/);
   assert.doesNotMatch(backend, /## 聚合规则/);
   assert.match(component, /一个组件默认对应一个限界上下文/);
-  assert.match(component, /完整 DDD 模式的每个限界上下文必须完整包含边界、统一语言、领域结构图、状态图、关键时序图和领域事件列表/);
+  assert.match(component, /完整 DDD 模式的每个限界上下文必须包含领域命令、统一语言、业务规则和一致性/);
+  assert.match(component, /领域命令表只保留“命令、说明”两列/);
   assert.match(backend, /仅当以下条件全部成立时使用轻量 Backend/);
   assert.match(backend, /上述任一复杂度信号存在时使用完整 DDD/);
   assert.match(backend, /`ddd\.md` 仅在完整 DDD 模式创建/);
@@ -715,7 +715,7 @@ test("defines bounded-context backend runtimes and conditional TypeScript conven
   assert.match(component, /进程不是工作流组件的划分单位/);
   assert.match(component, /跨上下文通过稳定的应用接口或 Port 协作，不导入对方的领域对象/);
   assert.match(component, /Backend C3 按限界上下文、入口、独立运行单元和实际公共技术能力展示稳定模块/);
-  assert.match(component, /上下文内部的分层及应用服务与领域模型的对应关系放入 `ddd\.md` 和 `c4\.md`/);
+  assert.match(component, /上下文内部的代码分层及应用服务与领域模型的映射放入 `coding\.md` 和 `c4\.md`/);
 
   assert.match(backend, /\*\*What\*\*：提供“架构、代码与运行约定”功能/);
   assert.match(backend, /Container_Boundary\(web_layout, "前端展示"\)[\s\S]*Container_Boundary\(context_layout, "上下文"\)[\s\S]*Container_Boundary\(infra_layout, "基础设施"\)/);

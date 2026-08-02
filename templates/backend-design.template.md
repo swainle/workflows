@@ -59,7 +59,7 @@
   保留清理、积压和延迟观测；Worker 使用 Inbox 或等价机制保证幂等，并区分可重试与不可重试错误。
 - 队列的等待、执行、重试和失败是运行状态，不自动写入聚合。`AppointmentCreated` 等事件描述已经发生的事实；
   Worker 完成或失败仅在业务确实关心该结果时产生新的业务状态和事件。
-- 涉及异步后续处理的关键时序必须标出边界：认证与授权、输入校验、加载聚合、执行领域行为、
+- 涉及异步后续处理的时序图必须标出边界：认证与授权、输入校验、加载聚合、执行领域行为、
   在同一事务持久化业务数据与 Outbox、提交事务、Relay 投递、Worker 幂等消费。具体步骤按实际用例删减，
   不在数据库事务中等待 Relay、Worker 或远程服务完成。
 
@@ -104,7 +104,7 @@
 
 ```mermaid
 flowchart LR
-    ddd["ddd.md<br/>领域结构、状态与关键时序"]
+    ddd["ddd.md<br/>领域命令、规则与一致性"]
     system_process["docs/system/process.md<br/>跨组件业务流程"]
 
     subgraph domain_outputs["领域设计后的同级输出"]
@@ -194,9 +194,9 @@ flowchart LR
 1. 根据 C2 组件清单确定当前组件的应用目录、设计目录和外部连接，读取相关需求、系统规范、
    现有组件规范及当前组件提供的契约。
 2. 根据 AI-BACKEND-001 的客观条件选择设计强度，并在 `component.md` 概述记录结论与触发事实。
-3. 完整 DDD 模式先在 `ddd.md` 中按限界上下文分章，用领域结构图展示应用服务、领域服务、聚合根、
-   必要实体和值对象、领域端口及事件，并为每个上下文维护状态图、关键时序图和领域事件列表；
-   时序图引用系统 `process.md` 的稳定 BP 编号，不复制跨组件业务流程或接口调用细节。
+3. 完整 DDD 模式先在 `ddd.md` 中按限界上下文分章，记录领域命令、统一语言、业务规则、
+   一致性要求，以及实际存在的领域事件、状态图和时序图；时序图引用系统 `process.md` 的稳定 BP 编号，
+   不复制跨组件业务流程或接口调用细节。
    轻量 Backend 不创建 `ddd.md`，业务词汇、边界和“不采用完整 DDD”的事实依据只记录在 `component.md` 概述。
 4. 以已确认的领域设计为共同输入，同级创建或更新 `c3.md` 和 `interface.md`：前者表达组件边界、
    主要内部模块、上游调用方和必要外部依赖，后者表达稳定操作边界；两者位于同一组件设计目录，
@@ -280,57 +280,33 @@ C4Component
 > - 范例适配声明：以下 DDD 内容必须根据当前组件实际存在的限界上下文、统一语言和业务规则调整；固定章节除外。
 
 ````md
-# 领域设计
+# DDD 设计文档
 
-## <限界上下文名称>
+## <ContextName> <中文名称>
 
-### 边界
+### 领域命令
 
-- 负责：<业务能力>
-- 不负责：<明确排除项>
-- 外部上下文：<交互上下文>
+| 命令 | 说明 |
+|---|---|
+| `<Command>` | <命令表达的业务意图> |
 
 ### 统一语言
 
-| 术语 | 定义 |
-|---|---|
-| <术语> | <当前上下文中的唯一含义> |
+| 对象 | 术语 | 定义 |
+|---|---|---|
+| `<Object>` | <业务术语> | <当前上下文中的唯一含义> |
 
-### 领域结构
+### 业务规则
 
-```mermaid
-flowchart LR
-    subgraph application["应用层"]
-        direction TB
-        app["<应用服务><br/>«Application Service»<br/>+<业务用例>(command)"]
-    end
+| 对象 | 规则 | 违反结果 |
+|---|---|---|
+| `<Object>` | <必须始终满足的业务规则> | <明确的业务失败结果> |
 
-    subgraph domain["领域层"]
-        direction TB
+### 领域事件
 
-        subgraph aggregate["<聚合> · 事务边界"]
-            direction TB
-            root["<聚合根><br/>«Aggregate Root»<br/>+<领域行为>()<br/><关键不变量>"]
-            entity["<实体><br/>«Entity»<br/>+<领域行为>()"]
-            value["<值对象><br/>«Value Object»<br/>+<领域判断>()"]
-
-            root --> entity
-            root --> value
-        end
-
-        service["<领域服务><br/>«Domain Service»<br/>+<领域规则>()"]
-        aggregate --> service
-    end
-
-    subgraph boundary["领域端口与事件"]
-        direction TB
-        repository["<仓储><br/>«Repository»<br/>+findById(id)<br/>+save(aggregate)"]
-        event["<领域事件><br/>«Domain Event»"]
-    end
-
-    application -->|"应用服务 → 聚合根<br/>协调业务用例"| domain
-    domain -->|"聚合根 → 仓储 / 领域事件<br/>持久化并发布事实"| boundary
-```
+| 事件 | 触发条件 | 字段 |
+|---|---|---|
+| `<Event>` | <已经发生的领域事实> | `<field>` |
 
 ### 状态图
 
@@ -341,12 +317,18 @@ stateDiagram-v2
     <终止状态> --> [*]
 ```
 
-### 关键时序
+### 一致性
+
+| 事务边界 | 要求 |
+|---|---|
+| `<Handler>` | <必须在同一事务中成立的状态与事件要求> |
+
+### 时序图
 
 ```mermaid
 sequenceDiagram
     actor User as <参与者>
-    participant App as <应用用例>
+    participant App as <Handler>
     participant Domain as <聚合根>
     participant Repo as <仓储>
     participant Bus as <事件总线>
@@ -358,24 +340,16 @@ sequenceDiagram
     App->>Bus: 发布领域事件
 ```
 
-### 领域事件
-
-| 领域事件 | 产生聚合 | 触发条件 | 消费方 | 业务含义 |
-|---|---|---|---|---|
-| `<事件>` | <聚合> | <已经发生的事实> | <消费方> | <对领域的含义> |
 ````
 
 - 一个组件默认对应一个限界上下文；只有确实存在不同统一语言和模型边界时才增加上下文章节。
-- 每个上下文必须完整包含边界、统一语言、领域结构图、状态图、关键时序和领域事件列表，
-  各上下文独立维护自己的术语、模型、生命周期、协作和事件。
-- 领域结构图使用 `flowchart LR` 模拟类图，不使用 `classDiagram`；应用层、领域层、
-  领域端口与事件从左到右排列，每层使用 `subgraph` 和 `direction TB` 使类型从上到下排列。
-- 领域结构图结合展示应用服务、领域服务、聚合根、必要实体和值对象、仓储及领域事件；
-  每个聚合使用嵌套 `subgraph` 表达事务边界，只显示类型、DDD 构造型和关键公开业务行为。
-- 跨层关系连接分层 `subgraph` 并在标签中写明实际的源类型、目标类型和业务用途，
-  跨聚合关系只引用稳定 ID 并标明一致性方式。
-- 状态图和关键时序图归属对应限界上下文，不创建独立的 `state.md` 或 `sequence.md`。
-- 关键时序只表达领域行为，引用系统 `process.md` 中的稳定 BP 编号，不重复跨组件业务流程，
+- 每个上下文必须包含领域命令、统一语言、业务规则和一致性；领域事件、状态图和时序图仅在实际存在时保留，
+  不创建空章节或占位内容。各上下文独立维护自己的术语、规则、生命周期、协作和事件。
+- 领域命令仅记录命令及其业务意图；Handler、领域对象和 Result 的代码映射由 `coding.md` 和 `c4.md` 维护。
+- 一致性只描述事务边界及必须原子成立的业务状态和事件要求；Command Bus、Outbox、事务中间件、
+  重试和锁等技术实现由 `c3.md`、`coding.md`、`data-access.md` 或配置文件维护。
+- 状态图和时序图归属对应限界上下文，不创建独立的 `state.md` 或 `sequence.md`。
+- 时序图只表达领域行为，引用系统 `process.md` 中的稳定 BP 编号，不重复跨组件业务流程，
   也不展开接口参数、消息载荷、超时、重试等技术细节。
 - 不在 `ddd.md` 中罗列全部字段、私有方法、ORM 模型或简单数据载体；代码结构、数据库结构和
   接口结构分别由 `c4.md`、`schema.dbml` 和 OpenAPI/AsyncAPI 维护。
@@ -861,7 +835,7 @@ Then：预约状态变为 `cancelled`，并产生可观察的取消结果。
 
 ### AUTH-APP-LOGIN-001
 
-> Design：`ddd.md#认证#关键时序#登录`
+> Design：`ddd.md#认证#时序图#登录`
 > Src：`test/unit/application/login.test.ts`
 > BP：`BP-001`
 > FR：`REQ-001-FR-001`
@@ -918,7 +892,7 @@ Then：<可观察的响应、状态码、错误码、消息或必要副作用>
 
 ### AUTH-INT-MODULE-001
 
-> Design：`ddd.md#认证#关键时序#<流程>`
+> Design：`ddd.md#认证#时序图#<流程>`
 > Src：`test/integration/module-login.test.ts`
 > BP：`BP-001`
 
