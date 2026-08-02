@@ -113,13 +113,14 @@ flowchart LR
         interface["interface.md<br/>接口原则"]
     end
 
-    subgraph boundary["边界设计"]
+    subgraph specialty["专项设计"]
         direction TB
         authentication["authentication.md<br/>认证"]
         authorization["authorization.md<br/>授权"]
         validation["validation.md<br/>输入校验"]
         errors["errors.md<br/>错误处理"]
         data_access["data-access.md<br/>数据访问"]
+        coding["coding.md<br/>编码规范"]
     end
 
     subgraph contracts["机器可读模型"]
@@ -134,7 +135,6 @@ flowchart LR
 
     subgraph operation["工程与运行"]
         direction TB
-        coding["coding.md<br/>编码规范"]
         configuration["configuration.md<br/>配置"]
         secrets["secrets.md<br/>密钥"]
         observability["observability.md<br/>可观测性"]
@@ -154,6 +154,8 @@ flowchart LR
     interface --> validation
     interface --> errors
     ddd --> data_access
+    c3 --> coding
+    interface --> coding
 
     interface --> openapi
     interface --> asyncapi
@@ -165,9 +167,7 @@ flowchart LR
     asyncapi --> c4
     openfga --> c4
     schema --> c4
-
-    c3 --> coding
-    c4 --> coding
+    coding --> c4
     c4 --> configuration
     c4 --> secrets
     c4 --> observability
@@ -201,19 +201,17 @@ flowchart LR
 4. 以已确认的领域设计为共同输入，同级创建或更新 `c3.md` 和 `interface.md`：前者表达组件边界、
    主要内部模块、上游调用方和必要外部依赖，后者表达稳定操作边界；两者位于同一组件设计目录，
    不互相作为设计前置。轻量 Backend 直接从已确认的需求、系统规范和组件概述生成这两个同级文件。
-5. 再按实际边界设计认证、授权、输入校验、错误处理
-   和数据访问；不得从框架、数据库表或现有源码反推业务模型。
+5. 进入专项设计：按实际边界设计认证、授权、输入校验、错误处理和数据访问，并始终根据 DDD、C3、
+   接口、组件概述和实际技术栈完成 `coding.md`；不得从框架、数据库表或现有源码反推业务模型。
 6. 由提供方分别维护机器可读模型：`interface.md` 对应 `openapi.json` 或 `asyncapi.json`，
    `authorization.md` 对应 `authorization.fga`，`data-access.md` 对应 `schema.dbml`。
-7. 在业务行为、接口和机器可读模型稳定后，用 `c4.md` 设计应用用例、领域对象、Port、
-   Adapter 及依赖方向。
-8. 在 `c4.md` 适用时完成代码单元设计后，用 `coding.md` 固定架构映射、目录、文件命名、编码和依赖规则；
-   不适用 `c4.md` 时，直接依据 C3、接口、组件概述和实际技术栈完成 `coding.md`。
-9. 根据前述设计完成配置、密钥、可观测性、测试和运行要求，再用 `deployment.md`
+7. 在业务行为、接口、编码规范和机器可读模型稳定后，用 `c4.md` 设计应用用例、领域对象、Port、
+   Adapter 及依赖方向，并遵循 `coding.md` 的目录、命名和依赖规则。
+8. 根据前述设计完成配置、密钥、可观测性、测试和运行要求，再用 `deployment.md`
    汇总交给 `<deploy>` 阶段的交付要求。
-10. 最后更新 `component.md`，使设计架构索引覆盖设计目录内全部实际文件，并使完整文件树落实
+9. 最后更新 `component.md`，使设计架构索引覆盖设计目录内全部实际文件，并使完整文件树落实
    C3、C4、测试策略和运行要求。
-11. 每一步发现上游设计不成立时先回到对应文件修正；不得通过下游文档复制或覆盖上游事实。
+10. 每一步发现上游设计不成立时先回到对应文件修正；不得通过下游文档复制或覆盖上游事实。
 
 ## AI-BACKEND-005
 
@@ -693,7 +691,7 @@ flowchart LR
 ````
 
 - `coding.md` 记录长期有效的工程规则，不逐个复制生产文件；精确且完整的文件树仍只由 `component.md` 维护。
-- 架构映射使用 DDD、C3、C4、接口和机器可读模型中的稳定名称，不重新定义领域规则、代码单元或契约。
+- 架构映射使用 DDD、C3 和接口中的稳定名称，不重新定义领域规则、组件边界或契约；后续 `c4.md` 遵循本文件的目录、命名和依赖规则。
 - 目录与文件命名必须符合当前实际语言、框架和工具链；框架规定的固定文件名优先。
 - 编码规则必须能够通过现有 Lint、Formatter、类型检查、构建或明确评审规则验证，不写无法执行的偏好。
 - 没有真实例外时保留“例外”标题并删除表格；存在例外时必须说明范围和验证方式。

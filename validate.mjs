@@ -622,7 +622,7 @@ test("supports frontend and backend component design modes", () => {
   assert.match(component, /### Backend 模式/);
   assert.match(component, /按可验证复杂度条件选择轻量 Backend 或完整 DDD/);
   assert.match(component, /完整读取\s+`docs\/workflows\/templates\/backend-design\.template\.md`/);
-  assert.match(component, /复杂度判断 → 完整 DDD 时先完成 DDD（领域命令、语言、规则与一致性）→ 同级产出 C3 与接口 → 边界 → 机器可读模型 → C4/);
+  assert.match(component, /复杂度判断 → 完整 DDD 时先完成 DDD（领域命令、语言、规则与一致性）→ 同级产出 C3 与接口 →\s*专项设计（包含 coding\.md）→ 机器可读模型 → C4/);
   assert.doesNotMatch(component, /\| `process\.md` \| 后端业务流程 \|/);
   assert.match(component, /组件设计目录不创建 `process\.md`/);
   assert.match(component, /每个适用文件使用模板规定的标题名称和顺序/);
@@ -638,6 +638,10 @@ test("supports frontend and backend component design modes", () => {
   assert.match(backend, /\*\*What\*\*：提供“文件关系与设计顺序”功能/);
   assert.match(backend, /ddd --> c3/);
   assert.match(backend, /ddd --> interface/);
+  assert.match(backend, /c3 --> coding/);
+  assert.match(backend, /interface --> coding/);
+  assert.match(backend, /coding --> c4/);
+  assert.doesNotMatch(backend, /c4 --> coding/);
   assert.doesNotMatch(backend, /c3 --> ddd/);
   assert.match(backend, /同级创建或更新 `c3\.md` 和 `interface\.md`/);
   assert.match(backend, /不互相作为设计前置/);
@@ -679,8 +683,8 @@ test("supports frontend and backend component design modes", () => {
     "validation.md",
     "errors.md",
     "data-access.md",
-    "c4.md",
     "coding.md",
+    "c4.md",
     "configuration.md",
     "secrets.md",
     "observability.md",
@@ -692,7 +696,7 @@ test("supports frontend and backend component design modes", () => {
     assert.ok(backend.includes(`**What**：提供“\`${file}\`”功能`), `missing Backend template for ${file}`);
   }
   assert.match(backend, /`component\.md`、`c3\.md`、`coding\.md` 和 `testing\.md` 始终创建/);
-  assert.match(backend, /c4 --> coding/);
+  assert.match(backend, /coding --> c4/);
   assert.match(backend, /coding --> testing/);
   assert.match(backend, /# 编码规范[\s\S]*## 架构映射[\s\S]*## 目录约定[\s\S]*## 文件命名[\s\S]*## 编码规范[\s\S]*## 依赖方向[\s\S]*## 例外/);
   assert.match(backend, /精确且完整的文件树仍只由 `component\.md` 维护/);
