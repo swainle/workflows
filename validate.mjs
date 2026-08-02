@@ -760,6 +760,10 @@ test("designs background and worker tasks in the backend engineering phase", () 
   assert.match(backend, /asyncapi --> worker/);
   assert.match(backend, /background --> c4/);
   assert.match(backend, /worker --> c4/);
+  assert.match(backend, /c4 --> runtime/);
+  assert.match(backend, /background --> runtime/);
+  assert.match(backend, /worker --> runtime/);
+  assert.doesNotMatch(backend, /coding --> runtime/);
   assert.match(backend, /\*\*What\*\*：提供“`background\.md`”功能[\s\S]*# 后台任务/);
   assert.match(backend, /\*\*What\*\*：提供“`worker\.md`”功能[\s\S]*# 异步任务/);
   assert.match(backend, /每个二级标题表示一个后台任务/);
@@ -771,6 +775,9 @@ test("designs background and worker tasks in the backend engineering phase", () 
   assert.match(backend, /### 发送微信通知[\s\S]*运行方式：[\s\S]*```mermaid\r?\nsequenceDiagram/);
   assert.match(backend, /后台任务随宿主进程启动和停止，不拥有独立启动命令、健康检查、部署或扩缩容单元/);
   assert.match(backend, /`worker\.md` 只维护异步任务功能、消费约束和运行时序/);
+  assert.match(backend, /`runtime\.md` 只以 `c4\.md`、`background\.md` 和 `worker\.md` 为直接设计输入/);
+  assert.match(backend, /`Host` 声明预期宿主，并作为后续 `runtime\.md` 进程模型的输入/);
+  assert.match(backend, /`Runtime` 必须引用\s*当前任务需要的独立 Worker 运行单元名称，并作为后续 `runtime\.md` 进程模型的输入/);
   assert.match(component, /\| `background\.md` \| 后台任务 \| 存在由 API 或 Worker 进程托管的后台任务 \|/);
   assert.match(component, /\| `worker\.md` \| 异步任务 \| 存在由独立 Worker 运行单元执行的异步任务 \|/);
   assert.match(readme, /分析 → 结构 → 专项 → 模型 → 工程 → 交付/);

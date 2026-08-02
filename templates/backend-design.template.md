@@ -213,7 +213,9 @@ flowchart LR
     c4 --> secrets
     c4 --> observability
     coding --> testing
-    coding --> runtime
+    c4 --> runtime
+    background --> runtime
+    worker --> runtime
 
     configuration --> deployment
     secrets --> deployment
@@ -250,7 +252,8 @@ flowchart LR
    `authorization.md` 对应 `authorization.fga`，`data-access.md` 对应 `schema.dbml`。
 5. **工程**：机器可读模型稳定后，按需用 `background.md` 设计由现有进程托管的后台任务，用 `worker.md` 设计由独立
    Worker 运行单元执行的异步任务；再用 `c4.md` 落实应用用例、领域对象、Task、Processor、Port、Adapter 及依赖方向，
-   并遵循 `coding.md` 的目录、命名和依赖规则。随后完成配置、密钥、可观测性、测试和运行要求。
+   并遵循 `coding.md` 的目录、命名和依赖规则。随后完成配置、密钥、可观测性和测试设计，最后以 `c4.md`、
+   `background.md` 和 `worker.md` 为直接输入汇总 `runtime.md`；不存在的任务文件不作为输入。
 6. **交付**：用 `deployment.md` 汇总交给 `<deploy>` 阶段的交付要求；最后读取 `coding.md`、`testing.md`、按需存在的
    `background.md`、`worker.md` 和 `c4.md` 并更新 `component.md`，使设计架构索引覆盖设计目录内全部实际文件，
    并使完整文件树落实 C3、C4、编码规范、测试策略和运行要求。
@@ -1148,7 +1151,7 @@ Then：<当前组件边界内可观察的最终结果、状态和必要副作用
 ## AI-BACKEND-020
 
 - **Who**：处理 `<组件> backend <任务>` 的组件设计 Agent。
-- **When**：Backend 需要定义一个或多个进程入口、依赖、启动关闭、健康或恢复要求时。
+- **When**：`c4.md` 及按需存在的 `background.md`、`worker.md` 已完成，Backend 需要汇总进程入口、依赖、启动关闭、健康或恢复要求时。
 - **Where**：当前 Backend 组件设计目录与本模式模板。
 - **What**：提供“`runtime.md`”功能；具体规则、格式和约束如下。
 - **Why**：确保 Backend 设计由实际业务边界驱动且不会机械照抄范例。
@@ -1173,10 +1176,13 @@ Then：<当前组件边界内可观察的最终结果、状态和必要副作用
 ## 故障恢复
 ```
 
-`进程模型` 按运行单元记录职责、源码入口、构建输出、启动命令、依赖、独立扩缩容和关闭方式。
+`runtime.md` 只以 `c4.md`、`background.md` 和 `worker.md` 为直接设计输入：`c4.md` 提供稳定代码单元、入口和依赖，
+`background.md` 提供宿主进程及后台任务生命周期，`worker.md` 提供独立 Worker 运行单元及其异步任务。
+`进程模型` 汇总这些输入，按运行单元记录职责、源码入口、构建输出、启动命令、依赖、独立扩缩容和关闭方式；
+不得在 `runtime.md` 中新增上游设计未声明的任务、入口或代码单元。
 API 与 Worker 可以属于同一逻辑组件但独立启动；Outbox Relay 必须托管在其中一个现有进程内，
 其功能与运行时序记录在 `background.md`，`进程模型` 只记录宿主、启动和停止时机，不为 Relay 创建独立进程、命令、健康检查或扩缩容单元。
-`worker.md` 中每个异步任务必须归属本文件已登记的 Worker 运行单元；需要独立启动、健康检查或扩缩容的执行单元不得伪装成后台任务。
+`worker.md` 中每个异步任务声明的 `Runtime` 必须在 `进程模型` 中形成对应 Worker 运行单元；需要独立启动、健康检查或扩缩容的执行单元不得伪装成后台任务。
 使用 BullMQ 时，Redis 是基础设施中间件，BullMQ 是运行在 Redis 之上的消息任务库；
 一个任务由一个 Worker 处理时可以使用任务队列，需要多个独立订阅方各自消费同一事件时应按实际需求选择
 Redis Streams 或其他发布订阅型消息代理，不把 BullMQ 工作队列误当广播总线。
@@ -1314,7 +1320,7 @@ sequenceDiagram
 - 任务元信息必须紧跟二级标题并使用连续 Markdown 引用行；`Src`、`Host` 和 `触发方式` 必填，其他仅记录当前任务实际需要的配置、
   并发、锁或租约、超时、失败恢复、观测和测试引用，不保留空字段。
 - `Src` 是当前组件应用目录下精确的生产文件相对路径，不得写目录、通配符、候选路径或尚未规划的文件，并必须由
-  `component.md` 完整文件树收录；`Host` 必须引用 `runtime.md` 中已登记的现有运行单元。
+  `component.md` 完整文件树收录；`Host` 声明预期宿主，并作为后续 `runtime.md` 进程模型的输入。
 - 每个三级标题表示一个“动词 + 业务对象”的功能点。每个功能点依次包含简短描述、`运行方式：` 和一个 Mermaid
   `sequenceDiagram`，再按需记录约束与验证依据；不使用“运行方式”“错误处理”等通用三级标题。
 - 时序图只描述当前功能点，必须展示真实触发方、Task、应用入口和必要依赖，不把多个独立功能合并到一张图中，
@@ -1390,7 +1396,7 @@ sequenceDiagram
 - 任务元信息必须紧跟二级标题并使用连续 Markdown 引用行；`Src`、`Runtime`、`AsyncAPI` 和 `Topic` 必填，其他仅记录
   当前任务实际需要的 Consumer、投递语义、幂等键、顺序、超时、重试、DLQ、并发、观测和测试引用，不保留空字段。
 - `Src` 是当前组件应用目录下精确的生产文件相对路径，必须由 `component.md` 完整文件树收录；`Runtime` 必须引用
-  `runtime.md` 中已登记、具有独立入口的 Worker 运行单元。
+  当前任务需要的独立 Worker 运行单元名称，并作为后续 `runtime.md` 进程模型的输入。
 - `AsyncAPI` 必须使用文件内引用指向 `asyncapi.json` 中实际存在的 Channel；`Topic` 必须与该 Channel 的实际名称一致。
   `worker.md` 不复制消息字段、Schema、Header 或版本规则，也不自行定义契约之外的 Topic。
 - 每个三级标题表示一个“动词 + 业务对象”的功能点。每个功能点依次包含简短描述、`运行方式：` 和一个 Mermaid
