@@ -11,7 +11,7 @@
 - 使用 `<组件> backend <任务>` 启用 Backend 组件设计模式，并按复杂度选择轻量设计或完整 DDD。
 - 执行前必须先读取 `docs/workflows/stages/component.md`；本文件只补充 Backend 的设计顺序和
   固定文档结构，文件权限、创建条件、通用 C3/C4 格式及跨阶段边界仍以该阶段文件为准。
-- `component.md`、`c3.md` 和 `testing.md` 始终创建；`ddd.md` 仅在完整 DDD 模式创建，其他文件仅在满足创建条件时创建。
+- `component.md`、`c3.md`、`coding.md` 和 `testing.md` 始终创建；`ddd.md` 仅在完整 DDD 模式创建，其他文件仅在满足创建条件时创建。
 - 先在 `component.md` 概述中记录 `设计强度：轻量 Backend` 或 `设计强度：完整 DDD`，并列出触发判断的实际事实。
 - 仅当以下条件全部成立时使用轻量 Backend：任务只是简单 CRUD、纯查询或数据转换；没有独立领域不变量或
   有业务含义的状态生命周期；没有跨实体强一致事务、并发竞争、补偿流程或领域事件；没有多个统一语言边界。
@@ -134,6 +134,7 @@ flowchart LR
 
     subgraph operation["工程与运行"]
         direction TB
+        coding["coding.md<br/>编码规范"]
         configuration["configuration.md<br/>配置"]
         secrets["secrets.md<br/>密钥"]
         observability["observability.md<br/>可观测性"]
@@ -165,11 +166,13 @@ flowchart LR
     openfga --> c4
     schema --> c4
 
+    c3 --> coding
+    c4 --> coding
     c4 --> configuration
     c4 --> secrets
     c4 --> observability
-    c4 --> testing
-    c4 --> runtime
+    coding --> testing
+    coding --> runtime
 
     configuration --> deployment
     secrets --> deployment
@@ -204,11 +207,13 @@ flowchart LR
    `authorization.md` 对应 `authorization.fga`，`data-access.md` 对应 `schema.dbml`。
 7. 在业务行为、接口和机器可读模型稳定后，用 `c4.md` 设计应用用例、领域对象、Port、
    Adapter 及依赖方向。
-8. 根据前述设计完成配置、密钥、可观测性、测试和运行要求，再用 `deployment.md`
+8. 在 `c4.md` 适用时完成代码单元设计后，用 `coding.md` 固定架构映射、目录、文件命名、编码和依赖规则；
+   不适用 `c4.md` 时，直接依据 C3、接口、组件概述和实际技术栈完成 `coding.md`。
+9. 根据前述设计完成配置、密钥、可观测性、测试和运行要求，再用 `deployment.md`
    汇总交给 `<deploy>` 阶段的交付要求。
-9. 最后更新 `component.md`，使设计架构索引覆盖设计目录内全部实际文件，并使完整文件树落实
+10. 最后更新 `component.md`，使设计架构索引覆盖设计目录内全部实际文件，并使完整文件树落实
    C3、C4、测试策略和运行要求。
-10. 每一步发现上游设计不成立时先回到对应文件修正；不得通过下游文档复制或覆盖上游事实。
+11. 每一步发现上游设计不成立时先回到对应文件修正；不得通过下游文档复制或覆盖上游事实。
 
 ## AI-BACKEND-005
 
@@ -664,6 +669,64 @@ flowchart LR
 ## AI-BACKEND-015
 
 - **Who**：处理 `<组件> backend <任务>` 的组件设计 Agent。
+- **When**：Backend 需要固定生产代码的架构映射、目录职责、文件命名、编码规则或依赖方向时。
+- **Where**：当前 Backend 组件设计目录与本模式模板。
+- **What**：提供“`coding.md`”功能；具体规则、格式和约束如下。
+- **Why**：确保 Backend 设计由实际业务边界驱动且不会机械照抄范例。
+
+> - 范例适配声明：以下工程结构和规则必须根据当前组件的实际语言、框架、代码分层及工具链调整；固定标题与顺序除外。
+
+````md
+# 编码规范
+
+## 架构映射
+
+| 设计对象 | 代码位置 | 命名方式 |
+|---|---|---|
+| <应用用例、领域对象、Port 或 Adapter> | `<实际目录>` | `<实际命名模式>` |
+
+## 目录约定
+
+| 目录 | 职责 | 允许依赖 | 禁止内容 |
+|---|---|---|---|
+| `<实际目录>` | <唯一职责> | <允许依赖> | <禁止内容> |
+
+## 文件命名
+
+| 文件类别 | 命名模式 | 示例或固定文件名 |
+|---|---|---|
+| <实际类别> | `<命名模式>` | `<实际示例>` |
+
+## 编码规范
+
+| 范围 | 规则 | 验证方式 |
+|---|---|---|
+| <语言、分层、错误、事务或注释范围> | <可执行规则> | <Lint、类型检查、构建或评审方式> |
+
+## 依赖方向
+
+```mermaid
+flowchart LR
+    Interface["接口层"] --> Application["应用层"]
+    Application --> Domain["领域层"]
+    Infrastructure["基础设施层"] --> Application
+```
+
+## 例外
+
+| 规则 | 例外原因 | 适用范围 | 验证方式 |
+|---|---|---|---|
+````
+
+- `coding.md` 记录长期有效的工程规则，不逐个复制生产文件；精确且完整的文件树仍只由 `component.md` 维护。
+- 架构映射使用 DDD、C3、C4、接口和机器可读模型中的稳定名称，不重新定义领域规则、代码单元或契约。
+- 目录与文件命名必须符合当前实际语言、框架和工具链；框架规定的固定文件名优先。
+- 编码规则必须能够通过现有 Lint、Formatter、类型检查、构建或明确评审规则验证，不写无法执行的偏好。
+- 没有真实例外时保留“例外”标题并删除表格；存在例外时必须说明范围和验证方式。
+
+## AI-BACKEND-016
+
+- **Who**：处理 `<组件> backend <任务>` 的组件设计 Agent。
 - **When**：当前 Backend 存在运行时或构建时配置、默认值、覆盖优先级或启动校验时。
 - **Where**：当前 Backend 组件设计目录与本模式模板。
 - **What**：提供“`configuration.md`”功能；具体规则、格式和约束如下。
@@ -689,7 +752,7 @@ flowchart LR
 ## 动态更新
 ```
 
-## AI-BACKEND-016
+## AI-BACKEND-017
 
 - **Who**：处理 `<组件> backend <任务>` 的组件设计 Agent。
 - **When**：当前 Backend 需要密钥、令牌、证书、密码或其他敏感值时。
@@ -719,7 +782,7 @@ flowchart LR
 ## 部署交付要求
 ```
 
-## AI-BACKEND-017
+## AI-BACKEND-018
 
 - **Who**：处理 `<组件> backend <任务>` 的组件设计 Agent。
 - **When**：当前 Backend 产生需要长期维护的日志、审计、指标、Trace、健康或告警信号时。
@@ -749,7 +812,7 @@ flowchart LR
 ## 脱敏要求
 ```
 
-## AI-BACKEND-018
+## AI-BACKEND-019
 
 - **Who**：处理 `<组件> backend <任务>` 的组件设计 Agent。
 - **When**：Backend 设计需要规划测试层级、稳定用例、Fixture、支持代码或执行命令时。
@@ -992,7 +1055,7 @@ Then：<当前组件边界内可观察的最终结果、状态和必要副作用
 - `testing.md` 只索引项目真实存在的命令，不记录无法执行的占位命令；每条命令写明前置条件
   和执行范围。测试报告和覆盖率报告按需由用户手动导出，不作为默认生成或提交的项目文件。
 
-## AI-BACKEND-019
+## AI-BACKEND-020
 
 - **Who**：处理 `<组件> backend <任务>` 的组件设计 Agent。
 - **When**：Backend 需要定义一个或多个进程入口、依赖、启动关闭、健康或恢复要求时。
@@ -1026,7 +1089,7 @@ API、Outbox Relay 与 Worker 可以属于同一逻辑组件但独立启动；�
 一个任务由一个 Worker 处理时可以使用任务队列，需要多个独立订阅方各自消费同一事件时应按实际需求选择
 Redis Streams 或其他发布订阅型消息代理，不把 BullMQ 工作队列误当广播总线。
 
-## AI-BACKEND-020
+## AI-BACKEND-021
 
 - **Who**：处理 `<组件> backend <任务>` 的组件设计 Agent。
 - **When**：Backend 需要向部署阶段交付构建、镜像、初始化、迁移、发布或回滚要求时。
@@ -1056,7 +1119,7 @@ Redis Streams 或其他发布订阅型消息代理，不把 BullMQ 工作队列�
 
 `deployment.md` 只维护组件交付要求，不保存 Compose、环境值或具体部署命令。
 
-## AI-BACKEND-021
+## AI-BACKEND-022
 
 - **Who**：处理 `<组件> backend <任务>` 的组件设计 Agent。
 - **When**：Backend 其他适用设计文件完成，需要汇总设计索引和完整文件树时。

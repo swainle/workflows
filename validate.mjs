@@ -142,7 +142,7 @@ test("describes prompt capabilities with numbered five-point definitions", () =>
     ["stages/testing.md", { prefix: "AI-TEST", count: 8 }],
     ["stages/acceptance.md", { prefix: "AI-ACCEPTANCE", count: 9 }],
     ["stages/deploy.md", { prefix: "AI-DEPLOY", count: 10 }],
-    ["templates/backend-design.template.md", { prefix: "AI-BACKEND", count: 21 }],
+    ["templates/backend-design.template.md", { prefix: "AI-BACKEND", count: 22 }],
   ]);
 
   for (const [file, { prefix, count }] of expected) {
@@ -604,6 +604,7 @@ test("supports frontend and backend component design modes", () => {
   const agents = readFileSync(path.join(WORKFLOW_ROOT, "templates/AGENTS.template.md"), "utf8");
   const backend = readFileSync(path.join(WORKFLOW_ROOT, "templates/backend-design.template.md"), "utf8");
   const component = readFileSync(path.join(WORKFLOW_ROOT, "stages/component.md"), "utf8");
+  const development = readFileSync(path.join(WORKFLOW_ROOT, "stages/development.md"), "utf8");
   const readme = readFileSync(path.join(WORKFLOW_ROOT, "README.md"), "utf8");
 
   assert.match(agents, /<组件> frontend <前端设计任务>/);
@@ -674,6 +675,7 @@ test("supports frontend and backend component design modes", () => {
     "errors.md",
     "data-access.md",
     "c4.md",
+    "coding.md",
     "configuration.md",
     "secrets.md",
     "observability.md",
@@ -684,6 +686,13 @@ test("supports frontend and backend component design modes", () => {
   ]) {
     assert.ok(backend.includes(`**What**：提供“\`${file}\`”功能`), `missing Backend template for ${file}`);
   }
+  assert.match(backend, /`component\.md`、`c3\.md`、`coding\.md` 和 `testing\.md` 始终创建/);
+  assert.match(backend, /c4 --> coding/);
+  assert.match(backend, /coding --> testing/);
+  assert.match(backend, /# 编码规范[\s\S]*## 架构映射[\s\S]*## 目录约定[\s\S]*## 文件命名[\s\S]*## 编码规范[\s\S]*## 依赖方向[\s\S]*## 例外/);
+  assert.match(backend, /精确且完整的文件树仍只由 `component\.md` 维护/);
+  assert.match(component, /\| `coding\.md` \| 后端编码规范 \| 始终 \|/);
+  assert.match(development, /任何生产代码任务都必须读取索引中的 `coding\.md`/);
   for (const file of ["openapi.json", "asyncapi.json", "authorization.fga", "schema.dbml"]) {
     assert.ok(backend.includes(`### \`${file}\``), `missing Backend model template for ${file}`);
   }
