@@ -758,6 +758,175 @@ flowchart LR
 | Outbox Writer | `<代码单元>` | <业务事务内> | 写入已定稿集成事件 | 直接发布消息 |
 | Inbox | `<代码单元>` | <Consumer 事务内> | 去重并原子记录消费结果 | 代替业务幂等规则 |
 
+## Prisma 与 BullMQ 参考实现
+
+> - 范例适配声明：以下 TypeScript 范例只在实际采用 Prisma、Redis 和 BullMQ，且需要统一 Command 分派、事务与可靠异步发布时保留；必须按当前组件的模型、目录、错误类型、事件契约和运行要求调整。
+
+```ts
+import { randomUUID } from "node:crypto";
+import { Prisma, PrismaClient } from "@prisma/client";
+import { Queue } from "bullmq";
+import IORedis from "ioredis";
+
+type Transaction = Prisma.TransactionClient;
+type Command = { type: string };
+type IntegrationEvent = {
+  id: string;
+  type: string;
+  payload: Prisma.InputJsonValue;
+};
+
+interface CommandHandler<C extends Command, R> {
+  execute(command: C, tx: Transaction): Promise<R>;
+}
+
+class UnitOfWork {
+  constructor(private readonly prisma: PrismaClient) {}
+
+  execute<R>(work: (tx: Transaction) => Promise<R>): Promise<R> {
+    return this.prisma.$transaction(work);
+  }
+}
+
+class OutboxWriter {
+  append(tx: Transaction, event: IntegrationEvent) {
+    return tx.outboxMessage.create({
+      data: {
+        id: event.id,
+        type: event.type,
+        payload: event.payload,
+      },
+    });
+  }
+}
+
+type CreateOrder = {
+  type: "CreateOrder";
+  customerId: string;
+  total: number;
+};
+
+class CreateOrderHandler
+  implements CommandHandler<CreateOrder, { id: string }>
+{
+  constructor(private readonly outbox: OutboxWriter) {}
+
+  async execute(command: CreateOrder, tx: Transaction) {
+    const order = await tx.order.create({
+      data: {
+        customerId: command.customerId,
+        total: command.total,
+      },
+      select: { id: true },
+    });
+
+    await this.outbox.append(tx, {
+      id: randomUUID(),
+      type: "order.created.v1",
+      payload: { orderId: order.id },
+    });
+
+    return order;
+  }
+}
+
+class CommandBus {
+  private readonly handlers = new Map<
+    string,
+    CommandHandler<Command, unknown>
+  >();
+
+  constructor(private readonly unitOfWork: UnitOfWork) {}
+
+  register<C extends Command, R>(
+    type: C["type"],
+    handler: CommandHandler<C, R>,
+  ) {
+    this.handlers.set(
+      type,
+      handler as CommandHandler<Command, unknown>,
+    );
+  }
+
+  dispatch<R>(command: Command): Promise<R> {
+    const handler = this.handlers.get(command.type);
+    if (!handler) throw new Error(`Handler not found: ${command.type}`);
+
+    // Handler 与 Outbox Writer 共用同一个 Prisma TransactionClient。
+    return this.unitOfWork.execute((tx) =>
+      handler.execute(command, tx),
+    ) as Promise<R>;
+  }
+}
+
+const prisma = new PrismaClient();
+const commandBus = new CommandBus(new UnitOfWork(prisma));
+commandBus.register(
+  "CreateOrder",
+  new CreateOrderHandler(new OutboxWriter()),
+);
+```
+
+Outbox Relay 必须在上述业务事务提交后运行。下面使用 PostgreSQL 的 `FOR UPDATE SKIP LOCKED` 原子领取记录，并通过 Redis 上的 BullMQ 至少一次投递；消费者仍须使用 `event.id` 或业务键实现幂等。
+
+```ts
+type ClaimedOutbox = {
+  id: string;
+  type: string;
+  payload: Prisma.JsonValue;
+};
+
+const redis = new IORedis(process.env.REDIS_URL!, {
+  maxRetriesPerRequest: null,
+});
+const eventQueue = new Queue("integration-events", {
+  connection: redis,
+});
+
+async function relayOutboxBatch() {
+  const messages = await prisma.$transaction(async (tx) => {
+    const rows = await tx.$queryRaw<ClaimedOutbox[]>`
+      SELECT "id", "type", "payload"
+      FROM "OutboxMessage"
+      WHERE "publishedAt" IS NULL
+        AND (
+          "claimedAt" IS NULL OR
+          "claimedAt" < NOW() - INTERVAL '5 minutes'
+        )
+      ORDER BY "createdAt"
+      FOR UPDATE SKIP LOCKED
+      LIMIT 50
+    `;
+
+    await tx.outboxMessage.updateMany({
+      where: { id: { in: rows.map((row) => row.id) } },
+      data: { claimedAt: new Date() },
+    });
+
+    return rows;
+  });
+
+  for (const message of messages) {
+    await eventQueue.add(
+      message.type,
+      { eventId: message.id, payload: message.payload },
+      {
+        jobId: message.id,
+        attempts: 5,
+        backoff: { type: "exponential", delay: 1_000 },
+      },
+    );
+
+    await prisma.outboxMessage.update({
+      where: { id: message.id },
+      data: { publishedAt: new Date() },
+    });
+  }
+}
+```
+
+范例中的 `Order`、`OutboxMessage`、字段和事件名称仅用于说明协作方式；实际 Schema 由当前组件的数据模型维护。生产设计还必须补齐租约所有者、终止失败、保留清理、积压指标和优雅关闭。
+
 ## 目录约定
 
 | 目录 | 职责 | 允许依赖 | 禁止内容 |
