@@ -107,6 +107,182 @@ export function validateComponentTree(componentDoc, appDir, { strict = false } =
   return errors;
 }
 
+function normalizeDesignSegment(value) {
+  return value.replace(/#/g, "").replace(/\s/g, "");
+}
+
+function markdownTableCells(line) {
+  if (!/^\s*\|/.test(line)) return undefined;
+  return line
+    .trim()
+    .replace(/^\|/, "")
+    .replace(/\|$/, "")
+    .split("|")
+    .map((cell) => cell.trim());
+}
+
+function designPointNumber(value) {
+  return value
+    ?.replace(/^\*\*(\d{3})\*\*$/, "$1")
+    .replace(/^`(\d{3})`$/, "$1")
+    .match(/^\d{3}$/)?.[0];
+}
+
+export function parseDesignIds(content, file) {
+  const fileKey = normalizeDesignSegment(path.basename(file).replace(/\.[^.]+$/, ""));
+  const ids = [];
+  const errors = [];
+  const seen = new Set();
+  let level2;
+  let level3;
+  let fence;
+  let numberColumn;
+
+  const add = (segments, line) => {
+    const invalid = segments.find((segment) => !segment || segment.includes(":"));
+    if (invalid !== undefined) {
+      errors.push(`${file}:${line} 设计标识片段不能为空或包含冒号：${invalid}`);
+      return;
+    }
+    const id = segments.join(":");
+    if (seen.has(id)) errors.push(`${file}:${line} 设计标识重复：${id}`);
+    else {
+      seen.add(id);
+      ids.push(id);
+    }
+  };
+
+  for (const [offset, line] of content.split(/\r?\n/).entries()) {
+    const lineNumber = offset + 1;
+    const marker = line.match(/^(`{3,}|~{3,})/);
+    if (marker) {
+      const current = { char: marker[1][0], length: marker[1].length };
+      if (!fence) fence = current;
+      else if (current.char === fence.char && current.length >= fence.length) fence = undefined;
+      continue;
+    }
+    if (fence) continue;
+
+    const heading = line.match(/^(#{2,4})\s+(.+?)\s*$/);
+    if (heading) {
+      numberColumn = undefined;
+      if (heading[1].length === 2) {
+        level2 = normalizeDesignSegment(heading[2]);
+        level3 = undefined;
+        add([fileKey, level2], lineNumber);
+      } else if (heading[1].length === 3) {
+        if (!level2) errors.push(`${file}:${lineNumber} 三级标题缺少所属二级标题`);
+        else {
+          level3 = normalizeDesignSegment(heading[2]);
+          add([fileKey, level2, level3], lineNumber);
+        }
+      }
+      continue;
+    }
+
+    const cells = markdownTableCells(line);
+    if (cells) {
+      if (numberColumn === undefined) {
+        const index = cells.indexOf("编号");
+        if (index >= 0) numberColumn = index;
+      } else if (!cells.every((cell) => /^:?-{3,}:?$/.test(cell))) {
+        const number = designPointNumber(cells[numberColumn]);
+        if (number) {
+          if (!level2) errors.push(`${file}:${lineNumber} 编号 ${number} 缺少所属二级标题`);
+          else add([fileKey, level2, level3, number].filter(Boolean), lineNumber);
+        } else if (cells[numberColumn]) {
+          errors.push(`${file}:${lineNumber} “编号”列必须使用三位数字：${cells[numberColumn]}`);
+        }
+      }
+      continue;
+    }
+    numberColumn = undefined;
+
+    const listNumber = line.match(/^- \*\*(\d{3})\*\*[：:]/)?.[1];
+    if (listNumber) {
+      if (!level2) errors.push(`${file}:${lineNumber} 编号 ${listNumber} 缺少所属二级标题`);
+      else add([fileKey, level2, level3, listNumber].filter(Boolean), lineNumber);
+    }
+  }
+
+  return { ids, errors };
+}
+
+function markdownFiles(root) {
+  const result = [];
+  const visit = (directory) => {
+    for (const entry of readdirSync(directory, { withFileTypes: true })) {
+      if (entry.name.startsWith(".")) continue;
+      const target = path.join(directory, entry.name);
+      if (entry.isDirectory()) visit(target);
+      else if (entry.isFile() && entry.name.endsWith(".md")) result.push(target);
+    }
+  };
+  visit(path.resolve(root));
+  return result.sort();
+}
+
+export function validateDesignReferences(designDir, appDir) {
+  const errors = [];
+  const valid = new Set();
+  const definitions = new Map();
+  const documents = markdownFiles(designDir).map((file) => ({
+    file,
+    content: readFileSync(file, "utf8"),
+  }));
+  for (const { file, content } of documents) {
+    const parsed = parseDesignIds(content, file);
+    errors.push(...parsed.errors);
+    for (const id of parsed.ids) {
+      if (definitions.has(id)) errors.push(`设计标识在多个文件中重复：${id}（${definitions.get(id)}、${file}）`);
+      else {
+        definitions.set(id, file);
+        valid.add(id);
+      }
+    }
+  }
+  for (const { file, content } of documents) {
+    for (const [offset, line] of content.split(/\r?\n/).entries()) {
+      const value = line.match(/^> Design：(.+)$/)?.[1];
+      if (!value) continue;
+      const references = value.replace(/`/g, "").split("、").map((item) => item.trim()).filter(Boolean);
+      if (!references.length) errors.push(`${file}:${offset + 1} Design 缺少设计标识`);
+      for (const id of references) {
+        if (!valid.has(id)) errors.push(`${file}:${offset + 1} Design 引用了不存在的设计标识：${id}`);
+      }
+    }
+  }
+
+  const primary = new Map();
+  for (const relative of projectFiles(appDir)) {
+    const file = path.join(appDir, relative);
+    let content;
+    try {
+      content = readFileSync(file, "utf8");
+    } catch {
+      continue;
+    }
+    const isTest = /(^|\/)(?:test|tests|__tests__)(\/|$)|\.(?:test|spec)\.[^/]+$/.test(relative);
+    const annotations = content.matchAll(/@(design-ref|design|verifies)\s+([^\s*]+)/g);
+    for (const match of annotations) {
+      const [, tag, id] = match;
+      if (!valid.has(id)) {
+        errors.push(`${relative} 引用了不存在的设计标识：${id}`);
+        continue;
+      }
+      if (tag === "verifies" && !isTest) errors.push(`${relative} 生产代码不得使用 @verifies：${id}`);
+      if ((tag === "design" || tag === "design-ref") && isTest) {
+        errors.push(`${relative} 测试代码应使用 @verifies：${id}`);
+      }
+      if (tag === "design") {
+        if (primary.has(id)) errors.push(`设计标识存在多个 @design 主实现：${id}（${primary.get(id)}、${relative}）`);
+        else primary.set(id, relative);
+      }
+    }
+  }
+  return errors;
+}
+
 function option(args, name) {
   const index = args.indexOf(name);
   if (index < 0) return undefined;
@@ -121,13 +297,18 @@ export function runValidation(args, root = WORKFLOW_ROOT) {
   }
 
   const componentDoc = option(args, "--component-doc");
+  const designDir = option(args, "--design-dir");
   const appDir = option(args, "--app-dir");
-  if (Boolean(componentDoc) !== Boolean(appDir)) {
-    throw new Error("--component-doc 与 --app-dir 必须同时提供");
+  if ((componentDoc || designDir) && !appDir) {
+    throw new Error("--component-doc 或 --design-dir 必须与 --app-dir 同时提供");
+  }
+  if (appDir && !componentDoc && !designDir) {
+    throw new Error("--app-dir 必须与 --component-doc 或 --design-dir 同时提供");
   }
   if (componentDoc) {
     errors.push(...validateComponentTree(componentDoc, appDir, { strict: args.includes("--strict") }));
   }
+  if (designDir) errors.push(...validateDesignReferences(designDir, appDir));
   return errors;
 }
 
@@ -217,6 +398,117 @@ test("automatically validates prompt structure and complete component trees", ()
     execFileSync("git", ["-C", appDir, "add", "src/index.ts", "package.json"]);
     assert.deepEqual(validateComponentTree(componentDoc, appDir), []);
     assert.deepEqual(validateComponentTree(componentDoc, appDir, { strict: true }), []);
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+});
+
+test("parses hierarchical design identifiers and validates code references", () => {
+  assert.deepEqual(parseDesignIds([
+    "# 测试策略",
+    "",
+    "## 单元 测试",
+  ].join("\n"), "testing.md"), {
+    ids: ["testing:单元测试"],
+    errors: [],
+  });
+
+  const parsed = parseDesignIds([
+    "# DDD",
+    "",
+    "## Auth",
+    "",
+    "### 应用 用例",
+    "",
+    "| 编号 | 用例 |",
+    "|---|---|",
+    "| 001 | 登录 |",
+    "| **002** | 登出 |",
+    "",
+    "#### 失败场景",
+    "",
+    "- **003**：锁定账号。",
+    "",
+    "## 会话",
+    "",
+    "- **001**：撤销会话。",
+  ].join("\n"), "ddd.md");
+  assert.deepEqual(parsed.errors, []);
+  assert.deepEqual(parsed.ids, [
+    "ddd:Auth",
+    "ddd:Auth:应用用例",
+    "ddd:Auth:应用用例:001",
+    "ddd:Auth:应用用例:002",
+    "ddd:Auth:应用用例:003",
+    "ddd:会话",
+    "ddd:会话:001",
+  ]);
+
+  const duplicate = parseDesignIds([
+    "## Auth",
+    "",
+    "### 应用用例",
+    "",
+    "- **001**：登录。",
+    "- **001**：重复。",
+  ].join("\n"), "ddd.md");
+  assert.match(duplicate.errors.join("\n"), /设计标识重复：ddd:Auth:应用用例:001/);
+  const invalidNumber = parseDesignIds([
+    "## Auth",
+    "",
+    "| 编号 | 规则 |",
+    "|---|---|",
+    "| 1 | 无效编号 |",
+  ].join("\n"), "ddd.md");
+  assert.match(invalidNumber.errors.join("\n"), /“编号”列必须使用三位数字：1/);
+
+  const root = mkdtempSync(path.join(tmpdir(), "workflows-design-"));
+  try {
+    const designDir = path.join(root, "design");
+    const appDir = path.join(root, "app");
+    mkdirSync(designDir, { recursive: true });
+    mkdirSync(path.join(appDir, "src"), { recursive: true });
+    mkdirSync(path.join(appDir, "test"), { recursive: true });
+    writeFileSync(path.join(designDir, "ddd.md"), [
+      "# DDD",
+      "",
+      "## Auth",
+      "",
+      "### 应用用例",
+      "",
+      "- **001**：登录。",
+    ].join("\n"), "utf8");
+    writeFileSync(path.join(designDir, "testing.md"), [
+      "# 测试策略",
+      "",
+      "## 单元测试",
+      "",
+      "### AUTH-APP-LOGIN-001",
+      "",
+      "> Design：`ddd:Auth:应用用例:001`",
+    ].join("\n"), "utf8");
+    writeFileSync(path.join(appDir, "src", "login.ts"), [
+      "/**",
+      " * @design ddd:Auth:应用用例:001",
+      " */",
+      "export class LoginHandler {}",
+    ].join("\n"), "utf8");
+    writeFileSync(path.join(appDir, "test", "login.test.ts"), [
+      "/**",
+      " * @verifies ddd:Auth:应用用例:001",
+      " */",
+      "export {};",
+    ].join("\n"), "utf8");
+    execFileSync("git", ["init", "-q", appDir]);
+    execFileSync("git", ["-C", appDir, "add", "src/login.ts", "test/login.test.ts"]);
+    assert.deepEqual(validateDesignReferences(designDir, appDir), []);
+    writeFileSync(path.join(appDir, "test", "login.test.ts"), [
+      "/**",
+      " * @verifies ddd:Auth:应用用例:999",
+      " */",
+      "export {};",
+    ].join("\n"), "utf8");
+    assert.match(validateDesignReferences(designDir, appDir).join("\n"), /不存在的设计标识/);
   } finally {
     rmSync(root, { recursive: true, force: true });
   }
@@ -403,6 +695,8 @@ test("uses Chinese documentation and tests without translating code identifiers"
   assert.match(development, /\*\*What\*\*：提供“代码与注释规则”功能/);
   assert.match(development, /领域不变量、事务边界、锁、并发、幂等、安全边界/);
   assert.match(development, /注释说明“为什么这样设计”和“不能违反什么”/);
+  assert.match(development, /`@design <完整设计标识>`/);
+  assert.match(development, /协作代码使用 `@design-ref <完整设计标识>`/);
   assert.match(development, /简单赋值、参数传递、标准 CRUD 和显而易见的控制流不添加注释/);
   assert.match(development, /没有重复代码含义、已经失效或纯装饰性的注释/);
 
@@ -636,6 +930,11 @@ test("supports frontend and backend component design modes", () => {
   assert.match(backend, /必须根据已确认的实际需求逐项替换、增删和重组/);
   assert.match(backend, /禁止因示例中出现\s*认证、资源、预约、Outbox、Redis、Prisma 或 BullMQ/);
   assert.match(backend, /尖括号占位符和具体示例名称不得原样进入最终文档/);
+  assert.match(backend, /文件名 → 二级标题 → 三级标题 → 可选编号/);
+  assert.match(backend, /四级及更深标题只组织正文，不进入设计标识/);
+  assert.match(backend, /表格存在名称精确为“编号”的列/);
+  assert.match(backend, /找不到三级标题或编号时，标识停在已经识别到的二级或三级标题/);
+  assert.match(backend, /`@design <设计标识>` 标记唯一主实现/);
   assert.match(backend, /\*\*What\*\*：提供“文件关系与设计顺序”功能/);
   assert.match(backend, /ddd --> c3/);
   assert.match(backend, /ddd --> interface/);
@@ -713,6 +1012,8 @@ test("supports frontend and backend component design modes", () => {
   assert.match(backend, /c4 --> component/);
   assert.match(backend, /testing --> component/);
   assert.match(backend, /# 编码规范[\s\S]*## 架构映射[\s\S]*## 目录约定[\s\S]*## 文件命名[\s\S]*## 编码规范[\s\S]*## 依赖方向[\s\S]*## 例外/);
+  assert.match(backend, /## 设计追溯[\s\S]*@design ddd:Auth:应用用例:001[\s\S]*@design-ref ddd:Auth:应用用例:001/);
+  assert.match(backend, /纯 Command、Query、Result、DTO、ORM Record/);
   assert.match(backend, /## 应用执行管线[\s\S]*### Command Bus[\s\S]*\| Command \| Handler \| Middleware 顺序 \| Unit of Work \| Result \|/);
   assert.match(backend, /### 事务与消息代码[\s\S]*\| Unit of Work \| `<实现或 Middleware>`[\s\S]*\| Outbox Writer \| `<代码单元>`[\s\S]*\| Inbox \| `<代码单元>`/);
   assert.match(backend, /Command Bus 只在多个用例需要统一分派或共享 Middleware 时采用/);
@@ -919,6 +1220,7 @@ test("plans the component test structure before implementing tests", () => {
   assert.match(testing, /用例编号必须符合 `component\.md` 的对象或能力命名规则/);
   assert.match(testing, /不在测试实现阶段擅自改号/);
   assert.match(testing, /验证必填的 `Design`、`Src` 以及可选的 `BP`、`BR`、`FR`、`AC` 实际存在且类型正确/);
+  assert.match(testing, /测试代码对用例中的每个 `Design` 使用 `@verifies <完整设计标识>`/);
   assert.match(testing, /`Src` 必须与 `component\.md` 完整文件树中的精确测试文件路径一致/);
   assert.match(testing, /不得自行选择替代路径、移动或重命名 `Src`/);
   assert.match(testing, /不同公开操作、成功与失败分支或独立边界场景合并/);
@@ -931,10 +1233,12 @@ test("plans the component test structure before implementing tests", () => {
   assert.match(backend, /不创建语言映射表或\s*测试用例总表/);
   assert.match(backend, /## Fixture 与测试支持[\s\S]*## 单元测试[\s\S]*## 集成测试[\s\S]*## 契约测试[\s\S]*## 并发测试[\s\S]*## 端到端测试[\s\S]*## 测试配置[\s\S]*## 测试命令/);
   assert.match(backend, /## 单元测试[\s\S]*### BOOKING-DOM-APPOINTMENT-001[\s\S]*### AUTH-APP-LOGIN-001[\s\S]*### SHARED-INF-CONFIGURATION-001/);
-  assert.match(backend, /> Design：`ddd\.md#预约#状态图#Appointment`\r?\n> Src：`test\/unit\/domain\/appointment\.test\.ts`\r?\n> BR：`REQ-001-BR-002`\r?\n> AC：`REQ-001-AC-008`/);
+  assert.match(backend, /> Design：`ddd:预约:状态图`\r?\n> Src：`test\/unit\/domain\/appointment\.test\.ts`\r?\n> BR：`REQ-001-BR-002`\r?\n> AC：`REQ-001-AC-008`/);
   assert.doesNotMatch(backend, /> Req：/);
   assert.match(backend, /Desc：取消待就诊预约\r?\nGiven：预约处于 `pending`。\r?\nWhen：调用 `cancel\(\)`。\r?\nThen：预约状态变为 `cancelled`/);
   assert.match(backend, /四个字段连续书写，彼此之间不留空行/);
+  assert.match(backend, /`Design` 使用当前组件设计文件可解析的完整设计标识/);
+  assert.match(backend, /测试代码必须为每个 `Design` 添加 `@verifies <完整设计标识>`/);
   assert.match(backend, /### AUTH-APP-LOGIN-001[\s\S]*### SHARED-INF-CONFIGURATION-001/);
   assert.match(backend, /### AUTH-INT-SESSION-001[\s\S]*### AUTH-INT-ADAPTER-001[\s\S]*### AUTH-API-LOGIN-001/);
   assert.match(backend, /### AUTH-CON-EVENT-001[\s\S]*### AUTH-CONC-TOKEN-001[\s\S]*### AUTH-E2E-LOGIN-001/);
@@ -948,6 +1252,7 @@ test("plans the component test structure before implementing tests", () => {
   assert.match(backend, /测试报告和覆盖率报告按需由用户手动导出/);
   assert.match(readme, /`<web test> <任务>` \| 编写并执行目标组件测试/);
   assert.match(readme, /详细规则以模板和对应阶段提示词为准/);
+  assert.match(readme, /--design-dir <组件设计目录> --app-dir <组件应用目录>/);
 });
 
 test("separates global acceptance from component tests", () => {

@@ -9,6 +9,7 @@
 - 阶段按“需求 → system → 组件设计 → dev → 组件 test → 全局 test → deploy”串行协作。
 - 提示词规则使用稳定编号，例如 `AI-001`、`AI-SYSTEM-001` 和 `AI-TEST-001`。
 - 执行受管理指令前，Agent 会先列出本次实际命中的规则编号。
+- Backend 设计可生成层级设计标识，并通过 `@design`、`@design-ref` 和 `@verifies` 追溯到生产代码与测试。
 - 默认使用中文回复、编写文档和测试描述；代码标识符沿用项目约定。
 - 安装时保留宿主项目 `AGENTS.md` 托管区块之外的既有规则。
 
@@ -85,7 +86,7 @@ Agent 完成指令解析并加载必读提示词后，会在执行实质操作�
 | `templates/backend-design.template.md` | Backend 模式设计规则与文档结构 |
 | `stages/*.md` | 各阶段职责、权限、格式和完成检查 |
 | `install.mjs` | 更新并安装工作流规则 |
-| `validate.mjs` | 校验提示词编号、5W 结构和组件完整文件树，并执行安装器与提示词结构测试 |
+| `validate.mjs` | 校验提示词结构、组件文件树和设计标识引用，并执行安装器与提示词结构测试 |
 
 详细规则以模板和对应阶段提示词为准，README 不重复维护阶段实现细节。
 
@@ -104,6 +105,15 @@ node docs/workflows/validate.mjs --component-doc <组件设计目录>/component.
 ```
 
 需要设计树与当前文件完全一致时增加 `--strict`；设计阶段允许树中包含尚未实现的规划文件，因此默认只检查遗漏和重复。
+
+校验组件 Markdown 生成的设计标识，以及生产代码 `@design`、`@design-ref` 和测试代码
+`@verifies` 的引用：
+
+```bash
+node docs/workflows/validate.mjs --design-dir <组件设计目录> --app-dir <组件应用目录>
+```
+
+`--component-doc` 和 `--design-dir` 可以在同一次验证中共同使用。
 
 ## 许可证
 

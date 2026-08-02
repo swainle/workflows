@@ -28,6 +28,22 @@
   其余示例内容必须替换、增删或删除，不得把范例声明当作可以照抄范例的豁免。
 - 只保留“固定标题和顺序”等明确声明为固定的结构规则；尖括号占位符和具体示例名称不得原样进入最终文档。
 
+### 设计标识
+
+- Backend 已创建的 Markdown 文件按“文件名 → 二级标题 → 三级标题 → 可选编号”生成可供代码和测试引用的设计标识。
+  文件段去掉扩展名；二、三级标题段去掉所有 `#` 和空白；各段使用 `:` 连接且标题本身不得包含 `:`。
+- 二级标题生成 `<文件>:<二级标题>`；存在三级标题时继续生成
+  `<文件>:<二级标题>:<三级标题>`。四级及更深标题只组织正文，不进入设计标识。
+- 章节表格存在名称精确为“编号”的列且单元格为三位数字时，或章节正文使用
+  `- **001**：<设计点>` 时，在最近的三级标题后追加编号；没有三级标题时直接追加到二级标题。
+- 找不到三级标题或编号时，标识停在已经识别到的二级或三级标题，不补造层级或编号。例如：
+  `testing:单元测试`、`testing:集成测试:数据库`、`testing:集成测试:数据库:001`。
+- 编号在相同“文件 + 二级标题 + 可选三级标题”范围内唯一，从 `001` 递增，删除后不复用。
+  修改设计点正文不改变标识；文件名、二级标题、三级标题或编号一旦被引用即视为稳定标识，变更时必须同步迁移引用。
+- 生产代码使用 `@design <设计标识>` 标记唯一主实现，使用 `@design-ref <设计标识>` 标记协作实现；
+  测试代码只使用 `@verifies <设计标识>`。机器可读模型继续使用 `operationId`、Channel、Message、
+  Type、Relation、表名和字段名等原生标识，不生成上述 Markdown 设计标识。
+
 ## AI-BACKEND-002
 
 - **Who**：处理 `<组件> backend <任务>` 的组件设计 Agent。
@@ -742,6 +758,22 @@ flowchart LR
 |---|---|---|
 | <应用用例、领域对象、Port 或 Adapter> | `<实际目录>` | `<实际命名模式>` |
 
+## 设计追溯
+
+生产代码只在实际承担稳定设计行为或约束的代码单元上使用以下注解：
+
+```ts
+/**
+ * @design ddd:Auth:应用用例:001
+ */
+export class LoginHandler {}
+
+/**
+ * @design-ref ddd:Auth:应用用例:001
+ */
+export class SessionRepository {}
+```
+
 ## 应用执行管线
 
 ### Command Bus
@@ -975,6 +1007,12 @@ flowchart LR
 ````
 
 - `coding.md` 记录长期有效的工程规则，不逐个复制生产文件；精确且完整的文件树仍只由 `component.md` 维护。
+- `@design` 用于应用用例、领域行为与规则、Repository 或 Port、安全与输入边界、错误映射、Unit of Work、
+  Outbox/Inbox、Relay、Processor、Worker、后台 Task、具有稳定语义的 Adapter 及运行生命周期代码的唯一主实现；
+  同一设计标识不得出现多个 `@design`。
+- 参与同一设计点但不拥有主要行为的代码单元使用 `@design-ref`。纯 Command、Query、Result、DTO、ORM Record、
+  Barrel Export、普通常量、简单工具、纯依赖组装、生成代码、迁移文件、标准 CRUD 和框架样板不为形式添加设计注解。
+- 注解必须引用当前组件设计目录中实际可解析的完整设计标识；不得引用标题路径、文件路径、行号或自行缩写的标识。
 - 架构映射使用 DDD、C3 和接口中的稳定名称，不重新定义领域规则、组件边界或契约；后续 `structure.md` 遵循本文件的目录、命名和依赖规则。
 - Command Bus 只在多个用例需要统一分派或共享 Middleware 时采用；少量用例可由入口直接调用 Handler。
 - 应用执行管线必须写明实际 Middleware 顺序和事务包围范围；认证、授权、校验、日志、追踪和事务不按示例机械启用。
@@ -1111,7 +1149,7 @@ flowchart LR
 
 ### BOOKING-DOM-APPOINTMENT-001
 
-> Design：`ddd.md#预约#状态图#Appointment`
+> Design：`ddd:预约:状态图`
 > Src：`test/unit/domain/appointment.test.ts`
 > BR：`REQ-001-BR-002`
 > AC：`REQ-001-AC-008`
@@ -1123,7 +1161,7 @@ Then：预约状态变为 `cancelled`，并产生可观察的取消结果。
 
 ### AUTH-APP-LOGIN-001
 
-> Design：`ddd.md#认证#时序图#登录`
+> Design：`ddd:认证:时序图`
 > Src：`test/unit/application/login.test.ts`
 > BP：`BP-001`
 > FR：`REQ-001-FR-001`
@@ -1135,7 +1173,7 @@ Then：<可观察的输出、状态、错误或必要副作用>
 
 ### SHARED-INF-CONFIGURATION-001
 
-> Design：`configuration.md#启动校验`
+> Design：`configuration:启动校验`
 > Src：`test/unit/infrastructure/configuration.test.ts`
 
 Desc：<简短中文描述>
@@ -1147,7 +1185,7 @@ Then：<可观察的返回值或稳定错误>
 
 ### AUTH-INT-SESSION-001
 
-> Design：`data-access.md#Repository#SessionRepository`
+> Design：`data-access:Repository`
 > Src：`test/integration/session-repository.test.ts`
 > BR：`REQ-001-BR-002`
 
@@ -1158,7 +1196,7 @@ Then：<可观察的映射、约束、事务或并发结果>
 
 ### AUTH-INT-ADAPTER-001
 
-> Design：`interface.md#<章节>`
+> Design：`interface:<章节>`
 > Src：`test/integration/adapter.test.ts`
 
 Desc：<简短中文描述>
@@ -1168,7 +1206,7 @@ Then：<可观察的协议、序列化、超时、重试或错误转换结果>
 
 ### AUTH-API-LOGIN-001
 
-> Design：`interface.md#操作定义#登录`
+> Design：`interface:操作定义`
 > Src：`test/integration/api/http/login.test.ts`
 > BP：`BP-001`
 > FR：`REQ-001-FR-001`
@@ -1180,7 +1218,7 @@ Then：<可观察的响应、状态码、错误码、消息或必要副作用>
 
 ### AUTH-INT-MODULE-001
 
-> Design：`ddd.md#认证#时序图#<流程>`
+> Design：`ddd:认证:时序图`
 > Src：`test/integration/module-login.test.ts`
 > BP：`BP-001`
 
@@ -1193,7 +1231,7 @@ Then：<可观察的模块契约、事务或事件传递结果>
 
 ### AUTH-CON-EVENT-001
 
-> Design：`interface.md#契约索引`
+> Design：`interface:契约索引`
 > Src：`test/contract/auth-event.test.ts`
 > FR：`REQ-001-FR-001`
 
@@ -1206,7 +1244,7 @@ Then：<可观察的字段、类型、错误结构、版本或兼容性结果>
 
 ### AUTH-CONC-TOKEN-001
 
-> Design：`data-access.md#并发控制`
+> Design：`data-access:并发控制`
 > Src：`test/concurrency/token.test.ts`
 > BR：`REQ-001-BR-003`
 
@@ -1219,7 +1257,7 @@ Then：<唯一可接受的最终状态、幂等、冲突或事务隔离结果>
 
 ### AUTH-E2E-LOGIN-001
 
-> Design：`interface.md#操作定义#登录`
+> Design：`interface:操作定义`
 > Src：`test/e2e/login.test.ts`
 
 Desc：<简短中文描述>
@@ -1282,7 +1320,9 @@ Then：<当前组件边界内可观察的最终结果、状态和必要副作用
   `Desc`、`Given`、`When`、`Then`，字段名统一使用英文和全角冒号。`Desc` 是不含编号的
   简短中文描述；四个字段连续书写，彼此之间不留空行。测试代码中的用例描述使用
   “`<用例编号> <Desc>`”。
-- `Design` 使用“`<文件>#<章节>#<子章节>`”引用实际设计位置。`Src` 使用组件应用目录下的
+- `Design` 使用当前组件设计文件可解析的完整设计标识；多个标识使用顿号分隔。设计标识按文件名、
+  二级标题、可选三级标题和可选三位编号逐级组成，四级及更深标题不参与；缺少更深层级时停在当前章节。
+  `Src` 使用组件应用目录下的
   测试文件精确相对路径，同一文件包含多个用例时在每个用例中重复记录。`BP` 只引用系统 `process.md`
   中实际存在的跨组件业务流程，`BR`、`FR`、`AC` 分别引用对应类型的实际需求项；多个编号使用
   顿号分隔，不适用的可选引用行直接省略。
@@ -1297,6 +1337,7 @@ Then：<当前组件边界内可观察的最终结果、状态和必要副作用
   时拆分文件，不按生产源码文件数量机械创建测试文件。文件移动或重命名时，同步更新完整文件树
   和引用该文件的全部 `Src`，不得留下两套路经。
 - 只引用当前测试直接验证的 BP、BR、FR 或 AC，不因 BP、FR 和 AC 的上游关系自动展开全部关联。
+  测试代码必须为每个 `Design` 添加 `@verifies <完整设计标识>`；不得使用 `@design` 或 `@design-ref`。
   组件测试不引用 TC；Requirement TC 只由全局 `<test>` 实现。
 - `Given` 只描述执行前状态、输入和依赖，`When` 只描述一个公开行为、应用用例或协议入口，
   `Then` 只描述可观察结果；多个结果使用项目符号列表。
