@@ -566,7 +566,12 @@ test("configures component development infrastructure with deploy targets", () =
 
   assert.match(agents, /<组件 deploy>\s+当前组件的开发基础设施、初始化和启动说明/);
   assert.match(agents, /组件名必须精确匹配 `docs\/system\/c2\.md` 组件清单/);
-  assert.match(deploy, /\| `deploy\/init\/\*\*` \| 开发基础设施初始化 \|/);
+  assert.match(deploy, /\| `deploy\/init\/\*\.\{sh,mjs,sql\}` \| 开发基础设施初始化 \|/);
+  assert.match(deploy, /\| `deploy\/config\/\*` \| 基础设施配置 \|/);
+  assert.match(deploy, /`postgre\.sh`、`postgre\.mjs`、`postgre\.sql`/);
+  assert.match(deploy, /`grafana\.config\.yml`、`prometheus\.config\.yml`/);
+  assert.match(deploy, /不创建基础设施子目录/);
+  assert.match(deploy, /初始化脚本和运行配置不得混放/);
   assert.match(deploy, /`<组件 deploy>` 只新增或更新该组件的 `### <组件>`/);
   assert.match(deploy, /Compose 使用默认的\s+`\.env` 和 `compose\.yml`/);
   assert.match(deploy, /JavaScript 和 TypeScript 组件默认使用 `pnpm`/);
