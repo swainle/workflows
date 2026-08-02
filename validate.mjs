@@ -710,6 +710,9 @@ test("supports frontend and backend component design modes", () => {
   assert.match(backend, /c4 --> component/);
   assert.match(backend, /testing --> component/);
   assert.match(backend, /# 编码规范[\s\S]*## 架构映射[\s\S]*## 目录约定[\s\S]*## 文件命名[\s\S]*## 编码规范[\s\S]*## 依赖方向[\s\S]*## 例外/);
+  assert.match(backend, /## 应用执行管线[\s\S]*### Command Bus[\s\S]*\| Command \| Handler \| Middleware 顺序 \| Unit of Work \| Result \|/);
+  assert.match(backend, /### 事务与消息代码[\s\S]*\| Unit of Work \| `<实现或 Middleware>`[\s\S]*\| Outbox Writer \| `<代码单元>`[\s\S]*\| Inbox \| `<代码单元>`/);
+  assert.match(backend, /Command Bus 只在多个用例需要统一分派或共享 Middleware 时采用/);
   assert.match(backend, /\| Command \| `<action>\.command\.ts` \|/);
   assert.match(backend, /\| Handler \| `<action>\.handler\.ts` \|/);
   assert.match(backend, /\| Query \| `<action>\.query\.ts` \|/);
@@ -721,12 +724,18 @@ test("supports frontend and backend component design modes", () => {
   assert.match(backend, /\| Repository Adapter \| `<subject>\.<technology>\.repository\.ts` \|/);
   assert.match(backend, /不适用的角色直接删除/);
   assert.match(backend, /精确且完整的文件树仍只由 `component\.md` 维护/);
+  assert.match(backend, /\| Unit of Work \| 入口 \| 参与写入 \| 原子要求 \| 回滚条件 \|/);
+  assert.match(backend, /### Outbox[\s\S]*\| 生产用例 \| 事务内 Writer \| 集成事件 \| Relay 或 Publisher \| 投递语义 \|/);
+  assert.match(backend, /### Inbox[\s\S]*\| 消费入口 \| 幂等键 \| 原子写入 \| 重复消息结果 \| 保留策略 \|/);
+  assert.match(backend, /业务写入与 Outbox 记录必须由同一 Unit of Work 原子提交/);
+  assert.match(backend, /`c4\.md` 在实际采用时展示 Command Bus、Handler、Unit of Work、Outbox Writer、Inbox、Relay、Processor 和 Worker/);
   assert.match(backend, /最后读取 `coding\.md`、`testing\.md` 和实际存在的 `c4\.md` 并更新 `component\.md`/);
   assert.match(backend, /目录与文件命名遵循 `coding\.md`；存在 `c4\.md` 时，代码单元、分层和依赖方向与其保持一致/);
   assert.match(backend, /目录树必须符合\s*`coding\.md` 的架构映射、目录职责和文件命名规则/);
   assert.match(backend, /存在 `c4\.md` 时还必须覆盖其中实际代码单元，并保持稳定名称、\s*分层和依赖方向一致/);
   assert.match(backend, /必须覆盖 `testing\.md` 中实际测试文件、Fixture、支持代码、配置和精确 `Src`/);
   assert.match(component, /\| `coding\.md` \| 后端编码规范 \| 始终 \|/);
+  assert.match(component, /Command Bus 与 Handler\/Middleware 映射放入 `coding\.md`/);
   assert.match(component, /`component\.md` 的完整文件树符合其目录和命名规则/);
   assert.match(component, /Backend 存在 `c4\.md` 时，`component\.md` 的完整文件树覆盖其中实际代码单元/);
   assert.match(component, /Backend 的 `component\.md` 读取 `testing\.md`/);
@@ -744,7 +753,7 @@ test("defines bounded-context backend runtimes and conditional TypeScript conven
   const component = readFileSync(path.join(WORKFLOW_ROOT, "stages/component.md"), "utf8");
   const readme = readFileSync(path.join(WORKFLOW_ROOT, "README.md"), "utf8");
 
-  assert.match(component, /一个逻辑 Backend 组件可以按实际需要提供 HTTP\/API、Outbox Relay 和消息 Worker 等多个独立运行入口/);
+  assert.match(component, /一个逻辑 Backend 组件可以按实际需要提供 HTTP\/API 和消息 Worker 等独立运行入口；Outbox Relay 托管在\s*现有 API 或 Worker 进程内/);
   assert.match(component, /进程不是工作流组件的划分单位/);
   assert.match(component, /跨上下文通过稳定的应用接口或 Port 协作，不导入对方的领域对象/);
   assert.match(component, /Backend C3 按限界上下文、入口、独立运行单元和实际公共技术能力展示稳定模块/);
@@ -759,6 +768,8 @@ test("defines bounded-context backend runtimes and conditional TypeScript conven
   assert.match(backend, /都必须按当前组件的真实上下文、运行单元和外部对象替换或删除/);
   assert.match(backend, /Writer 是生产者事务内的代码，不是独立进程/);
   assert.match(backend, /Relay 只读取已提交记录、投递并更新投递状态，不虚构领域层或 Command Bus/);
+  assert.match(backend, /Relay 是托管在现有 API 或 Worker 进程内的内部后台任务，不提供独立启动命令、健康检查或扩缩容单元/);
+  assert.match(backend, /不创建 `src\/processes\/outbox\.ts`/);
   assert.match(backend, /原子领取或租约、至少一次投递、退避重试、终止失败/);
   assert.match(backend, /在同一事务持久化业务数据与 Outbox、提交事务、Relay 投递、Worker 幂等消费/);
   assert.match(backend, /Redis 是基础设施中间件，BullMQ 是运行在 Redis 之上的消息任务库/);
@@ -766,7 +777,8 @@ test("defines bounded-context backend runtimes and conditional TypeScript conven
   assert.match(backend, /<subject>\.<technology>\.<role>\.ts/);
   assert.match(backend, /<event>\.event\.ts/);
   assert.match(backend, /prisma\/migrations\/<timestamp_name>\/migration\.sql/);
-  assert.match(backend, /node dist\/processes\/outbox\.js/);
+  assert.match(backend, /node dist\/processes\/worker\.js/);
+  assert.doesNotMatch(backend, /node dist\/processes\/outbox\.js/);
   assert.match(backend, /\.processor\.ts` 是消息入口 Adapter/);
   assert.match(backend, /\.result\.ts` 只表示需要稳定复用的应用用例输出/);
   assert.match(backend, /\.port\.ts` 只表示应用层拥有的外部或跨上下文依赖抽象/);
@@ -1072,7 +1084,7 @@ test("defines single-purpose component documents and horizontal-first code diagr
   assert.match(component, /完整 DDD 模式的 `ddd\.md` 按限界上下文分章/);
   assert.match(component, /轻量 Backend 不创建 `ddd\.md`/);
   assert.match(component, /Backend C3 按限界上下文、入口、独立运行单元和实际公共技术能力展示稳定模块/);
-  assert.match(component, /异步链路明确展示生产者、Outbox Relay、消息基础设施和 Worker\/下游消费者之间的关系/);
+  assert.match(component, /C3 异步部分只列出生产者、内嵌 Outbox Relay、消息基础设施和 Worker\/下游消费者，不绘制关系连线/);
   assert.match(agents, /\| 组件内部结构 \| `C4Component`；展示内部模块、职责和必要外部对象，不绘制关系连线 \|/);
   assert.match(agents, /\| 组件代码结构 \| `flowchart`；先总览后按业务能力分章，主分层从左到右、分层内部从上到下 \|/);
 });

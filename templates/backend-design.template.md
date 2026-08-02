@@ -38,8 +38,9 @@
 
 ### 组件、上下文与运行单元
 
-- 工作流组件按业务和所有权边界划分，不按进程划分。一个 Backend 组件可以按实际需求包含 API、
-  Outbox Relay 和消息 Worker 等多个独立入口，并由同一代码库或构建产物使用不同命令启动。
+- 工作流组件按业务和所有权边界划分，不按进程划分。一个 Backend 组件可以按实际需求包含 API 和
+  消息 Worker 等独立入口，并由同一代码库或构建产物使用不同命令启动；Outbox Relay 托管在现有 API
+  或 Worker 进程内，不作为独立进程或独立运行入口。
 - 只有存在不同统一语言和模型边界时才建立多个限界上下文。认证、授权、资源、预约等名称不是必须拆分的清单；
   单纯调用外部授权引擎的权限检查保持为应用能力或 Port，只有策略本身具有业务生命周期时才建立授权上下文。
 - 每个上下文拥有对应的应用用例和领域模型。跨上下文通过稳定的应用接口或 Port 协作，不导入另一上下文的领域对象；
@@ -49,14 +50,15 @@
 
 ### 按需建模
 
-- Command Bus、Unit of Work、AsyncLocalStorage、Outbox、Inbox、Saga、独立 Relay 和 Worker 都按实际需求引入，
+- Command Bus、Unit of Work、AsyncLocalStorage、Outbox、Inbox、Saga、内嵌 Relay 和 Worker 都按实际需求引入，
   不作为每个 Backend 的固定样板。数据库事务不得跨越远程 HTTP 或消息调用。
 - 领域事件使用过去时表示状态成功改变后的内部业务事实，仅在存在真实消费方或业务反应时创建；
   它不是命令，不自动等于集成事件或事件溯源记录。对外发布时映射为独立、可版本化的集成事件，不暴露领域对象。
 - 同库强一致更新在一个事务中完成；需要可靠异步对外发布时，业务数据与已定稿的集成事件信封在同一事务写入 Outbox。
   Writer 是生产者事务内的代码，不是独立进程；Relay 只读取已提交记录、投递并更新投递状态，不虚构领域层或 Command Bus。
-- Relay 和 Worker 可以是当前组件的独立进程入口。Relay 必须具备原子领取或租约、至少一次投递、退避重试、终止失败、
-  保留清理、积压和延迟观测；Worker 使用 Inbox 或等价机制保证幂等，并区分可重试与不可重试错误。
+- Relay 是托管在现有 API 或 Worker 进程内的内部后台任务，不提供独立启动命令、健康检查或扩缩容单元。
+  Relay 仍必须具备原子领取或租约、至少一次投递、退避重试、终止失败、保留清理、积压和延迟观测；
+  Worker 可以是独立进程入口，使用 Inbox 或等价机制保证幂等，并区分可重试与不可重试错误。
 - 队列的等待、执行、重试和失败是运行状态，不自动写入聚合。`AppointmentCreated` 等事件描述已经发生的事实；
   Worker 完成或失败仅在业务确实关心该结果时产生新的业务状态和事件。
 - 涉及异步后续处理的时序图必须标出边界：认证与授权、输入校验、加载聚合、执行领域行为、
@@ -100,8 +102,9 @@
   Backend 组件只在需要时包含 `app/api/**/route.ts`，不为通常属于其他组件的前端页面创建 `frontend/`。
 - Prisma 迁移位于 `prisma/migrations/<timestamp_name>/migration.sql`，Schema 位于 `prisma/schema.prisma`，
   需要拆分时使用 `prisma/models/*.prisma`；使用 Prisma 时不另建通用根 `migrations/`。
-- 独立进程源码按需放入 `src/processes/`，例如 `src/processes/outbox.ts` 和 `src/processes/worker.ts`；
-  编译输出与命令对应为 `dist/processes/outbox.js`、`node dist/processes/outbox.js` 等，不使用 `dist-processes/`。
+- 独立 Worker 进程源码按需放入 `src/processes/worker.ts`，编译输出与命令对应为
+  `dist/processes/worker.js`、`node dist/processes/worker.js`，不使用 `dist-processes/`；Relay 代码保留在
+  Outbox 基础设施目录并由 API 或 Worker 启动，不创建 `src/processes/outbox.ts`。
 - `.processor.ts` 是消息入口 Adapter，负责反序列化、校验、追踪、Inbox 幂等、调用应用处理器和错误分类；
   单一简单消息可由 Worker 直接调用处理器，不必单独创建 Processor。
 - `.result.ts` 只表示需要稳定复用的应用用例输出，不表示 HTTP 响应、领域对象、ORM 记录或事件；简单返回类型就地定义。
@@ -556,7 +559,23 @@ sequenceDiagram
 
 ## 事务边界
 
+| Unit of Work | 入口 | 参与写入 | 原子要求 | 回滚条件 |
+|---|---|---|---|---|
+| `<用例或 Handler>` | `<事务开始位置>` | <聚合、Repository、Outbox 或 Inbox> | <必须同时提交的状态与事件> | <触发完整回滚的失败> |
+
 ## 消息一致性
+
+### Outbox
+
+| 生产用例 | 事务内 Writer | 集成事件 | Relay 或 Publisher | 投递语义 |
+|---|---|---|---|---|
+| `<Handler>` | `<代码单元>` | `<AsyncAPI 事件或稳定事件名>` | `<由 API 或 Worker 托管的代码单元>` | <至少一次、重试及终止失败> |
+
+### Inbox
+
+| 消费入口 | 幂等键 | 原子写入 | 重复消息结果 | 保留策略 |
+|---|---|---|---|---|
+| `<Processor 或 Worker>` | `<messageId 或业务键>` | <Inbox 与业务副作用> | <返回成功、跳过或重放结果> | <保留及清理要求> |
 
 ## 并发控制
 
@@ -568,6 +587,13 @@ sequenceDiagram
 
 ## Schema 引用
 ```
+
+- Unit of Work 以一个应用用例为边界，负责事务开始、提交和回滚；数据库事务不得跨越远程 HTTP、消息发布或 Worker 执行。
+- 需要可靠异步发布时，业务写入与 Outbox 记录必须由同一 Unit of Work 原子提交；Outbox Writer 只写记录，
+  Relay 或 Publisher 只处理已提交记录，不在事务内等待消息基础设施，也不作为独立进程。
+- 领域事件映射为版本化集成事件后再写入 Outbox；消息字段由 `asyncapi.json` 维护，本文件只引用稳定事件名。
+- 至少一次投递要求消费者幂等；需要 Inbox 时，去重记录与业务副作用必须原子提交。
+- Command Bus、Unit of Work、Outbox、Inbox、Relay 或 Worker 没有真实一致性或复用需求时删除对应内容，不创建空机制。
 
 ## AI-BACKEND-013
 
@@ -675,6 +701,10 @@ flowchart LR
 ```
 ````
 
+- `c4.md` 在实际采用时展示 Command Bus、Handler、Unit of Work、Outbox Writer、Inbox、Relay、Processor 和 Worker
+  等稳定代码单元及其依赖；不存在的机制不创建节点。
+- 事务与消息语义引用 `data-access.md`，命令、事件和契约引用 DDD、接口及机器可读模型，C4 不重复规则或字段。
+
 ## AI-BACKEND-015
 
 - **Who**：处理 `<组件> backend <任务>` 的组件设计 Agent。
@@ -693,6 +723,22 @@ flowchart LR
 | 设计对象 | 代码位置 | 命名方式 |
 |---|---|---|
 | <应用用例、领域对象、Port 或 Adapter> | `<实际目录>` | `<实际命名模式>` |
+
+## 应用执行管线
+
+### Command Bus
+
+| Command | Handler | Middleware 顺序 | Unit of Work | Result |
+|---|---|---|---|---|
+| `<Command>` | `<Handler>` | <认证、授权、校验、事务、日志等实际顺序> | <使用的事务边界或无> | `<Result 或返回类型>` |
+
+### 事务与消息代码
+
+| 机制 | 代码单元 | 调用位置 | 职责 | 禁止职责 |
+|---|---|---|---|---|
+| Unit of Work | `<实现或 Middleware>` | <Handler 外层或显式调用点> | 开始、提交、回滚事务 | 远程调用或业务规则 |
+| Outbox Writer | `<代码单元>` | <业务事务内> | 写入已定稿集成事件 | 直接发布消息 |
+| Inbox | `<代码单元>` | <Consumer 事务内> | 去重并原子记录消费结果 | 代替业务幂等规则 |
 
 ## 目录约定
 
@@ -743,6 +789,9 @@ flowchart LR
 
 - `coding.md` 记录长期有效的工程规则，不逐个复制生产文件；精确且完整的文件树仍只由 `component.md` 维护。
 - 架构映射使用 DDD、C3 和接口中的稳定名称，不重新定义领域规则、组件边界或契约；后续 `c4.md` 遵循本文件的目录、命名和依赖规则。
+- Command Bus 只在多个用例需要统一分派或共享 Middleware 时采用；少量用例可由入口直接调用 Handler。
+- 应用执行管线必须写明实际 Middleware 顺序和事务包围范围；认证、授权、校验、日志、追踪和事务不按示例机械启用。
+- Unit of Work、Outbox Writer 和 Inbox 的代码职责遵循 `data-access.md` 的一致性设计；Relay 的宿主进程以及 Worker 的独立入口遵循 `runtime.md`。
 - 目录与文件命名必须符合当前实际语言、框架和工具链；框架规定的固定文件名优先。
 - TypeScript 组件的“文件命名”表从 AI-BACKEND-002 的角色后缀中选择实际使用的行，不适用的角色直接删除；
   同一简单用例允许合并类型或就地定义返回值，不机械拆分文件。
@@ -1109,7 +1158,8 @@ Then：<当前组件边界内可观察的最终结果、状态和必要副作用
 ```
 
 `进程模型` 按运行单元记录职责、源码入口、构建输出、启动命令、依赖、独立扩缩容和关闭方式。
-API、Outbox Relay 与 Worker 可以属于同一逻辑组件但独立启动；不需要的运行单元直接省略。
+API 与 Worker 可以属于同一逻辑组件但独立启动；Outbox Relay 必须托管在其中一个现有进程内，
+`进程模型` 记录宿主、启动和停止时机，但不为 Relay 创建独立进程、命令、健康检查或扩缩容单元。
 使用 BullMQ 时，Redis 是基础设施中间件，BullMQ 是运行在 Redis 之上的消息任务库；
 一个任务由一个 Worker 处理时可以使用任务队列，需要多个独立订阅方各自消费同一事件时应按实际需求选择
 Redis Streams 或其他发布订阅型消息代理，不把 BullMQ 工作队列误当广播总线。

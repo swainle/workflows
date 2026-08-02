@@ -122,8 +122,8 @@ Adapter。领域层不得依赖框架、ORM、HTTP、JWT、授权引擎或消息
 跨组件使用契约、幂等命令、事件或补偿流程。简单 CRUD、纯查询和数据转换不机械创建
 Command、Handler、Factory、DomainService 或 DomainEvent。
 
-一个逻辑 Backend 组件可以按实际需要提供 HTTP/API、Outbox Relay 和消息 Worker 等多个独立运行入口；
-进程不是工作流组件的划分单位，不得仅因入口、启动命令或扩缩容方式不同而拆成多个组件。这些运行单元
+一个逻辑 Backend 组件可以按实际需要提供 HTTP/API 和消息 Worker 等独立运行入口；Outbox Relay 托管在
+现有 API 或 Worker 进程内，不作为独立进程或运行入口。进程不是工作流组件的划分单位，不得仅因入口、启动命令或扩缩容方式不同而拆成多个组件。这些运行单元
 共享当前组件的业务边界和设计目录，可以来自同一构建产物，但必须在 `runtime.md` 分别声明入口、启动命令、
 依赖、健康检查、关闭方式和故障恢复；不需要的运行单元不得预先创建。
 
@@ -213,10 +213,10 @@ Command、Handler、Factory、DomainService 或 DomainEvent。
 | `authentication.md` | 身份认证 | 存在身份要求 | 身份、凭据、Session、Token、轮换和撤销 |
 | `authorization.md` | 权限控制 | 存在非公开操作 | 角色、关系、所有权、数据范围和执行点 |
 | `ddd.md` | 领域设计 | 完整 DDD 模式 | 每个限界上下文独立维护领域命令、统一语言、业务规则、一致性及按需的事件和图 |
-| `data-access.md` | 数据访问 | 存在持久化或查询 | Repository、查询、事务、并发、迁移和保留 |
+| `data-access.md` | 数据访问 | 存在持久化或查询 | Repository、查询、Unit of Work、Outbox/Inbox、并发、迁移和保留 |
 | `validation.md` | 输入校验 | 存在外部输入 | 信任边界、格式校验、标准化和领域校验职责 |
 | `errors.md` | 后端错误处理 | 存在失败场景 | 错误分类、稳定错误码、协议 Code 映射、重试和脱敏 |
-| `coding.md` | 后端编码规范 | 始终 | 架构映射、目录约定、文件命名、编码规范、依赖方向和例外 |
+| `coding.md` | 后端编码规范 | 始终 | 架构映射、应用执行管线、目录约定、文件命名、编码规范、依赖方向和例外 |
 | `configuration.md` | 后端配置 | 存在配置 | 配置来源、默认值和启动校验 |
 | `secrets.md` | 密钥要求 | 存在敏感配置 | 密钥来源、敏感级别、轮换和泄漏防护 |
 | `observability.md` | 后端可观测性 | 存在运行要求 | 日志、审计、指标、追踪、健康检查和告警 |
@@ -491,7 +491,8 @@ flowchart LR
 - 使用 `UpdateLayoutConfig($c4ShapeInRow="5", $c4BoundaryInRow="1")` 保持每个边界独占一行、边界内对象横向排列。
 - Backend C3 按限界上下文、入口、独立运行单元和实际公共技术能力展示稳定模块，不用 C3 元素模拟
   接入层、应用层、领域层和适配层。上下文内部的代码分层及应用服务与领域模型的映射放入 `coding.md` 和 `c4.md`。
-- 异步链路明确展示生产者、Outbox Relay、消息基础设施和 Worker/下游消费者之间的关系。
+- C3 异步部分只列出生产者、内嵌 Outbox Relay、消息基础设施和 Worker/下游消费者，不绘制关系连线；
+  Relay 不作为独立运行单元。
 - `c4.md` 包含一级标题、一个“总览”章节和按实际业务能力创建的详细章节。
 - 总览使用一个 `flowchart LR`，只展示模块、业务能力及主要依赖，不展示字段或函数。
 - 每个详细章节只描述一个业务能力并使用一个 `flowchart LR`；图仍过大时继续按内聚的子能力拆分章节。
@@ -529,6 +530,8 @@ Backend 专用 Markdown、机器可读模型及其固定结构统一由
 - 领域命令表只保留“命令、说明”两列；Handler、领域对象和 Result 的代码映射由 `coding.md` 和 `c4.md` 维护。
 - 一致性表只保留“事务边界、要求”两列，只表达必须原子成立的业务状态与事件；Command Bus、Outbox、
   事务中间件、重试和锁等技术实现放入相应技术设计文件。
+- Command Bus 与 Handler/Middleware 映射放入 `coding.md`；Unit of Work、Outbox、Inbox 的事务和一致性设计放入
+  `data-access.md`；Relay、Processor 和 Worker 的代码关系放入 `c4.md`，`runtime.md` 记录 Relay 的现有宿主进程和 Worker 的独立入口。
 - `ddd.md` 展示概念角色和关键公开业务行为；`c4.md` 使用相同稳定名称展示实现代码单元、
   包、Port、Adapter 和依赖，不重复 DDD 的业务语义。
 - 数据库字段和约束、HTTP Schema、异步消息结构分别由 `schema.dbml`、`openapi.json` 和 `asyncapi.json` 维护，不写入 `ddd.md`。
