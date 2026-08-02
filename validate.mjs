@@ -367,7 +367,7 @@ test("validates routed stage files", () => {
 test("repository AGENTS template routes every stage file", () => {
   const template = readFileSync(path.join(WORKFLOW_ROOT, "templates/AGENTS.template.md"), "utf8");
   assert.equal(validateStageReferences(template), 7);
-  assert.match(template, /\| `\[test\]` \| `docs\/workflows\/stages\/acceptance\.md` \|/);
+  assert.match(template, /\| `<test>` \| `docs\/workflows\/stages\/acceptance\.md` \|/);
 });
 
 test("defines bilingual message ending controls", () => {
@@ -377,6 +377,16 @@ test("defines bilingual message ending controls", () => {
   assert.match(template, /\| `!` 或 `！` \|[^|]+提交并推送[^|]+ \|/);
   assert.match(template, /\| `,` 或 `，` \|[^|]+直至完全理解需求 \|/);
   assert.match(template, /\| `\.` 或 `。` \|[^|]+不自动提交或推送 \|/);
+});
+
+test("defines literal angle-bracket command headers", () => {
+  const template = readFileSync(path.join(WORKFLOW_ROOT, "templates/AGENTS.template.md"), "utf8");
+  assert.match(template, /以一对实际的尖括号字符开头/);
+  assert.match(template, /读取至第一个 `>` 作为唯一指令头/);
+  assert.match(template, /保留指令优先于组件名/);
+  for (const command of ["<12>", "<system>", "<test>", "<deploy>", "<deploy update>", "<组件名 dev>", "<组件名 test>"]) {
+    assert.ok(template.includes(command), `missing command header example: ${command}`);
+  }
 });
 
 test("uses Chinese documentation and tests without translating code identifiers", () => {
@@ -505,9 +515,10 @@ test("optimizes one component design file using only template prerequisites", ()
   const component = readFileSync(path.join(WORKFLOW_ROOT, "stages/component.md"), "utf8");
   const readme = readFileSync(path.join(WORKFLOW_ROOT, "README.md"), "utf8");
 
-  assert.match(agents, /\[<组件>\] frontend opt <目标文件> <意见>/);
-  assert.match(agents, /\[<组件>\] backend opt <目标文件> <意见>/);
-  assert.match(agents, /`opt` 只能紧跟模式词/);
+  assert.match(agents, /<组件> opt <目标文件> <意见>/);
+  assert.match(agents, /<组件> frontend opt <目标文件> <意见>/);
+  assert.match(agents, /<组件> backend opt <目标文件> <意见>/);
+  assert.match(agents, /`opt` 可直接跟在指令头后/);
   assert.match(component, /\*\*What\*\*：提供“模板单文件优化”功能/);
   assert.match(component, /目标文件本身/);
   assert.match(component, /位于目标之前、且当前实际存在的设计文件/);
@@ -517,7 +528,8 @@ test("optimizes one component design file using only template prerequisites", ()
   assert.match(component, /\| `<目标之前的设计依赖文件>` \| 禁止 \| 允许 \| 禁止 \| 禁止 \|/);
   assert.match(component, /\| `<目标文件>` \| 禁止 \| 允许 \| 允许 \| 禁止 \|/);
   assert.match(component, /不创建、删除、移动、重命名或顺手修改模板、前置文件及关联文件/);
-  assert.match(readme, /\| `\[api\] backend opt <文件> <意见>` \|/);
+  assert.match(readme, /\| `<api> opt component\.md <意见>` \|/);
+  assert.match(readme, /\| `<api> backend opt <文件> <意见>` \|/);
 });
 
 test("separates stable runbook guidance from generated update plans", () => {
@@ -525,11 +537,11 @@ test("separates stable runbook guidance from generated update plans", () => {
   const deploy = readFileSync(path.join(WORKFLOW_ROOT, "stages/deploy.md"), "utf8");
   assert.doesNotMatch(deploy, /deploy\/deployment\.md|`deployment\.md`/);
   assert.match(deploy, /`runbook\.md`/);
-  assert.match(agents, /\[deploy\] update <升级内容>/);
+  assert.match(agents, /<deploy update> <升级内容>/);
   assert.match(deploy, /\| `deploy\/update\/\*\.md` \| 允许 \| 允许 \| 允许 \| 禁止 \|/);
   assert.match(deploy, /<YYYYMMDDHHmmss>_<升级主题>\.md/);
   assert.match(deploy, /一次系统升级只生成一份文件/);
-  assert.match(deploy, /普通 `\[deploy\]` 指令不得创建 `update\/\*\.md`/);
+  assert.match(deploy, /普通 `<deploy>` 指令不得创建 `update\/\*\.md`/);
   for (const heading of ["部署检查", "顺序"]) {
     assert.match(deploy, new RegExp(`## ${heading}`));
   }
@@ -552,16 +564,16 @@ test("configures component development infrastructure with deploy targets", () =
   const deploy = readFileSync(path.join(WORKFLOW_ROOT, "stages/deploy.md"), "utf8");
   const readme = readFileSync(path.join(WORKFLOW_ROOT, "README.md"), "utf8");
 
-  assert.match(agents, /\[deploy\] <组件>  当前组件的开发基础设施、初始化和启动说明/);
+  assert.match(agents, /<deploy 组件>\s+当前组件的开发基础设施、初始化和启动说明/);
   assert.match(agents, /组件名必须精确匹配 `docs\/system\/c2\.md` 组件清单/);
   assert.match(deploy, /\| `deploy\/init\/\*\*` \| 开发基础设施初始化 \|/);
-  assert.match(deploy, /`\[deploy\] <组件>` 只新增或更新该组件的 `### <组件>`/);
+  assert.match(deploy, /`<deploy 组件>` 只新增或更新该组件的 `### <组件>`/);
   assert.match(deploy, /Compose 使用默认的\s+`\.env` 和 `compose\.yml`/);
   assert.match(deploy, /JavaScript 和 TypeScript 组件默认使用 `pnpm`/);
   assert.match(deploy, /名称优先为 `<基础设施>-init`/);
   assert.match(deploy, /使用 `restart: "no"`/);
   assert.match(deploy, /不执行其中的启动或初始化命令/);
-  assert.match(readme, /`\[deploy\] <组件>` \| 维护目标组件的开发基础设施配置/);
+  assert.match(readme, /`<deploy api> <任务>` \| 维护目标组件的开发基础设施配置/);
 });
 
 test("resolves nested deploy paths from the C2 component registry", () => {
@@ -594,11 +606,11 @@ test("supports frontend and backend component design modes", () => {
   const component = readFileSync(path.join(WORKFLOW_ROOT, "stages/component.md"), "utf8");
   const readme = readFileSync(path.join(WORKFLOW_ROOT, "README.md"), "utf8");
 
-  assert.match(agents, /\[<组件>\] frontend <前端设计任务>/);
-  assert.match(agents, /\[<组件>\] backend <后端设计任务>/);
-  assert.match(agents, /`frontend` 和 `backend` 只能作为 `\[<组件>\]` 后的第一个任务词/);
-  assert.match(agents, /不得写入方括号，也不适用于 `dev` 或 `test` 任务/);
-  assert.doesNotMatch(agents, /\[<组件>\] ddd <DDD设计任务>/);
+  assert.match(agents, /<组件> frontend <前端设计任务>/);
+  assert.match(agents, /<组件> backend <后端设计任务>/);
+  assert.match(agents, /`frontend` 和 `backend` 只能作为 `<组件>` 指令头后的第一个任务词/);
+  assert.match(agents, /不得写入指令头，也不适用于 `dev` 或 `test` 任务/);
+  assert.doesNotMatch(agents, /<组件> ddd <DDD设计任务>/);
   assert.match(component, /\*\*What\*\*：提供“完整组件设计模式”功能/);
   assert.match(component, /### Frontend 模式/);
   assert.match(component, /### Backend 模式/);
@@ -675,8 +687,8 @@ test("supports frontend and backend component design modes", () => {
   for (const file of ["openapi.json", "asyncapi.json", "authorization.fga", "schema.dbml"]) {
     assert.ok(backend.includes(`### \`${file}\``), `missing Backend model template for ${file}`);
   }
-  assert.match(readme, /`\[web\] frontend <任务>`/);
-  assert.match(readme, /`\[api\] backend <任务>`/);
+  assert.match(readme, /`<web> frontend <任务>`/);
+  assert.match(readme, /`<api> backend <任务>`/);
   assert.match(readme, /`templates\/backend-design\.template\.md`/);
 });
 
@@ -838,7 +850,7 @@ test("plans the component test structure before implementing tests", () => {
   assert.match(backend, /`component\.md` 的完整文件树必须逐个包含所有\s*`Src`/);
   assert.match(backend, /`testing\.md` 只索引项目真实存在的命令/);
   assert.match(backend, /测试报告和覆盖率报告按需由用户手动导出/);
-  assert.match(readme, /`\[web test\] <任务>` \| 编写并执行目标组件测试/);
+  assert.match(readme, /`<web test> <任务>` \| 编写并执行目标组件测试/);
   assert.match(readme, /详细规则以模板和对应阶段提示词为准/);
 });
 
@@ -850,11 +862,11 @@ test("separates global acceptance from component tests", () => {
   const backend = readFileSync(path.join(WORKFLOW_ROOT, "templates/backend-design.template.md"), "utf8");
   const readme = readFileSync(path.join(WORKFLOW_ROOT, "README.md"), "utf8");
 
-  assert.match(agents, /\[test\] <验收任务>/);
-  assert.match(agents, /`\[test\]` 根据需求 TC、AC 和系统 BP 维护并执行 `test\/acceptance\/\*\*`/);
-  assert.match(agents, /精确的 `\[test\]` 是保留的全局指令[\s\S]*不得把 `test` 当作组件名/);
+  assert.match(agents, /<test> <验收任务>/);
+  assert.match(agents, /`<test>` 根据需求 TC、AC 和系统 BP 维护并执行 `test\/acceptance\/\*\*`/);
+  assert.match(agents, /精确的 `<test>` 是保留的全局指令[\s\S]*不得把 `test` 当作组件名/);
   assert.match(agents, /test\/acceptance\/\*\*\s+跨组件验收测试实现/);
-  assert.match(acceptance, /^# `\[test\]` 全局验收测试/m);
+  assert.match(acceptance, /^# `<test>` 全局验收测试/m);
   assert.match(acceptance, /Requirement TC 是验收测试的稳定用例 ID/);
   assert.match(acceptance, /不创建第二套验收编号/);
   assert.match(acceptance, /验证其唯一归属的 AC/);
@@ -864,10 +876,10 @@ test("separates global acceptance from component tests", () => {
   assert.match(acceptance, /全局阶段必须执行本次任务相关的验收测试命令/);
   assert.match(acceptance, /Production 或操作可能修改真实业务数据时停止/);
   assert.match(acceptance, /测试报告和覆盖率报告只按用户需要手动导出/);
-  assert.match(component, /需要启动或断言多个组件[\s\S]*归全局 `\[test\]`/);
-  assert.match(testing, /任务要求实现 Requirement TC[\s\S]*应切换全局 `\[test\]`/);
-  assert.match(backend, /Requirement TC 或验收跨组件 BP 的场景归全局 `\[test\]`/);
-  assert.match(readme, /`\[test\] <任务>` \| 实现并执行跨组件验收测试/);
+  assert.match(component, /需要启动或断言多个组件[\s\S]*归全局 `<test>`/);
+  assert.match(testing, /任务要求实现 Requirement TC[\s\S]*应切换全局 `<test>`/);
+  assert.match(backend, /Requirement TC 或验收跨组件 BP 的场景归全局 `<test>`/);
+  assert.match(readme, /`<test> <任务>` \| 实现并执行跨组件验收测试/);
 });
 
 test("separates runtime and development technology selections", () => {
@@ -949,9 +961,9 @@ test("lists C2 components by type with development endpoints", () => {
   assert.match(system, /状态未知时先询问，不填猜测值/);
   assert.match(system, /对应版本官方文档/);
   assert.match(system, /凭据来源只记录环境变量名、密钥引用、初始化脚本或 Runbook 位置/);
-  assert.match(system, /测试和生产凭据必须由 `\[deploy\]` 通过独立环境配置或密钥系统注入/);
+  assert.match(system, /测试和生产凭据必须由 `<deploy>` 通过独立环境配置或密钥系统注入/);
   assert.match(system, /C2 只记录开发环境端口、路径和协议/);
-  assert.match(system, /测试、生产及其他环境由 `\[deploy\]` 维护/);
+  assert.match(system, /测试、生产及其他环境由 `<deploy>` 维护/);
   assert.match(agents, /从该组件表格行“说明”列的固定字段“应用：`<路径>`；设计：`<路径>`”解析/);
 });
 

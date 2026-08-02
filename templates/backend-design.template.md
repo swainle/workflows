@@ -2,13 +2,13 @@
 
 ## AI-BACKEND-001
 
-- **Who**：处理 `[<组件>] backend <任务>` 的组件设计 Agent。
+- **Who**：处理 `<组件> backend <任务>` 的组件设计 Agent。
 - **When**：Backend 模式被启用并准备选择适用文件、固定结构和设计强度时。
 - **Where**：当前 Backend 组件设计目录与本模式模板。
 - **What**：提供“使用规则”功能；具体规则、格式和约束如下。
 - **Why**：确保 Backend 设计由实际业务边界驱动且不会机械照抄范例。
 
-- 使用 `[<组件>] backend <任务>` 启用 Backend 组件设计模式，并按复杂度选择轻量设计或完整 DDD。
+- 使用 `<组件> backend <任务>` 启用 Backend 组件设计模式，并按复杂度选择轻量设计或完整 DDD。
 - 执行前必须先读取 `docs/workflows/stages/component.md`；本文件只补充 Backend 的设计顺序和
   固定文档结构，文件权限、创建条件、通用 C3/C4 格式及跨阶段边界仍以该阶段文件为准。
 - `component.md`、`c3.md` 和 `testing.md` 始终创建；`ddd.md` 仅在完整 DDD 模式创建，其他文件仅在满足创建条件时创建。
@@ -30,7 +30,7 @@
 
 ## AI-BACKEND-002
 
-- **Who**：处理 `[<组件>] backend <任务>` 的组件设计 Agent。
+- **Who**：处理 `<组件> backend <任务>` 的组件设计 Agent。
 - **When**：Backend 需要确定业务边界、上下文、代码组织、运行单元或条件性技术约定时。
 - **Where**：当前 Backend 组件设计目录与本模式模板。
 - **What**：提供“架构、代码与运行约定”功能；具体规则、格式和约束如下。
@@ -94,7 +94,7 @@
 
 ## AI-BACKEND-003
 
-- **Who**：处理 `[<组件>] backend <任务>` 的组件设计 Agent。
+- **Who**：处理 `<组件> backend <任务>` 的组件设计 Agent。
 - **When**：Backend 模式有两个或以上适用设计文件，需要确定依赖和编写顺序时。
 - **Where**：当前 Backend 组件设计目录与本模式模板。
 - **What**：提供“文件关系与设计顺序”功能；具体规则、格式和约束如下。
@@ -182,7 +182,7 @@ flowchart LR
 
 ## AI-BACKEND-004
 
-- **Who**：处理 `[<组件>] backend <任务>` 的组件设计 Agent。
+- **Who**：处理 `<组件> backend <任务>` 的组件设计 Agent。
 - **When**：Backend 模式完成复杂度判断并准备创建或更新设计文件时。
 - **Where**：当前 Backend 组件设计目录与本模式模板。
 - **What**：提供“执行流程”功能；具体规则、格式和约束如下。
@@ -205,14 +205,14 @@ flowchart LR
 7. 在业务行为、接口和机器可读模型稳定后，用 `c4.md` 设计应用用例、领域对象、Port、
    Adapter 及依赖方向。
 8. 根据前述设计完成配置、密钥、可观测性、测试和运行要求，再用 `deployment.md`
-   汇总交给 `[deploy]` 阶段的交付要求。
+   汇总交给 `<deploy>` 阶段的交付要求。
 9. 最后更新 `component.md`，使设计架构索引覆盖设计目录内全部实际文件，并使完整文件树落实
    C3、C4、测试策略和运行要求。
 10. 每一步发现上游设计不成立时先回到对应文件修正；不得通过下游文档复制或覆盖上游事实。
 
 ## AI-BACKEND-005
 
-- **Who**：处理 `[<组件>] backend <任务>` 的组件设计 Agent。
+- **Who**：处理 `<组件> backend <任务>` 的组件设计 Agent。
 - **When**：Backend 组件需要创建或更新组件内部模块、入口、运行单元和必要外部依赖图时。
 - **Where**：当前 Backend 组件设计目录与本模式模板。
 - **What**：提供“`c3.md`”功能；具体规则、格式和约束如下。
@@ -266,7 +266,7 @@ C4Component
 
 ## AI-BACKEND-006
 
-- **Who**：处理 `[<组件>] backend <任务>` 的组件设计 Agent。
+- **Who**：处理 `<组件> backend <任务>` 的组件设计 Agent。
 - **When**：Backend 复杂度判断确认存在需要长期维护的领域语言、规则、状态或事务边界时。
 - **Where**：当前 Backend 组件设计目录与本模式模板。
 - **What**：提供“`ddd.md`”功能；具体规则、格式和约束如下。
@@ -377,7 +377,7 @@ sequenceDiagram
 
 ## AI-BACKEND-007
 
-- **Who**：处理 `[<组件>] backend <任务>` 的组件设计 Agent。
+- **Who**：处理 `<组件> backend <任务>` 的组件设计 Agent。
 - **When**：Backend 提供同步接口、异步消息、RPC、任务入口或其他稳定操作边界时。
 - **Where**：当前 Backend 组件设计目录与本模式模板。
 - **What**：提供“`interface.md`”功能；具体规则、格式和约束如下。
@@ -407,7 +407,7 @@ sequenceDiagram
 
 ## AI-BACKEND-008
 
-- **Who**：处理 `[<组件>] backend <任务>` 的组件设计 Agent。
+- **Who**：处理 `<组件> backend <任务>` 的组件设计 Agent。
 - **When**：当前 Backend 负责身份验证、凭据或会话生命周期中的一个或多个环节时。
 - **Where**：当前 Backend 组件设计目录与本模式模板。
 - **What**：提供“`authentication.md`”功能；具体规则、格式和约束如下。
@@ -435,7 +435,7 @@ sequenceDiagram
 
 ## AI-BACKEND-009
 
-- **Who**：处理 `[<组件>] backend <任务>` 的组件设计 Agent。
+- **Who**：处理 `<组件> backend <任务>` 的组件设计 Agent。
 - **When**：当前 Backend 执行主体、资源、操作或数据范围授权判断时。
 - **Where**：当前 Backend 组件设计目录与本模式模板。
 - **What**：提供“`authorization.md`”功能；具体规则、格式和约束如下。
@@ -469,7 +469,7 @@ sequenceDiagram
 
 ## AI-BACKEND-010
 
-- **Who**：处理 `[<组件>] backend <任务>` 的组件设计 Agent。
+- **Who**：处理 `<组件> backend <任务>` 的组件设计 Agent。
 - **When**：当前 Backend 接收不可信输入且需要定义标准化、格式或领域校验边界时。
 - **Where**：当前 Backend 组件设计目录与本模式模板。
 - **What**：提供“`validation.md`”功能；具体规则、格式和约束如下。
@@ -495,7 +495,7 @@ sequenceDiagram
 
 ## AI-BACKEND-011
 
-- **Who**：处理 `[<组件>] backend <任务>` 的组件设计 Agent。
+- **Who**：处理 `<组件> backend <任务>` 的组件设计 Agent。
 - **When**：当前 Backend 存在需要稳定分类、映射、重试或脱敏的可观察错误时。
 - **Where**：当前 Backend 组件设计目录与本模式模板。
 - **What**：提供“`errors.md`”功能；具体规则、格式和约束如下。
@@ -523,7 +523,7 @@ sequenceDiagram
 
 ## AI-BACKEND-012
 
-- **Who**：处理 `[<组件>] backend <任务>` 的组件设计 Agent。
+- **Who**：处理 `<组件> backend <任务>` 的组件设计 Agent。
 - **When**：当前 Backend 拥有持久化数据、事务、并发控制、索引或迁移责任时。
 - **Where**：当前 Backend 组件设计目录与本模式模板。
 - **What**：提供“`data-access.md`”功能；具体规则、格式和约束如下。
@@ -557,7 +557,7 @@ sequenceDiagram
 
 ## AI-BACKEND-013
 
-- **Who**：处理 `[<组件>] backend <任务>` 的组件设计 Agent。
+- **Who**：处理 `<组件> backend <任务>` 的组件设计 Agent。
 - **When**：当前 Backend 实际需要 OpenAPI、AsyncAPI、授权模型或数据 Schema 中的至少一种时。
 - **Where**：当前 Backend 组件设计目录与本模式模板。
 - **What**：提供“机器可读文件”功能；具体规则、格式和约束如下。
@@ -612,7 +612,7 @@ sequenceDiagram
 
 ## AI-BACKEND-014
 
-- **Who**：处理 `[<组件>] backend <任务>` 的组件设计 Agent。
+- **Who**：处理 `<组件> backend <任务>` 的组件设计 Agent。
 - **When**：当前 Backend 存在需要长期维护的应用、领域、Port、Adapter 或进程代码结构时。
 - **Where**：当前 Backend 组件设计目录与本模式模板。
 - **What**：提供“`c4.md`”功能；具体规则、格式和约束如下。
@@ -663,7 +663,7 @@ flowchart LR
 
 ## AI-BACKEND-015
 
-- **Who**：处理 `[<组件>] backend <任务>` 的组件设计 Agent。
+- **Who**：处理 `<组件> backend <任务>` 的组件设计 Agent。
 - **When**：当前 Backend 存在运行时或构建时配置、默认值、覆盖优先级或启动校验时。
 - **Where**：当前 Backend 组件设计目录与本模式模板。
 - **What**：提供“`configuration.md`”功能；具体规则、格式和约束如下。
@@ -691,7 +691,7 @@ flowchart LR
 
 ## AI-BACKEND-016
 
-- **Who**：处理 `[<组件>] backend <任务>` 的组件设计 Agent。
+- **Who**：处理 `<组件> backend <任务>` 的组件设计 Agent。
 - **When**：当前 Backend 需要密钥、令牌、证书、密码或其他敏感值时。
 - **Where**：当前 Backend 组件设计目录与本模式模板。
 - **What**：提供“`secrets.md`”功能；具体规则、格式和约束如下。
@@ -721,7 +721,7 @@ flowchart LR
 
 ## AI-BACKEND-017
 
-- **Who**：处理 `[<组件>] backend <任务>` 的组件设计 Agent。
+- **Who**：处理 `<组件> backend <任务>` 的组件设计 Agent。
 - **When**：当前 Backend 产生需要长期维护的日志、审计、指标、Trace、健康或告警信号时。
 - **Where**：当前 Backend 组件设计目录与本模式模板。
 - **What**：提供“`observability.md`”功能；具体规则、格式和约束如下。
@@ -751,7 +751,7 @@ flowchart LR
 
 ## AI-BACKEND-018
 
-- **Who**：处理 `[<组件>] backend <任务>` 的组件设计 Agent。
+- **Who**：处理 `<组件> backend <任务>` 的组件设计 Agent。
 - **When**：Backend 设计需要规划测试层级、稳定用例、Fixture、支持代码或执行命令时。
 - **Where**：当前 Backend 组件设计目录与本模式模板。
 - **What**：提供“`testing.md`”功能；具体规则、格式和约束如下。
@@ -972,7 +972,7 @@ Then：<当前组件边界内可观察的最终结果、状态和必要副作用
   时拆分文件，不按生产源码文件数量机械创建测试文件。文件移动或重命名时，同步更新完整文件树
   和引用该文件的全部 `Src`，不得留下两套路经。
 - 只引用当前测试直接验证的 BP、BR、FR 或 AC，不因 BP、FR 和 AC 的上游关系自动展开全部关联。
-  组件测试不引用 TC；Requirement TC 只由全局 `[test]` 实现。
+  组件测试不引用 TC；Requirement TC 只由全局 `<test>` 实现。
 - `Given` 只描述执行前状态、输入和依赖，`When` 只描述一个公开行为、应用用例或协议入口，
   `Then` 只描述可观察结果；多个结果使用项目符号列表。
 - Domain 测试使用真实领域对象且不访问外部资源；Application 测试只替换 Repository、外部
@@ -988,13 +988,13 @@ Then：<当前组件边界内可观察的最终结果、状态和必要副作用
   Schema 结构与版本兼容性由契约测试验证，
   不在两个层级重复相同断言。
 - 本文件的 E2E 只验证当前组件边界内的完整公开入口；需要启动或断言多个组件、直接实现
-  Requirement TC 或验收跨组件 BP 的场景归全局 `[test]`，不在组件 `testing.md` 中重复规划。
+  Requirement TC 或验收跨组件 BP 的场景归全局 `<test>`，不在组件 `testing.md` 中重复规划。
 - `testing.md` 只索引项目真实存在的命令，不记录无法执行的占位命令；每条命令写明前置条件
   和执行范围。测试报告和覆盖率报告按需由用户手动导出，不作为默认生成或提交的项目文件。
 
 ## AI-BACKEND-019
 
-- **Who**：处理 `[<组件>] backend <任务>` 的组件设计 Agent。
+- **Who**：处理 `<组件> backend <任务>` 的组件设计 Agent。
 - **When**：Backend 需要定义一个或多个进程入口、依赖、启动关闭、健康或恢复要求时。
 - **Where**：当前 Backend 组件设计目录与本模式模板。
 - **What**：提供“`runtime.md`”功能；具体规则、格式和约束如下。
@@ -1028,7 +1028,7 @@ Redis Streams 或其他发布订阅型消息代理，不把 BullMQ 工作队列�
 
 ## AI-BACKEND-020
 
-- **Who**：处理 `[<组件>] backend <任务>` 的组件设计 Agent。
+- **Who**：处理 `<组件> backend <任务>` 的组件设计 Agent。
 - **When**：Backend 需要向部署阶段交付构建、镜像、初始化、迁移、发布或回滚要求时。
 - **Where**：当前 Backend 组件设计目录与本模式模板。
 - **What**：提供“`deployment.md`”功能；具体规则、格式和约束如下。
@@ -1058,7 +1058,7 @@ Redis Streams 或其他发布订阅型消息代理，不把 BullMQ 工作队列�
 
 ## AI-BACKEND-021
 
-- **Who**：处理 `[<组件>] backend <任务>` 的组件设计 Agent。
+- **Who**：处理 `<组件> backend <任务>` 的组件设计 Agent。
 - **When**：Backend 其他适用设计文件完成，需要汇总设计索引和完整文件树时。
 - **Where**：当前 Backend 组件设计目录与本模式模板。
 - **What**：提供“`component.md`”功能；具体规则、格式和约束如下。
