@@ -60,10 +60,23 @@
 ## AI-004
 
 - **Who**：所有处理本工作流指令的 Agent。
-- **When**：用户明确要求安装、更新或切换工作流分支时。
+- **When**：识别出受管尖括号指令，或用户明确要求安装、更新或切换工作流分支时。
 - **Where**：宿主项目根 `AGENTS.md` 的托管区块与工作流入口。
-- **What**：提供“安装与更新”功能；具体规则、格式和约束如下。
-- **Why**：确保全局行为可预测、阶段边界一致且操作结果可验证。
+- **What**：校验当前加载的工作流代码 SHA，并安装或刷新宿主项目使用的提示词。
+- **Why**：避免宿主已经拉取新工作流代码后，Agent 继续使用旧托管提示词或阶段规则。
+
+每个受管尖括号指令都必须在阶段路由前执行：
+
+```bash
+git -C docs/workflows rev-parse HEAD
+```
+
+把输出的完整 SHA 与当前已加载托管区块中的 `<!-- workflows-revision: <完整 SHA> -->` 比较：
+
+- SHA 一致时继续解析和路由当前指令，不访问远端。
+- SHA 不一致时执行 `node docs/workflows/install.mjs --workflows-updated`，只使用已经拉取到本地的代码重新安装托管区块；随后完整重读宿主根 `AGENTS.md`、重新解析当前指令并完整读取其必需的阶段和模式提示词，不沿用旧提示词内容。
+- SHA 检测、安装或重新读取失败时停止，不使用可能过期的提示词执行当前指令。
+- 刷新后回显 `工作流规则已从 <旧 SHA> 刷新到 <新 SHA>`；SHA 一致时不增加回显。
 
 在宿主项目根目录执行：
 
@@ -73,6 +86,7 @@ node docs/workflows/install.mjs
 
 安装器把 `templates/AGENTS.template.md` 同步到宿主根 `AGENTS.md` 的
 `<!-- workflows:begin -->` 与 `<!-- workflows:end -->` 托管区块，保留区块外的宿主规则。不要手动修改托管区块。
+托管区块中的 `workflows-revision` 由安装器使用当前代码的完整 Git SHA 生成，不手动修改。
 不传 `--branch` 时对子模块当前检出的分支执行 `git pull --ff-only` 后安装；
 需要切换并更新分支时使用 `node docs/workflows/install.mjs --branch <分支>`。
 子模块处于 detached HEAD（例如直接检出 Tag）时必须指定分支。

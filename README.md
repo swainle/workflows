@@ -34,6 +34,8 @@ node docs/workflows/install.mjs --branch develop
 安装器会更新工作流子模块，并将 `templates/AGENTS.template.md` 同步到宿主项目根 `AGENTS.md` 的托管区块。
 子模块处于 detached HEAD 时，必须通过 `--branch` 指定分支。
 
+安装器会在托管区块记录当前工作流的完整 Git SHA。宿主手动拉取工作流代码后，Agent 会在每个尖括号指令路由前比较本地 HEAD；版本不一致时只使用本地代码刷新托管提示词并重新读取当前指令需要的规则，不重复拉取远端。
+
 ## 指令
 
 | 指令 | 用途 |

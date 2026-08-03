@@ -10,6 +10,7 @@ import {
   installBranch,
   mergeAgents,
   parseBranch,
+  readWorkflowRevision,
   updateCurrentBranch,
   validateStageReferences,
 } from "./install.mjs";
@@ -624,6 +625,17 @@ test("parses the optional selected branch", () => {
   assert.throws(() => parseBranch(["--branch"]));
 });
 
+test("refreshes cached prompts when the local workflows revision changes", () => {
+  const agents = readFileSync(path.join(WORKFLOW_ROOT, "templates", "AGENTS.template.md"), "utf8");
+  const readme = readFileSync(path.join(WORKFLOW_ROOT, "README.md"), "utf8");
+  assert.match(agents, /git -C docs\/workflows rev-parse HEAD/);
+  assert.match(agents, /<!-- workflows-revision: <完整 SHA> -->/);
+  assert.match(agents, /node docs\/workflows\/install\.mjs --workflows-updated/);
+  assert.match(agents, /完整重读宿主根 `AGENTS\.md`、重新解析当前指令/);
+  assert.match(agents, /工作流规则已从 <旧 SHA> 刷新到 <新 SHA>/);
+  assert.match(readme, /每个尖括号指令路由前比较本地 HEAD/);
+});
+
 test("updates the workflows branch and reruns installation", () => {
   const calls = [];
   const runner = (command, args, options) => {
@@ -656,18 +668,31 @@ test("updates the current workflows branch when branch is omitted", () => {
 });
 
 test("creates, appends, updates, and preserves a managed block", () => {
-  const created = mergeAgents("", "# Workflow\n");
+  const revision = "a".repeat(40);
+  const created = mergeAgents("", "# Workflow\n", revision);
   assert.match(created, /^<!-- workflows:begin -->/);
+  assert.match(created, new RegExp(`<!-- workflows-revision: ${revision} -->`));
   assert.match(created, /# Workflow/);
 
-  const appended = mergeAgents("# Host rules\n", "# Workflow\n");
+  const appended = mergeAgents("# Host rules\n", "# Workflow\n", revision);
   assert.match(appended, /^# Host rules[\s\S]*<!-- workflows:begin -->/);
 
-  const updated = mergeAgents(appended, "# Workflow v2\n");
+  const updated = mergeAgents(appended, "# Workflow v2\n", "b".repeat(40));
   assert.match(updated, /^# Host rules/);
+  assert.match(updated, /<!-- workflows-revision: b{40} -->/);
   assert.match(updated, /# Workflow v2/);
   assert.doesNotMatch(updated, /# Workflow\n/);
-  assert.equal(mergeAgents(updated, "# Workflow v2\n"), updated);
+  assert.equal(mergeAgents(updated, "# Workflow v2\n", "b".repeat(40)), updated);
+  assert.throws(() => mergeAgents("", "# Workflow\n", "abc"), /Invalid workflows revision/);
+});
+
+test("reads and validates the full workflows revision", () => {
+  const revision = "c".repeat(40);
+  assert.equal(readWorkflowRevision("C:/workflow", () => ({ status: 0, stdout: `${revision}\n` })), revision);
+  assert.throws(
+    () => readWorkflowRevision("C:/workflow", () => ({ status: 0, stdout: "short\n" })),
+    /Invalid workflows revision/,
+  );
 });
 
 test("ignores marker examples inside managed content", () => {
@@ -677,19 +702,22 @@ test("ignores marker examples inside managed content", () => {
     "The installer uses `<!-- workflows:begin -->` and `<!-- workflows:end -->` markers.",
     "",
   ].join("\n");
-  const installed = mergeAgents("", template);
-  assert.equal(mergeAgents(installed, template), installed);
-  assert.match(mergeAgents(installed, `${template}Updated.\n`), /Updated\./);
+  const revision = "a".repeat(40);
+  const installed = mergeAgents("", template, revision);
+  assert.equal(mergeAgents(installed, template, revision), installed);
+  assert.match(mergeAgents(installed, `${template}Updated.\n`, revision), /Updated\./);
 });
 
 test("rejects damaged or duplicated managed markers", () => {
-  assert.throws(() => mergeAgents("<!-- workflows:begin -->\n", "# Workflow\n"), /invalid workflows markers/);
-  assert.throws(() => mergeAgents("<!-- workflows:end -->\n", "# Workflow\n"), /invalid workflows markers/);
+  const revision = "a".repeat(40);
+  assert.throws(() => mergeAgents("<!-- workflows:begin -->\n", "# Workflow\n", revision), /invalid workflows markers/);
+  assert.throws(() => mergeAgents("<!-- workflows:end -->\n", "# Workflow\n", revision), /invalid workflows markers/);
   assert.throws(() => mergeAgents(
     "<!-- workflows:begin -->\n<!-- workflows:end -->\n<!-- workflows:begin -->\n<!-- workflows:end -->\n",
     "# Workflow\n",
+    revision,
   ), /invalid workflows markers/);
-  assert.throws(() => mergeAgents("<!-- workflows:end -->\n<!-- workflows:begin -->\n", "# Workflow\n"), /marker order/);
+  assert.throws(() => mergeAgents("<!-- workflows:end -->\n<!-- workflows:begin -->\n", "# Workflow\n", revision), /marker order/);
 });
 
 test("validates routed stage files", () => {
@@ -1502,11 +1530,13 @@ test("installs AGENTS.md idempotently without changing host rules", () => {
     writeFileSync(path.join(workflowRoot, "templates", "AGENTS.template.md"), "# Workflow\n", "utf8");
     writeFileSync(path.join(root, "AGENTS.md"), "# Host rules\n", "utf8");
 
-    assert.equal(installAgents({ projectRoot: root, workflowRoot }), "updated");
+    const revision = "d".repeat(40);
+    assert.equal(installAgents({ projectRoot: root, workflowRoot, revision }), "updated");
     const installed = readFileSync(path.join(root, "AGENTS.md"), "utf8");
     assert.match(installed, /^# Host rules/);
+    assert.match(installed, new RegExp(`<!-- workflows-revision: ${revision} -->`));
     assert.match(installed, /# Workflow/);
-    assert.equal(installAgents({ projectRoot: root, workflowRoot }), "unchanged");
+    assert.equal(installAgents({ projectRoot: root, workflowRoot, revision }), "unchanged");
     assert.equal(readFileSync(path.join(root, "AGENTS.md"), "utf8"), installed);
   } finally {
     rmSync(root, { recursive: true, force: true });

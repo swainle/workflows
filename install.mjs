@@ -70,7 +70,21 @@ function markerMatches(text, marker) {
   return [...text.matchAll(new RegExp(`^${escaped}\\r?$`, "gm"))];
 }
 
-export function mergeAgents(existing, template) {
+export function readWorkflowRevision(workflowRoot = WORKFLOW_ROOT, runner = spawnSync) {
+  const result = runner("git", ["rev-parse", "HEAD"], {
+    cwd: workflowRoot,
+    encoding: "utf8",
+    stdio: ["ignore", "pipe", "inherit"],
+  });
+  if (result.error) throw result.error;
+  if (result.status !== 0) throw new Error("Unable to read workflows revision.");
+  const revision = result.stdout.trim();
+  if (!/^[0-9a-f]{40,64}$/i.test(revision)) throw new Error("Invalid workflows revision.");
+  return revision.toLowerCase();
+}
+
+export function mergeAgents(existing, template, revision) {
+  if (!/^[0-9a-f]{40,64}$/i.test(revision)) throw new Error("Invalid workflows revision.");
   const starts = markerMatches(existing, START);
   const ends = markerMatches(existing, END);
   if (starts.length !== ends.length || starts.length > 1) throw new Error("Root AGENTS.md has invalid workflows markers.");
@@ -80,6 +94,7 @@ export function mergeAgents(existing, template) {
   const block = [
     START,
     "<!-- Managed by docs/workflows/install.mjs; edit docs/workflows/templates/AGENTS.template.md instead. -->",
+    `<!-- workflows-revision: ${revision.toLowerCase()} -->`,
     body,
     END,
   ].join(newline);
@@ -112,13 +127,14 @@ export function validateStageReferences(template, workflowRoot = WORKFLOW_ROOT) 
 export function installAgents({
   projectRoot = PROJECT_ROOT,
   workflowRoot = WORKFLOW_ROOT,
+  revision = readWorkflowRevision(workflowRoot),
 } = {}) {
   const source = path.join(workflowRoot, "templates", "AGENTS.template.md");
   const target = path.join(projectRoot, "AGENTS.md");
   const template = readFileSync(source, "utf8");
   validateStageReferences(template, workflowRoot);
   const existing = existsSync(target) ? readFileSync(target, "utf8") : "";
-  const content = mergeAgents(existing, template);
+  const content = mergeAgents(existing, template, revision);
   if (content === existing) return "unchanged";
 
   const temporary = `${target}.${process.pid}.tmp`;
@@ -138,8 +154,10 @@ export async function main() {
     if (!process.argv.includes(UPDATED_FLAG)) {
       return branch ? installBranch(branch) : updateCurrentBranch();
     }
-    const result = installAgents();
+    const revision = readWorkflowRevision();
+    const result = installAgents({ revision });
     console.log(`${result === "unchanged" ? "Root AGENTS.md is already up to date" : `${result === "created" ? "Created" : "Updated"} root AGENTS.md`}.`);
+    console.log(`Workflows revision: ${revision}`);
     console.log(branch ? `Workflows branch: ${branch}` : "Workflows ref: current checkout");
     return 0;
   } catch (error) {
