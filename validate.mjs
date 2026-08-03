@@ -935,6 +935,7 @@ test("supports frontend and backend component design modes", () => {
   assert.match(backend, /表格存在名称精确为“编号”的列/);
   assert.match(backend, /找不到三级标题或编号时，标识停在已经识别到的二级或三级标题/);
   assert.match(backend, /`@design <设计标识>` 标记唯一主实现/);
+  assert.match(backend, /每个 Markdown 文件都在一级标题下用一句简短正文说明该文件的职责/);
   assert.match(backend, /\*\*What\*\*：提供“文件关系与设计顺序”功能/);
   assert.match(backend, /ddd --> c3/);
   assert.match(backend, /ddd --> interface/);
@@ -1000,6 +1001,29 @@ test("supports frontend and backend component design modes", () => {
     "component.md",
   ]) {
     assert.ok(backend.includes(`**What**：提供“\`${file}\`”功能`), `missing Backend template for ${file}`);
+  }
+  for (const responsibility of [
+    "展示当前 Backend 的稳定组件边界、运行单元及外部依赖。",
+    "定义当前 Backend 的领域语言、业务规则、状态变化和一致性边界。",
+    "定义当前 Backend 对外提供的操作边界、协议版本和契约索引。",
+    "定义当前 Backend 的身份来源、信任边界及凭据生命周期。",
+    "定义当前 Backend 的授权模型、权限执行点和数据范围。",
+    "定义不可信输入从标准化到领域校验的边界、顺序和错误映射。",
+    "定义当前 Backend 的稳定错误分类、协议映射、重试和脱敏策略。",
+    "定义当前 Backend 的数据所有权、持久化边界和一致性策略。",
+    "展示当前 Backend 的代码单元、分层结构及依赖方向。",
+    "约束当前 Backend 的代码架构、目录命名、执行管线和依赖方向。",
+    "定义当前 Backend 的配置项、来源、覆盖优先级和校验方式。",
+    "定义当前 Backend 敏感值的来源、注入、轮换和泄漏处置要求。",
+    "定义当前 Backend 的日志、审计、指标、追踪、健康和告警信号。",
+    "定义当前 Backend 的测试层级、稳定用例、测试支持和执行方式。",
+    "定义当前 Backend 各运行单元的进程模型、生命周期、依赖和恢复要求。",
+    "定义当前 Backend 向部署阶段交付的构建、迁移、发布和回滚要求。",
+    "汇总当前 Backend 的职责边界、设计索引和完整文件结构。",
+    "定义由现有进程托管的后台任务及其触发、并发和执行流程。",
+    "定义由独立 Worker 执行的异步任务及其消息契约、投递语义和运行流程。",
+  ]) {
+    assert.match(backend, new RegExp(`^# .+\\r?\\n\\r?\\n${responsibility}$`, "m"));
   }
   assert.match(backend, /`component\.md`、`architecture\.md`、`coding\.md` 和 `testing\.md` 始终创建/);
   assert.match(backend, /## 稳定错误码[\s\S]*## 协议映射[\s\S]*\| 错误码 \| 协议 \| Code \| 对外含义 \|/);
@@ -1398,7 +1422,7 @@ test("defines single-purpose component documents and horizontal-first code diagr
   assert.match(component, /# 组件架构\r?\n\r?\n```mermaid\r?\nC4Component/);
   assert.match(component, /不绘制关系连线/);
   assert.doesNotMatch(component, /\b(?:BiRel|Rel(?:_[DULR])?)\(/);
-  assert.match(component, /`architecture\.md` 只包含一级标题和一个 `C4Component` Mermaid 代码块/);
+  assert.match(component, /`architecture\.md` 只包含一级标题、标题下的一句文件职责说明和一个 `C4Component` Mermaid 代码块/);
   assert.match(component, /Container_Boundary\(caller_layout, "<展示或调用方>"\)/);
   assert.match(component, /Container_Boundary\(context_layout, "上下文"\)/);
   assert.match(component, /Container_Boundary\(infra_layout, "基础设施"\)/);
