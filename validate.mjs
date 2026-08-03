@@ -1129,7 +1129,7 @@ test("supports frontend and backend component design modes", () => {
     "定义当前 Backend 的数据访问、持久化边界和一致性策略。",
     "定义当前 Backend 的实现映射、执行管线、工程约束和测试规划。",
     "定义当前 Backend 的后台任务与独立 Worker 异步任务。",
-    "定义当前 Backend 的配置、密钥、可观测性、运行生命周期和部署交付要求。",
+    "定义当前 Backend 的配置、密钥、运行信号、运行单元和交付快照。",
     "汇总当前 Backend 的文件关系、职责边界、架构、设计索引和完整文件结构。",
   ]) {
     assert.match(backend, new RegExp(`^# .+\\r?\\n\\r?\\n${responsibility}$`, "m"));
@@ -1209,6 +1209,14 @@ test("supports frontend and backend component design modes", () => {
   assert.match(backend, /## 数据保留[\s\S]*\| 编号 \| 数据 \| 保留要求 \| 清理或归档 \|/);
   assert.doesNotMatch(backend, /## 数据所有权|## Repository|## 查询模型|## 索引策略|## 迁移策略|## Schema 引用/);
   assert.match(backend, /业务写入与 Outbox 记录必须由同一 Unit of Work 原子提交/);
+  assert.match(backend, /# 运行与交付[\s\S]*\| 编号 \| 配置项 \| 用途 \| 必需 \| 默认值 \| 启动校验 \|/);
+  assert.match(backend, /## 密钥[\s\S]*\| 编号 \| 密钥 \| 用途 \| 必需 \| 轮换与失效要求 \|/);
+  assert.match(backend, /## 运行信号[\s\S]*### 日志与审计[\s\S]*### 指标与追踪[\s\S]*### 健康检查/);
+  assert.doesNotMatch(backend, /### 告警与脱敏|### 配置清单|### 来源与覆盖优先级|### 启动校验|### 密钥清单|### 注入与轮换|### 泄漏处理|## 可观测性|## 运行要求|## 部署交付/);
+  assert.match(backend, /## 运行单元[\s\S]*\| 编号 \| 运行单元 \| 入口 \| 依赖 \| 健康检查 \| 资源要求 \| 关闭与恢复 \|/);
+  assert.match(backend, /## 交付要求[\s\S]*### 20260804045512[\s\S]*```bash[\s\S]*# 构建交付物。[\s\S]*# 执行初始化或迁移[\s\S]*# 按确认的顺序发布。[\s\S]*# 发布失败时执行/);
+  assert.match(backend, /14 位本地时间 `YYYYMMDDHHmmss`[\s\S]*最新快照表示当前有效交付要求，已有快照不得修改/);
+  assert.match(backend, /每个交付快照只使用一个与实际 Shell 匹配的代码块[\s\S]*使用 Shell 注释就近说明条件/);
   assert.match(backend, /最后更新 `component\.md` 开头的文件关系、组件图、代码结构、设计索引和完整文件树/);
   assert.match(backend, /`目录结构` 递归列出全部应受版本控制的生产、测试和配置文件/);
   assert.match(component, /\| `engineering\.md` \| 编码与测试 \| 始终 \|/);

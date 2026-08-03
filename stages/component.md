@@ -124,7 +124,7 @@ Command、Handler、Factory、DomainService 或 DomainEvent。
 
 一个逻辑 Backend 组件可以按实际需要提供 HTTP/API 和消息 Worker 等独立运行入口；Outbox Relay 托管在
 现有 API 或 Worker 进程内，不作为独立进程或运行入口。进程不是工作流组件的划分单位，不得仅因入口、启动命令或扩缩容方式不同而拆成多个组件。这些运行单元
-共享当前组件的业务边界和设计目录，可以来自同一构建产物，但必须在 `operations.md` 分别声明入口、启动命令、
+共享当前组件的业务边界和设计目录，可以来自同一构建产物，但必须在 `operations.md` 分别声明入口、
 依赖、健康检查、关闭方式和故障恢复；不需要的运行单元不得预先创建。
 
 多个限界上下文只在确有不同统一语言和模型边界时建立。每个上下文拥有自己的应用用例和领域模型；
@@ -213,7 +213,7 @@ Command、Handler、Factory、DomainService 或 DomainEvent。
 | `data.md` | 数据与一致性 | 存在持久化或查询 | 数据访问、Unit of Work、Outbox/Inbox、并发、数据演进和保留 |
 | `engineering.md` | 编码与测试 | 始终 | 实现映射、执行管线、工程约束和测试规划 |
 | `jobs.md` | 后台与异步任务 | 存在后台任务或独立 Worker | 任务元信息、功能点、运行时序、投递和幂等 |
-| `operations.md` | 运行与交付 | 存在配置、密钥、可观测、进程或部署要求 | 配置、密钥、信号、进程、资源、迁移、发布和回滚 |
+| `operations.md` | 运行与交付 | 存在配置、密钥、可观测、进程或部署要求 | 配置、密钥、运行信号、运行单元和交付快照 |
 | `openapi.json` | 同步 HTTP API 契约 | 当前组件提供同步接口 | 路径、操作、Schema、错误和示例 |
 | `asyncapi.json` | 异步事件契约 | 当前组件提供事件 | Channel、Message、生产者和消费者 |
 | `schema.dbml` | 持久化数据结构和关系 | 当前组件拥有持久化数据模型 | 表、字段、索引和关系 |
@@ -533,6 +533,7 @@ Backend 专用 Markdown、机器可读模型及其固定结构统一由
   Relay、Processor 和 Worker 功能放入 `jobs.md`，运行入口放入 `operations.md`。
 - `engineering.md` 在一级标题职责说明后用 Mermaid 维护依赖方向；实现映射不记录文件路径，目录约定、文件命名和编码规范继续使用各自三级标题并统一归入“工程约束”。Fixture 与测试支持保留独立二级标题，不维护测试执行命令。
 - `data.md` 将 Repository、查询模型及其他访问对象统一放入“数据访问”表；类型只使用仓储、查询模型、缓存、对象存储、搜索索引或事件存储，对象填写稳定接口或访问对象，操作只列关键稳定方法名。DAO、Mapper、ORM 和具体存储技术放入 `engineering.md`。
+- `operations.md` 用表格统一维护配置、密钥和运行单元；“运行信号”只保留日志与审计、指标与追踪、健康检查。“交付要求”以 14 位本地时间三级标题保存交付快照，并在单个 Shell 代码块中用注释说明有序操作；实际部署资源仍由 `<组件 deploy>` 维护。
 - 数据库字段和约束、HTTP Schema、异步消息结构分别由 `schema.dbml`、`openapi.json` 和 `asyncapi.json` 维护，不写入 `domain.md`。
 - 轻量 Backend 不创建 `domain.md`，只在 `component.md` 概述记录业务词汇、边界、设计强度和判断事实；
   不虚构聚合、实体、值对象、领域服务或领域事件。
