@@ -1068,10 +1068,14 @@ test("supports frontend and backend component design modes", () => {
   assert.match(backend, /\*\*What\*\*：定义 Backend 设计文件的事实所有权、单向依赖和生成顺序/);
   assert.match(backend, /领域层不得依赖框架、ORM、HTTP、JWT、授权引擎或消息队列/);
   assert.match(backend, /\*\*What\*\*：定义限界上下文内的领域模型、统一语言、业务规则、事件、状态和业务一致性[\s\S]*# 领域设计[\s\S]*## <限界上下文>/);
-  assert.match(backend, /### 领域模型[\s\S]*\| 类型 \| 名称 \| 职责 \| 承担的领域命令 \|[\s\S]*### 统一语言/);
+  assert.match(backend, /### 领域模型[\s\S]*\| 类型 \| 名称 \| 所属聚合 \| 职责 \| 领域命令 \|[\s\S]*### 统一语言/);
   assert.doesNotMatch(backend, /### 领域命令/);
-  assert.match(backend, /`聚合根（Aggregate Root）`[\s\S]*`实体（Entity）`[\s\S]*`值对象（Value Object）`[\s\S]*`领域服务（Domain Service）`[\s\S]*`领域策略（Domain Policy）`/);
-  assert.match(backend, /“承担的领域命令”表示该模型拥有命令触发的业务行为和不变量，不是调用方或 Application Handler/);
+  assert.match(backend, /“类型”只使用中文：`聚合根`、`实体`、`值对象`、`领域服务` 或 `领域策略`/);
+  assert.doesNotMatch(backend, /聚合根（Aggregate Root）|实体（Entity）|值对象（Value Object）|领域服务（Domain Service）|领域策略（Domain Policy）/);
+  assert.match(backend, /聚合根填写自身名称；实体只能填写一个聚合根[\s\S]*通用值对象填写 `上下文共享`[\s\S]*领域服务和领域策略填写 `上下文级`/);
+  assert.match(backend, /跨聚合关系只持有对方聚合根的稳定 ID，不直接持有其内部实体/);
+  assert.match(backend, /“领域命令”表示该模型直接承担的业务意图，不是调用方、方法清单或 Application Handler/);
+  assert.match(backend, /领域模型表不增加不变量列；不变量和其他业务规则只在“业务规则”表维护/);
   assert.match(backend, /\| 对象 \| 术语 \| 定义 \|[\s\S]*### 业务规则[\s\S]*\| 编号 \| 类型 \| 对象或范围 \| 规则 \| 违反结果 \|/);
   assert.match(backend, /`不变量`[\s\S]*`前置条件`[\s\S]*`资格规则`[\s\S]*`计算规则`[\s\S]*`业务策略`[\s\S]*`跨聚合规则`/);
   assert.match(backend, /### 领域事件[\s\S]*\| 事件 \| 触发条件 \| 字段 \|/);
@@ -1083,7 +1087,8 @@ test("supports frontend and backend component design modes", () => {
   assert.doesNotMatch(backend, /### 领域结构/);
   assert.match(component, /一个组件默认对应一个限界上下文/);
   assert.match(component, /完整 DDD 模式的每个限界上下文必须包含领域模型、统一语言、业务规则和业务一致性/);
-  assert.match(component, /领域模型表使用“类型、名称、职责、承担的领域命令”四列/);
+  assert.match(component, /领域模型表使用“类型、名称、所属聚合、职责、领域命令”五列/);
+  assert.match(component, /通用值对象填写“上下文共享”，领域服务和领域策略填写“上下文级”/);
   assert.match(backend, /仅当以下条件全部成立时使用轻量 Backend/);
   assert.match(backend, /上述任一复杂度信号存在时使用完整 DDD/);
   assert.match(backend, /`domain\.md` 仅在完整 DDD 模式创建/);
