@@ -208,7 +208,7 @@ Command、Handler、Factory、DomainService 或 DomainEvent。
 | 文件 | 作用 | 创建条件 | 可修改内容 |
 |---|---|---|---|
 | `interface.md` | 接口、输入与错误设计 | 始终 | 入口、协议、操作、校验、错误、幂等、兼容和契约索引 |
-| `domain.md` | 领域设计 | 完整 DDD 模式 | 领域命令、统一语言、业务规则、一致性及按需的事件和图 |
+| `domain.md` | 领域设计 | 完整 DDD 模式 | 领域命令、统一语言、业务规则、业务一致性及按需的事件和图 |
 | `security.md` | 认证与授权 | 存在身份或权限要求 | 身份、凭据、会话、权限模型、执行点和数据范围 |
 | `data.md` | 数据与一致性 | 存在持久化或查询 | Repository、查询、Unit of Work、Outbox/Inbox、并发、迁移和保留 |
 | `engineering.md` | 编码与测试 | 始终 | 架构映射、目录命名、编码、依赖方向、测试规划和命令 |
@@ -513,13 +513,14 @@ Backend 专用 Markdown、机器可读模型及其固定结构统一由
 
 - Backend 只使用 `component.md`、`domain.md`、`interface.md`、`security.md`、`data.md`、`engineering.md`、
   `jobs.md` 和 `operations.md`；后三个基础文件中的 `component.md`、`interface.md`、`engineering.md` 始终创建，其余按需创建。
+- Backend Markdown 最多使用三级标题；需要在三级标题下继续区分时，测试用例使用 `- **<限界上下文>-<测试层级>-<对象或能力>-<三位序号>**`（例如 `- **AUTH-DOM-USER-001**`），任务功能点或规则使用 `- **001**：` 编号项。测试用例的 `Desc`、`Given`、`When`、`Then` 使用“字段 / 内容”小表格记录。
 - `component.md` 开头必须先展示实际文件关系，再展示组件架构、代码结构、设计索引和完整文件树；Backend 不创建独立
   `architecture.md`、`structure.md`、`coding.md` 或 `testing.md`。
-- 完整 DDD 模式的 `domain.md` 按限界上下文分章，只记录领域命令、统一语言、业务规则、一致性及按需的事件和图，
+- 完整 DDD 模式的 `domain.md` 按限界上下文分章，只记录领域命令、统一语言、业务规则、业务一致性及按需的事件和图，
   不复制代码包、Adapter、技术依赖或完整代码签名。
 - 一个组件默认对应一个限界上下文；只有组件内确实存在多个独立语言和模型边界时才分别列出，
   边界表明应拆分组件时切换 `<system>` 调整组件划分。
-- 完整 DDD 模式的每个限界上下文必须包含领域命令、统一语言、业务规则和一致性；领域事件、状态图和时序图
+- 完整 DDD 模式的每个限界上下文必须包含领域命令、统一语言、业务规则和业务一致性；领域事件、状态图和时序图
   仅在实际存在时保留，各上下文独立维护自己的术语、规则、生命周期、协作和事件。
 - 领域事件使用过去时表达聚合成功改变后发生的领域事实，仅在存在真实消费方或业务反应时创建；
   它不是命令，也不自动等于集成事件或事件溯源记录。对外发布时映射为独立、可版本化的集成事件，
@@ -644,7 +645,7 @@ accessibility:
 - 已执行组件文件树自动校验且没有遗漏实际受版本控制文件；要求设计与当前文件完全一致时使用了 `--strict`。
 - 非 Backend 的 `architecture.md` 只有一级标题和一个 `C4Component` Mermaid 图；Backend 的同类图位于 `component.md`。
 - 需要长期维护代码结构时，`structure.md` 使用一个代码总览和按业务能力划分的详细 `flowchart LR`；总览不展示函数，详细章节只展示关键公开函数，所有图均为主分层从左到右、分层内部从上到下。
-- Backend 完整 DDD 模式下，`domain.md` 的每个限界上下文记录领域命令、统一语言、业务规则和一致性，
+- Backend 完整 DDD 模式下，`domain.md` 的每个限界上下文记录领域命令、统一语言、业务规则和业务一致性，
   按需记录领域事件、状态图和时序图；不创建独立的 `state.md` 或 `sequence.md`，不复制系统流程、C4、DBML 或契约内容。
 - Backend 轻量模式下不创建 `domain.md`，`component.md` 概述已记录轻量判定条件且没有遗漏任何完整 DDD 触发信号。
 - Backend 模式下始终创建 `engineering.md`；工程规则与实际技术栈一致，`component.md` 的完整文件树符合其目录和命名规则，
