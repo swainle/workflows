@@ -1141,7 +1141,16 @@ test("supports frontend and backend component design modes", () => {
   assert.match(backend, /操作编号在“操作定义”的全部业务能力分组内使用唯一且稳定的三位编号并从 `001` 开始/);
   assert.match(backend, /`operationId` 与 OpenAPI 完全一致并在组件内唯一/);
   assert.match(backend, /“关联需求”只列当前操作直接实现的 FR、AC、BR 或 PERM 完整编号[\s\S]*不递归展开需求关系/);
-  assert.match(backend, /Markdown 操作表不复制字段/);
+  assert.match(backend, /## 输入处理[\s\S]*### `<operationId>`[\s\S]*\| 编号 \| 字段 \| 正则 \| 错误码 \| 说明 \|[\s\S]*\| 001 \| `<field>` \| `<regex>` \|/);
+  assert.doesNotMatch(backend, /### 标准化|### 格式校验|### 领域校验/);
+  assert.match(backend, /编号在每个 `operationId` 分组内唯一、稳定并从 `001` 开始/);
+  assert.match(backend, /“字段”只填写机器契约中的字段名，不增加来源、jq、JSONPath 或其他路径语法/);
+  assert.match(backend, /“正则”使用不带语言分隔符的表达式并与 OpenAPI `pattern` 一致/);
+  assert.match(backend, /“输入处理”只维护格式校验[\s\S]*业务前置条件和不变量由 `domain\.md` 维护/);
+  assert.match(backend, /## JSON 响应[\s\S]*```json[\s\S]*"code": "SUCCESS"[\s\S]*"message": "操作成功"[\s\S]*"data": \{\}[\s\S]*```/);
+  assert.match(backend, /外层固定为 `code`、`message`、`data`[\s\S]*没有数据或失败时为 `null`/);
+  assert.match(backend, /HTTP 状态码由“错误码”表的 `Code` 决定，具体 `data` Schema 由 OpenAPI 维护/);
+  assert.match(backend, /Markdown 不复制 Schema 字段，只维护输入正则、固定响应外层、稳定语义和引用/);
   assert.match(backend, /## 错误处理[\s\S]*### 错误分类[\s\S]*### 错误码[\s\S]*\| 编号 \| 错误码 \| Code \| 含义 \| 产生位置 \| 是否可重试 \|/);
   assert.doesNotMatch(backend, /### 稳定错误码|### 协议映射|\| 错误码 \| 协议 \| Code \| 对外含义 \|/);
   assert.match(backend, /错误编号在“错误码”表内使用唯一且稳定的三位编号并从 `001` 开始/);
