@@ -323,7 +323,7 @@ test("describes prompt capabilities with numbered five-point definitions", () =>
     ["stages/testing.md", { prefix: "AI-TEST", count: 8 }],
     ["stages/acceptance.md", { prefix: "AI-ACCEPTANCE", count: 9 }],
     ["stages/deploy.md", { prefix: "AI-DEPLOY", count: 10 }],
-    ["templates/backend-design.template.md", { prefix: "AI-BACKEND", count: 24 }],
+    ["templates/backend-design.template.md", { prefix: "AI-BACKEND", count: 12 }],
   ]);
 
   for (const [file, { prefix, count }] of expected) {
@@ -518,7 +518,7 @@ test("requires local adaptation declarations for backend mode examples", () => {
   const backend = readFileSync(path.join(WORKFLOW_ROOT, "templates/backend-design.template.md"), "utf8");
   const component = readFileSync(path.join(WORKFLOW_ROOT, "stages/component.md"), "utf8");
   assert.match(backend, /每个具体范例都必须就近包含单行提示 `> - 范例适配声明：<具体调整范围>`/);
-  assert.ok((backend.match(/^> - 范例适配声明：/gm) ?? []).length >= 17);
+  assert.ok((backend.match(/^> - 范例适配声明：/gm) ?? []).length >= 9);
   assert.doesNotMatch(backend, /^> - 根据实际情况修改\r?\n> 范例适配声明：/m);
   assert.match(component, /Backend 模板中的每个具体范例必须就近包含单行提示 `> - 范例适配声明：<具体调整范围>`/);
 });
@@ -916,8 +916,8 @@ test("supports frontend and backend component design modes", () => {
   assert.match(component, /### Backend 模式/);
   assert.match(component, /按可验证复杂度条件选择轻量 Backend 或完整 DDD/);
   assert.match(component, /完整读取\s+`docs\/workflows\/templates\/backend-design\.template\.md`/);
-  assert.match(component, /分析 → 结构 → 专项 → 模型 → 工程 → 交付/);
-  assert.match(component, /工程阶段按需完成\s*`background\.md`、`worker\.md`、C4/);
+  assert.match(component, /领域 → 接口 → 模型 → 工程 → 运行 → 汇总/);
+  assert.match(component, /按需完成 `jobs\.md`、`operations\.md`/);
   assert.doesNotMatch(component, /\| `process\.md` \| 后端业务流程 \|/);
   assert.match(component, /组件设计目录不创建 `process\.md`/);
   assert.match(component, /每个适用文件使用模板规定的标题名称和顺序/);
@@ -937,24 +937,23 @@ test("supports frontend and backend component design modes", () => {
   assert.match(backend, /`@design <设计标识>` 标记唯一主实现/);
   assert.match(backend, /每个 Markdown 文件都在一级标题下用一句简短正文说明该文件的职责/);
   assert.match(backend, /\*\*What\*\*：提供“文件关系与设计顺序”功能/);
-  assert.match(backend, /ddd --> c3/);
-  assert.match(backend, /ddd --> interface/);
-  assert.match(backend, /c3 --> coding/);
-  assert.match(backend, /interface --> coding/);
-  assert.match(backend, /coding --> c4/);
-  assert.doesNotMatch(backend, /c4 --> coding/);
-  assert.doesNotMatch(backend, /c3 --> ddd/);
-  assert.match(backend, /同级创建或更新 `architecture\.md` 和 `interface\.md`/);
-  assert.match(backend, /不互相作为设计前置/);
-  assert.match(backend, /\*\*What\*\*：提供“`architecture\.md`”功能[\s\S]*```mermaid\r?\nC4Component/);
-  assert.match(backend, /title backend 组件图/);
-  assert.match(backend, /Container_Boundary\(consumer_layout, "消息消费者"\)[\s\S]*System_Ext\(worker, "worker"/);
-  assert.match(backend, /C3 图不绘制关系连线，不使用 `Rel`、`BiRel` 或带方向的关系语法/);
+  assert.match(backend, /domain --> interface/);
+  assert.match(backend, /domain --> data/);
+  assert.match(backend, /interface --> engineering/);
+  assert.match(backend, /engineering --> jobs/);
+  assert.match(backend, /engineering --> operations/);
+  assert.match(backend, /operations --> component/);
+  assert.doesNotMatch(backend, /component --> engineering/);
+  assert.match(backend, /最后更新 `component\.md` 开头的文件关系/);
+  assert.match(backend, /\*\*What\*\*：提供“`component\.md`”功能[\s\S]*```mermaid\r?\nC4Component/);
+  assert.match(backend, /title <组件名称> 组件图/);
+  assert.match(backend, /Container_Boundary\(context_layout, "上下文"\)/);
+  assert.match(backend, /无关系连线的 `C4Component`/);
   assert.doesNotMatch(backend, /\b(?:BiRel|Rel(?:_[DULR])?)\(/);
   assert.match(backend, /flowchart LR/);
-  assert.match(backend, /\*\*What\*\*：提供“执行流程”功能/);
-  assert.match(backend, /不得从框架、数据库表或现有源码反推业务模型/);
-  assert.match(backend, /\*\*What\*\*：提供“`ddd\.md`”功能[\s\S]*# DDD 设计文档[\s\S]*## <ContextName> <中文名称>/);
+  assert.match(backend, /\*\*What\*\*：提供“文件关系与设计顺序”功能/);
+  assert.match(backend, /领域层不得依赖框架、ORM、HTTP、JWT、授权引擎或消息队列/);
+  assert.match(backend, /\*\*What\*\*：提供“`domain\.md`”功能[\s\S]*# 领域设计[\s\S]*## <限界上下文>/);
   assert.match(backend, /### 领域命令[\s\S]*\| 命令 \| 说明 \|[\s\S]*### 统一语言/);
   assert.match(backend, /\| 对象 \| 术语 \| 定义 \|[\s\S]*### 业务规则[\s\S]*\| 对象 \| 规则 \| 违反结果 \|/);
   assert.match(backend, /### 领域事件[\s\S]*\| 事件 \| 触发条件 \| 字段 \|/);
@@ -962,82 +961,55 @@ test("supports frontend and backend component design modes", () => {
   assert.match(backend, /### 一致性[\s\S]*\| 事务边界 \| 要求 \|/);
   assert.match(backend, /### 时序图[\s\S]*```mermaid\r?\nsequenceDiagram/);
   assert.doesNotMatch(backend, /### 领域结构/);
-  assert.doesNotMatch(backend, /## 一致性与补偿/);
-  assert.doesNotMatch(backend, /## 聚合规则/);
   assert.match(component, /一个组件默认对应一个限界上下文/);
   assert.match(component, /完整 DDD 模式的每个限界上下文必须包含领域命令、统一语言、业务规则和一致性/);
   assert.match(component, /领域命令表只保留“命令、说明”两列/);
   assert.match(backend, /仅当以下条件全部成立时使用轻量 Backend/);
   assert.match(backend, /上述任一复杂度信号存在时使用完整 DDD/);
-  assert.match(backend, /`ddd\.md` 仅在完整 DDD 模式创建/);
+  assert.match(backend, /`domain\.md` 仅在完整 DDD 模式创建/);
   assert.match(component, /不创建独立的 `state\.md` 或\s+`sequence\.md`/);
   assert.doesNotMatch(backend, /## `process\.md`/);
-  assert.match(backend, /system_process\["docs\/system\/process\.md<br\/>跨组件业务流程"\]/);
-  assert.match(backend, /system_process -\.->\|"引用，不复制"\| ddd/);
+  assert.match(backend, /source\["需求与系统规范"\]/);
+  assert.match(backend, /source --> domain/);
   assert.doesNotMatch(backend, /## `state\.md`/);
   assert.doesNotMatch(backend, /## `sequence\.md`/);
-  assert.match(backend, /`interface\.md` 对应 `openapi\.json` 或 `asyncapi\.json`/);
-  assert.match(backend, /`authorization\.md` 对应 `authorization\.fga`/);
-  assert.match(backend, /`data-access\.md` 对应 `schema\.dbml`/);
+  assert.match(backend, /`openapi\.json`[\s\S]*由 `interface\.md` 驱动/);
+  assert.match(backend, /`authorization\.fga`[\s\S]*由 `security\.md` 驱动/);
+  assert.match(backend, /`schema\.dbml`[\s\S]*由 `data\.md` 驱动/);
   for (const file of [
-    "architecture.md",
-    "ddd.md",
-    "interface.md",
-    "authentication.md",
-    "authorization.md",
-    "validation.md",
-    "errors.md",
-    "data-access.md",
-    "coding.md",
-    "background.md",
-    "worker.md",
-    "structure.md",
-    "configuration.md",
-    "secrets.md",
-    "observability.md",
-    "testing.md",
-    "runtime.md",
-    "deployment.md",
     "component.md",
+    "domain.md",
+    "interface.md",
+    "security.md",
+    "data.md",
+    "engineering.md",
+    "jobs.md",
+    "operations.md",
   ]) {
     assert.ok(backend.includes(`**What**：提供“\`${file}\`”功能`), `missing Backend template for ${file}`);
   }
   for (const responsibility of [
-    "展示当前 Backend 的稳定组件边界、运行单元及外部依赖。",
     "定义当前 Backend 的领域语言、业务规则、状态变化和一致性边界。",
-    "定义当前 Backend 对外提供的操作边界、协议版本和契约索引。",
-    "定义当前 Backend 的身份来源、信任边界及凭据生命周期。",
-    "定义当前 Backend 的授权模型、权限执行点和数据范围。",
-    "定义不可信输入从标准化到领域校验的边界、顺序和错误映射。",
-    "定义当前 Backend 的稳定错误分类、协议映射、重试和脱敏策略。",
+    "定义当前 Backend 的操作边界、输入处理、错误语义、幂等、兼容和契约索引。",
+    "定义当前 Backend 的身份认证、权限控制和安全失败处理。",
     "定义当前 Backend 的数据所有权、持久化边界和一致性策略。",
-    "展示当前 Backend 的代码单元、分层结构及依赖方向。",
-    "约束当前 Backend 的代码架构、目录命名、执行管线和依赖方向。",
-    "定义当前 Backend 的配置项、来源、覆盖优先级和校验方式。",
-    "定义当前 Backend 敏感值的来源、注入、轮换和泄漏处置要求。",
-    "定义当前 Backend 的日志、审计、指标、追踪、健康和告警信号。",
-    "定义当前 Backend 的测试层级、稳定用例、测试支持和执行方式。",
-    "定义当前 Backend 各运行单元的进程模型、生命周期、依赖和恢复要求。",
-    "定义当前 Backend 向部署阶段交付的构建、迁移、发布和回滚要求。",
-    "汇总当前 Backend 的职责边界、设计索引和完整文件结构。",
-    "定义由现有进程托管的后台任务及其触发、并发和执行流程。",
-    "定义由独立 Worker 执行的异步任务及其消息契约、投递语义和运行流程。",
+    "约束当前 Backend 的代码架构、目录命名、执行管线、依赖方向和测试规划。",
+    "定义当前 Backend 的后台任务与独立 Worker 异步任务。",
+    "定义当前 Backend 的配置、密钥、可观测性、运行生命周期和部署交付要求。",
+    "汇总当前 Backend 的文件关系、职责边界、架构、设计索引和完整文件结构。",
   ]) {
     assert.match(backend, new RegExp(`^# .+\\r?\\n\\r?\\n${responsibility}$`, "m"));
   }
-  assert.match(backend, /`component\.md`、`architecture\.md`、`coding\.md` 和 `testing\.md` 始终创建/);
-  assert.match(backend, /## 稳定错误码[\s\S]*## 协议映射[\s\S]*\| 错误码 \| 协议 \| Code \| 对外含义 \|/);
-  assert.match(backend, /\| `AUTH_FORBIDDEN` \| HTTP \| `403` \| 当前身份无权执行该操作 \|/);
-  assert.match(backend, /`Code` 是该错误映射到当前协议后的状态码，例如 HTTP `403`/);
-  assert.match(component, /\| `errors\.md` \| 后端错误处理 \| 存在失败场景 \| 错误分类、稳定错误码、协议 Code 映射、重试和脱敏 \|/);
-  assert.match(backend, /coding --> c4/);
-  assert.match(backend, /coding --> testing/);
-  assert.match(backend, /coding --> component/);
-  assert.match(backend, /c4 --> component/);
-  assert.match(backend, /testing --> component/);
-  assert.match(backend, /# 编码规范[\s\S]*## 架构映射[\s\S]*## 目录约定[\s\S]*## 文件命名[\s\S]*## 编码规范[\s\S]*## 依赖方向[\s\S]*## 例外/);
-  assert.match(backend, /## 设计追溯[\s\S]*@design ddd:Auth:应用用例:001[\s\S]*@design-ref ddd:Auth:应用用例:001/);
-  assert.match(backend, /纯 Command、Query、Result、DTO、ORM Record/);
+  assert.match(backend, /始终创建 `component\.md`、`interface\.md` 和 `engineering\.md`/);
+  assert.match(backend, /### 稳定错误码[\s\S]*### 协议映射[\s\S]*\| 错误码 \| 协议 \| Code \| 对外含义 \|/);
+  assert.match(backend, /`Code` 是当前协议状态码，例如 HTTP `403`/);
+  assert.match(component, /\| `interface\.md` \| 接口、输入与错误设计 \| 始终 \|/);
+  assert.match(backend, /engineering --> jobs/);
+  assert.match(backend, /engineering --> operations/);
+  assert.match(backend, /engineering --> component/);
+  assert.match(backend, /operations --> component/);
+  assert.match(backend, /# 工程设计[\s\S]*## 架构映射[\s\S]*## 目录约定[\s\S]*## 文件命名[\s\S]*## 编码规范[\s\S]*## 依赖方向[\s\S]*## 测试策略/);
+  assert.match(backend, /@design <设计标识>[\s\S]*@design-ref <设计标识>/);
   assert.match(backend, /## 应用执行管线[\s\S]*### Command Bus[\s\S]*\| Command \| Handler \| Middleware 顺序 \| Unit of Work \| Result \|/);
   assert.match(backend, /### 事务与消息代码[\s\S]*\| Unit of Work \| `<实现或 Middleware>`[\s\S]*\| Outbox Writer \| `<代码单元>`[\s\S]*\| Inbox \| `<代码单元>`/);
   assert.match(backend, /Command Bus 只在多个用例需要统一分派或共享 Middleware 时采用/);
@@ -1047,27 +1019,21 @@ test("supports frontend and backend component design modes", () => {
   assert.match(backend, /\| Aggregate \| `<subject>\.aggregate\.ts` \|/);
   assert.match(backend, /\| Entity \| `entity\.ts` 或 `<subject>\.entity\.ts` \|/);
   assert.match(backend, /\| Value Object \| `value-object\.ts` 或 `<subject>\.value-object\.ts` \|/);
-  assert.match(backend, /同一聚合或业务能力内只有字段、类型和简单校验的 Entity 可以合并到 `entity\.ts`/);
+  assert.match(backend, /同一聚合或能力内只有字段、类型和简单校验的 Entity、Value Object 可以合并/);
   assert.match(backend, /\| Domain Event \| `<event>\.event\.ts` \|/);
   assert.match(backend, /\| Repository Adapter \| `<subject>\.<technology>\.repository\.ts` \|/);
-  assert.match(backend, /不适用的角色直接删除/);
-  assert.match(backend, /精确且完整的文件树仍只由 `component\.md` 维护/);
+  assert.match(backend, /不适用的角色和章节直接删除/);
+  assert.match(backend, /精确生产与测试文件树只由 `component\.md` 维护/);
   assert.match(backend, /\| Unit of Work \| 入口 \| 参与写入 \| 原子要求 \| 回滚条件 \|/);
   assert.match(backend, /### Outbox[\s\S]*\| 生产用例 \| 事务内 Writer \| 集成事件 \| Relay 或 Publisher \| 投递语义 \|/);
   assert.match(backend, /### Inbox[\s\S]*\| 消费入口 \| 幂等键 \| 原子写入 \| 重复消息结果 \| 保留策略 \|/);
   assert.match(backend, /业务写入与 Outbox 记录必须由同一 Unit of Work 原子提交/);
-  assert.match(backend, /`structure\.md` 在实际采用时展示 Command Bus、Handler、Unit of Work、Outbox Writer、Inbox、Task、Relay、Processor 和 Worker/);
-  assert.match(backend, /最后读取 `coding\.md`、`testing\.md` 和实际存在的 `background\.md`、`worker\.md`、`structure\.md` 并更新 `component\.md`/);
-  assert.match(backend, /目录与文件命名遵循 `coding\.md`；存在 `structure\.md` 时，代码单元、分层和依赖方向与其保持一致/);
-  assert.match(backend, /目录树必须符合\s*`coding\.md` 的架构映射、目录职责和文件命名规则/);
-  assert.match(backend, /存在 `structure\.md` 时还必须覆盖其中实际代码单元，并保持稳定名称、\s*分层和依赖方向一致/);
-  assert.match(backend, /必须覆盖 `testing\.md` 中实际测试文件、Fixture、支持代码、配置和精确 `Src`/);
-  assert.match(component, /\| `coding\.md` \| 后端编码规范 \| 始终 \|/);
-  assert.match(component, /Command Bus 与 Handler\/Middleware 映射放入 `coding\.md`/);
-  assert.match(component, /`component\.md` 的完整文件树符合其目录和命名规则/);
-  assert.match(component, /Backend 存在 `structure\.md` 时，`component\.md` 的完整文件树覆盖其中实际代码单元/);
-  assert.match(component, /Backend 的 `component\.md` 读取 `testing\.md`/);
-  assert.match(development, /任何生产代码任务都必须读取索引中的 `coding\.md`/);
+  assert.match(backend, /最后更新 `component\.md` 开头的文件关系、组件图、代码结构、设计索引和完整文件树/);
+  assert.match(backend, /`目录结构` 递归列出全部应受版本控制的生产、测试和配置文件/);
+  assert.match(component, /\| `engineering\.md` \| 编码与测试 \| 始终 \|/);
+  assert.match(component, /Command Bus、Handler\/Middleware 和测试规划放入 `engineering\.md`/);
+  assert.match(component, /Backend 的 `component\.md` 完整文件树覆盖 `engineering\.md`/);
+  assert.match(development, /Backend 生产代码任务必须读取索引中的 `engineering\.md`/);
   for (const file of ["openapi.json", "asyncapi.json", "authorization.fga", "schema.dbml"]) {
     assert.ok(backend.includes(`### \`${file}\``), `missing Backend model template for ${file}`);
   }
@@ -1081,31 +1047,17 @@ test("designs background and worker tasks in the backend engineering phase", () 
   const component = readFileSync(path.join(WORKFLOW_ROOT, "stages/component.md"), "utf8");
   const readme = readFileSync(path.join(WORKFLOW_ROOT, "README.md"), "utf8");
 
-  assert.match(backend, /subgraph analysis\["1\. 分析"\][\s\S]*subgraph structure\["2\. 结构"\][\s\S]*subgraph specialty\["3\. 专项"\][\s\S]*subgraph models\["4\. 模型"\][\s\S]*subgraph engineering\["5\. 工程"\][\s\S]*subgraph delivery\["6\. 交付"\]/);
-  assert.match(backend, /asyncapi --> worker/);
-  assert.match(backend, /background --> c4/);
-  assert.match(backend, /worker --> c4/);
-  assert.match(backend, /c4 --> runtime/);
-  assert.match(backend, /background --> runtime/);
-  assert.match(backend, /worker --> runtime/);
-  assert.doesNotMatch(backend, /coding --> runtime/);
-  assert.match(backend, /\*\*What\*\*：提供“`background\.md`”功能[\s\S]*# 后台任务/);
-  assert.match(backend, /\*\*What\*\*：提供“`worker\.md`”功能[\s\S]*# 异步任务/);
-  assert.match(backend, /每个二级标题表示一个后台任务/);
-  assert.match(backend, /每个二级标题表示一个异步任务/);
-  assert.match(backend, /每个三级标题表示一个“动词 \+ 业务对象”的功能点/g);
-  assert.match(backend, /> Src：`src\/cache\/infrastructure\/background\/cache-cleanup\.task\.ts`[\s\S]*> Host：`api`[\s\S]*> 触发方式：每小时定时执行/);
-  assert.match(backend, /> Src：`src\/notification\/infrastructure\/messaging\/wechat-notification\.processor\.ts`[\s\S]*> Runtime：`notification-worker`[\s\S]*> AsyncAPI：`asyncapi\.json#\/channels\/notification\.wechat`[\s\S]*> Topic：`notification\.wechat`/);
-  assert.match(backend, /### 清除过期 Cache[\s\S]*运行方式：[\s\S]*```mermaid\r?\nsequenceDiagram/);
-  assert.match(backend, /### 发送微信通知[\s\S]*运行方式：[\s\S]*```mermaid\r?\nsequenceDiagram/);
+  assert.match(backend, /engineering --> jobs/);
+  assert.match(backend, /jobs --> operations/);
+  assert.match(backend, /\*\*What\*\*：提供“`jobs\.md`”功能[\s\S]*# 任务设计/);
+  assert.match(backend, /## 后台任务[\s\S]*## 异步任务/);
+  assert.match(backend, /> Src：`<精确生产文件路径>`[\s\S]*> Host：`<现有 API 或 Worker 进程>`[\s\S]*> 触发方式：/);
+  assert.match(backend, /> Runtime：`<Worker 运行单元>`[\s\S]*> AsyncAPI：`asyncapi\.json#\/channels\/<channel>`[\s\S]*> Topic：`<topic>`/);
+  assert.match(backend, /#### <动词 \+ 业务对象>[\s\S]*运行方式：[\s\S]*```mermaid\r?\nsequenceDiagram/);
   assert.match(backend, /后台任务随宿主进程启动和停止，不拥有独立启动命令、健康检查、部署或扩缩容单元/);
-  assert.match(backend, /`worker\.md` 只维护异步任务功能、消费约束和运行时序/);
-  assert.match(backend, /`runtime\.md` 只以 `structure\.md`、`background\.md` 和 `worker\.md` 为直接设计输入/);
-  assert.match(backend, /`Host` 声明预期宿主，并作为后续 `runtime\.md` 进程模型的输入/);
-  assert.match(backend, /`Runtime` 必须引用\s*当前任务需要的独立 Worker 运行单元名称，并作为后续 `runtime\.md` 进程模型的输入/);
-  assert.match(component, /\| `background\.md` \| 后台任务 \| 存在由 API 或 Worker 进程托管的后台任务 \|/);
-  assert.match(component, /\| `worker\.md` \| 异步任务 \| 存在由独立 Worker 运行单元执行的异步任务 \|/);
-  assert.match(readme, /分析 → 结构 → 专项 → 模型 → 工程 → 交付/);
+  assert.match(backend, /`jobs\.md` 只维护任务功能、消费约束和运行时序/);
+  assert.match(component, /\| `jobs\.md` \| 后台与异步任务 \| 存在后台任务或独立 Worker \|/);
+  assert.match(readme, /领域 → 接口 → 模型 → 工程 → 运行 → 汇总/);
 });
 
 test("defines bounded-context backend runtimes and conditional TypeScript conventions", () => {
@@ -1116,36 +1068,19 @@ test("defines bounded-context backend runtimes and conditional TypeScript conven
   assert.match(component, /一个逻辑 Backend 组件可以按实际需要提供 HTTP\/API 和消息 Worker 等独立运行入口；Outbox Relay 托管在\s*现有 API 或 Worker 进程内/);
   assert.match(component, /进程不是工作流组件的划分单位/);
   assert.match(component, /跨上下文通过稳定的应用接口或 Port 协作，不导入对方的领域对象/);
-  assert.match(component, /Backend C3 按限界上下文、入口、独立运行单元和实际公共技术能力展示稳定模块/);
-  assert.match(component, /上下文内部的代码分层及应用服务与领域模型的映射放入 `coding\.md` 和 `structure\.md`/);
+  assert.match(component, /Backend 不创建独立 `architecture\.md` 或 `structure\.md`/);
+  assert.match(component, /代码规则与测试规划放入 `engineering\.md`/);
 
   assert.match(backend, /\*\*What\*\*：提供“架构、代码与运行约定”功能/);
-  assert.match(backend, /Container_Boundary\(caller_layout, "调用方"\)[\s\S]*Container_Boundary\(context_layout, "上下文"\)[\s\S]*Container_Boundary\(consumer_layout, "消息消费者"\)[\s\S]*Container_Boundary\(infra_layout, "基础设施"\)/);
+  assert.match(backend, /Container_Boundary\(caller_layout, "<调用方>"\)[\s\S]*Container_Boundary\(context_layout, "上下文"\)[\s\S]*Container_Boundary\(infra_layout, "基础设施"\)/);
   assert.match(backend, /UpdateLayoutConfig\(\$c4ShapeInRow="5", \$c4BoundaryInRow="1"\)/);
-  assert.match(backend, /组件信息、对象、技术版本、架构、框架和职责必须根据实际情况调整/);
-  assert.match(backend, /C3 不展开应用层、领域层、Port 或 Adapter/);
-  assert.match(backend, /下图仅演示 `C4Component` 的写法和抽象层级/);
-  assert.match(backend, /都必须按当前组件的真实上下文、运行单元和外部对象替换或删除/);
-  assert.match(backend, /Writer 是生产者事务内的代码，不是独立进程/);
-  assert.match(backend, /Relay 只读取已提交记录、投递并更新投递状态，不虚构领域层或 Command Bus/);
-  assert.match(backend, /Relay 是托管在现有 API 或 Worker 进程内的内部后台任务，不提供独立启动命令、健康检查或扩缩容单元/);
-  assert.match(backend, /不创建 `src\/processes\/outbox\.ts`/);
-  assert.match(backend, /原子领取或租约、至少一次投递、退避重试、终止失败/);
-  assert.match(backend, /在同一事务持久化业务数据与 Outbox、提交事务、Relay 投递、Worker 幂等消费/);
-  assert.match(backend, /Redis 是基础设施中间件，BullMQ 是运行在 Redis 之上的消息任务库/);
-  assert.match(backend, /以下约定只在实际技术栈包含对应工具时启用/);
+  assert.match(backend, /一个 Backend 可以包含 API、内嵌后台任务和独立 Worker 入口/);
+  assert.match(backend, /可靠消息发布使用同一 Unit of Work 原子写入业务数据和 Outbox/);
+  assert.match(backend, /Relay 不是独立进程/);
+  assert.match(backend, /技术约定只在实际技术栈采用对应工具时启用/);
   assert.match(backend, /<subject>\.<technology>\.<role>\.ts/);
   assert.match(backend, /<event>\.event\.ts/);
   assert.match(backend, /prisma\/migrations\/<timestamp_name>\/migration\.sql/);
-  assert.match(backend, /node dist\/processes\/worker\.js/);
-  assert.doesNotMatch(backend, /node dist\/processes\/outbox\.js/);
-  assert.match(backend, /\.processor\.ts` 是消息入口 Adapter/);
-  assert.match(backend, /\.result\.ts` 只表示需要稳定复用的应用用例输出/);
-  assert.match(backend, /\.port\.ts` 只表示应用层拥有的外部或跨上下文依赖抽象/);
-  assert.match(backend, /对象主键默认使用原生 UUIDv4/);
-  assert.match(backend, /UUIDv7 仍是 UUID，不作为短展示码/);
-  assert.match(backend, /APT-7K3M9Q2D/);
-  assert.match(backend, /唯一约束、碰撞重试/);
   assert.match(readme, /图、表、目录、技术、依赖和业务名称均为示例，必须根据当前组件的实际情况调整/);
 });
 
@@ -1176,7 +1111,7 @@ test("separates system, component, and deploy security and observability ownersh
   assert.doesNotMatch(system, /## Trace 传播/);
   assert.match(component, /### 跨阶段权威边界/);
   assert.match(component, /组件文件只维护当前组件如何落实全局基线、实际产生的信号、需要的密钥以及明确例外/);
-  assert.match(component, /组件 `observability\.md` 不重新定义全局字段、命名、保留策略、告警级别或系统级 SLO/);
+  assert.match(component, /`operations\.md` 不重新定义全局可观测字段、命名、保留策略、告警级别或系统级 SLO/);
   assert.match(deploy, /\*\*What\*\*：提供“安全与可观测性边界”功能/);
   assert.match(deploy, /部署阶段维护密钥注入、证书挂载、环境值、安全中间件配置、Collector、Exporter/);
   assert.match(deploy, /不得在部署文件中补写设计规则/);
@@ -1256,23 +1191,16 @@ test("plans the component test structure before implementing tests", () => {
   assert.match(backend, /本组件使用 <语言和版本>，沿用 <构建或包管理工具>、<测试框架>/);
   assert.match(backend, /不创建语言映射表或\s*测试用例总表/);
   assert.match(backend, /## Fixture 与测试支持[\s\S]*## 单元测试[\s\S]*## 集成测试[\s\S]*## 契约测试[\s\S]*## 并发测试[\s\S]*## 端到端测试[\s\S]*## 测试配置[\s\S]*## 测试命令/);
-  assert.match(backend, /## 单元测试[\s\S]*### BOOKING-DOM-APPOINTMENT-001[\s\S]*### AUTH-APP-LOGIN-001[\s\S]*### SHARED-INF-CONFIGURATION-001/);
-  assert.match(backend, /> Design：`ddd:预约:状态图`\r?\n> Src：`test\/unit\/domain\/appointment\.test\.ts`\r?\n> BR：`REQ-001-BR-002`\r?\n> AC：`REQ-001-AC-008`/);
+  assert.match(backend, /### 单元测试[\s\S]*#### <CONTEXT>-DOM-<CAPABILITY>-001/);
+  assert.match(backend, /> Design：`domain:<上下文>:业务规则:001`\r?\n> Src：`test\/unit\/domain\/<capability>\.test\.ts`\r?\n> BR：`<需求编号>`\r?\n> AC：`<验收条件>`/);
   assert.doesNotMatch(backend, /> Req：/);
-  assert.match(backend, /Desc：取消待就诊预约\r?\nGiven：预约处于 `pending`。\r?\nWhen：调用 `cancel\(\)`。\r?\nThen：预约状态变为 `cancelled`/);
-  assert.match(backend, /四个字段连续书写，彼此之间不留空行/);
-  assert.match(backend, /`Design` 使用当前组件设计文件可解析的完整设计标识/);
-  assert.match(backend, /测试代码必须为每个 `Design` 添加 `@verifies <完整设计标识>`/);
-  assert.match(backend, /### AUTH-APP-LOGIN-001[\s\S]*### SHARED-INF-CONFIGURATION-001/);
-  assert.match(backend, /### AUTH-INT-SESSION-001[\s\S]*### AUTH-INT-ADAPTER-001[\s\S]*### AUTH-API-LOGIN-001/);
-  assert.match(backend, /### AUTH-CON-EVENT-001[\s\S]*### AUTH-CONC-TOKEN-001[\s\S]*### AUTH-E2E-LOGIN-001/);
-  assert.match(backend, /\| Infrastructure 纯逻辑测试 \| `INF` \| 纯逻辑技术能力 \|/);
-  assert.match(backend, /消息发布或消费行为由集成测试验证/);
-  assert.match(backend, /组件 E2E 不得声称验证\s*整个跨组件 BP/);
-  assert.doesNotMatch(backend, /跨组件可观察的最终结果|核心跨组件业务链路/);
-  assert.match(backend, /> Src：`test\/integration\/api\/http\/login\.test\.ts`/);
-  assert.match(backend, /`component\.md` 的完整文件树必须逐个包含所有\s*`Src`/);
-  assert.match(backend, /`testing\.md` 只索引项目真实存在的命令/);
+  assert.match(backend, /Desc：<主要行为>\r?\nGiven：<前置状态>\r?\nWhen：<动作>\r?\nThen：<当前组件边界内可观察结果>/);
+  assert.match(backend, /`Design` 必须是可解析设计标识/);
+  assert.match(backend, /测试实现对每个标识使用 `@verifies`/);
+  assert.match(backend, /消息行为由集成测试验证，Schema 兼容性由契约测试验证/);
+  assert.match(backend, /组件测试不引用 Requirement TC，不声称验证跨组件 BP/);
+  assert.match(backend, /`Src` 必须是精确测试文件路径并由 `component\.md` 文件树收录/);
+  assert.match(backend, /只记录真实可执行命令/);
   assert.match(backend, /测试报告和覆盖率报告按需由用户手动导出/);
   assert.match(readme, /`<web test> <任务>` \| 编写并执行目标组件测试/);
   assert.match(readme, /详细规则以模板和对应阶段提示词为准/);
@@ -1409,9 +1337,9 @@ test("defines single-purpose component documents and horizontal-first code diagr
   const agents = readFileSync(path.join(WORKFLOW_ROOT, "templates/AGENTS.template.md"), "utf8");
   const component = readFileSync(path.join(WORKFLOW_ROOT, "stages/component.md"), "utf8");
   assert.match(component, /\| `component\.md` \| 组件入口文档 \| 始终 \| 概述、设计架构文件索引和完整受版本控制文件结构 \|/);
-  assert.match(component, /\| `architecture\.md` \|[^|\r\n]+ \| 始终 \|/);
-  assert.match(component, /\| `structure\.md` \|[^|\r\n]+ \| 存在需要长期维护的代码结构 \|/);
-  assert.match(component, /\| `ddd\.md` \| 领域设计 \| 完整 DDD 模式 \|/);
+  assert.match(component, /\| `architecture\.md` \|[^|\r\n]+ \| 非 Backend 模式 \|/);
+  assert.match(component, /\| `structure\.md` \|[^|\r\n]+ \| 非 Backend 且存在长期维护的代码结构 \|/);
+  assert.match(component, /\| `domain\.md` \| 领域设计 \| 完整 DDD 模式 \|/);
   assert.match(component, /# <组件>\r?\n\r?\n## 概述[\s\S]*## 设计架构[\s\S]*\| 文件 \| 作用 \|[\s\S]*## 目录结构/);
   assert.match(component, /“设计架构”表格逐个列出当前组件设计目录内实际存在的全部文件及其唯一作用/);
   assert.match(component, /`component\.md` 除概述、设计架构索引和完整应用文件结构外，不保存其他设计内容/);
@@ -1445,9 +1373,9 @@ test("defines single-purpose component documents and horizontal-first code diagr
   assert.match(component, /任务处理器可以使用消费者、任务、规则和外部适配器/);
   assert.match(component, /C4 节点按实际情况标注 `ApplicationService`、`AggregateRoot`/);
   assert.doesNotMatch(component, /```mermaid\r?\nclassDiagram/);
-  assert.match(component, /完整 DDD 模式的 `ddd\.md` 按限界上下文分章/);
-  assert.match(component, /轻量 Backend 不创建 `ddd\.md`/);
-  assert.match(component, /Backend C3 按限界上下文、入口、独立运行单元和实际公共技术能力展示稳定模块/);
+  assert.match(component, /完整 DDD 模式的 `domain\.md` 按限界上下文分章/);
+  assert.match(component, /轻量 Backend 不创建 `domain\.md`/);
+  assert.match(component, /Backend 不创建独立 `architecture\.md` 或 `structure\.md`/);
   assert.match(component, /C3 异步部分只列出生产者、内嵌 Outbox Relay、消息基础设施和 Worker\/下游消费者，不绘制关系连线/);
   assert.match(agents, /\| 组件内部结构 \| `C4Component`；展示内部模块、职责和必要外部对象，不绘制关系连线 \|/);
   assert.match(agents, /\| 组件代码结构 \| `flowchart`；先总览后按业务能力分章，主分层从左到右、分层内部从上到下 \|/);

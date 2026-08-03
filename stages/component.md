@@ -110,10 +110,10 @@ OpenAPI `operationId`，消费方不复制提供方契约。能由 URL、表单�
 Backend 模板中的每个具体范例必须就近包含单行提示 `> - 范例适配声明：<具体调整范围>`；缺少该提示的范例
 不得作为可执行模板使用，必须先补充声明或仅将其视为说明材料。
 
-Backend 固定按“分析 → 结构 → 专项 → 模型 → 工程 → 交付”六个阶段设计：分析阶段判断复杂度并按需完成 DDD；
-结构阶段同级产出 C3 与接口；专项阶段完成包含 `coding.md` 的专业设计；模型阶段维护机器可读模型；工程阶段按需完成
-`background.md`、`worker.md`、C4、配置、密钥、可观测性、测试与运行设计；交付阶段完成部署要求和 `component.md` 汇总。
-每个适用文件使用模板规定的标题名称和顺序；仅完整 DDD 模式创建 `ddd.md`，且其中每个限界上下文完整保留必须章节，
+Backend 固定按“领域 → 接口 → 模型 → 工程 → 运行 → 汇总”六步设计：按复杂度创建 `domain.md`，完成 `interface.md`，
+按需完成 `security.md`、`data.md` 和机器可读模型，再完成 `engineering.md`，按需完成 `jobs.md`、`operations.md`，
+最后更新包含文件关系、组件架构、代码结构、设计索引和完整文件树的 `component.md`。
+每个适用文件使用模板规定的标题名称和顺序；仅完整 DDD 模式创建 `domain.md`，且其中每个限界上下文完整保留必须章节，
 其他不适用的可选文件或章节直接省略，不创建空文件，
 也不填写“无”“不适用”或其他占位正文。
 
@@ -124,7 +124,7 @@ Command、Handler、Factory、DomainService 或 DomainEvent。
 
 一个逻辑 Backend 组件可以按实际需要提供 HTTP/API 和消息 Worker 等独立运行入口；Outbox Relay 托管在
 现有 API 或 Worker 进程内，不作为独立进程或运行入口。进程不是工作流组件的划分单位，不得仅因入口、启动命令或扩缩容方式不同而拆成多个组件。这些运行单元
-共享当前组件的业务边界和设计目录，可以来自同一构建产物，但必须在 `runtime.md` 分别声明入口、启动命令、
+共享当前组件的业务边界和设计目录，可以来自同一构建产物，但必须在 `operations.md` 分别声明入口、启动命令、
 依赖、健康检查、关闭方式和故障恢复；不需要的运行单元不得预先创建。
 
 多个限界上下文只在确有不同统一语言和模型边界时建立。每个上下文拥有自己的应用用例和领域模型；
@@ -142,17 +142,15 @@ Command、Handler、Factory、DomainService 或 DomainEvent。
 - 语言、框架、ORM、数据库和消息库的目录及命名规则只在组件实际采用对应技术时启用；框架规定的固定文件名优先保留。
 - `<subject>.<role>.ts` 可用于表达 TypeScript 文件职责；技术 Adapter 统一使用能准确反映实现的
   `<subject>.<technology>.<role>.ts`，不把 ORM 实现标成数据库驱动，也不为简单返回值或单一内部实现拆出空抽象。
-- 实际部署文件仍由 `<组件 deploy>` 维护；`runtime.md` 和 `deployment.md`
-  只声明提供给部署阶段的组件运行与交付要求。
+- 实际部署文件仍由 `<组件 deploy>` 维护；`operations.md` 只声明提供给部署阶段的组件运行与交付要求。
 
 ### 跨阶段权威边界
 
 - `docs/system/security.md` 和 `docs/system/observability.md` 是跨组件原则、统一约定、
   共用平台及系统级目标的唯一来源；组件文件只引用，不复制其正文。
 - 组件文件只维护当前组件如何落实全局基线、实际产生的信号、需要的密钥以及明确例外。
-- `authentication.md` 不重新定义全局身份体系，`authorization.md` 不重新定义全局
-  授权原则，`secrets.md` 不重新定义密钥平台或保存密钥值。
-- 组件 `observability.md` 不重新定义全局字段、命名、保留策略、告警级别或系统级 SLO。
+- `security.md` 不重新定义全局身份体系、授权原则或密钥平台；`operations.md` 不保存密钥值。
+- `operations.md` 不重新定义全局可观测字段、命名、保留策略、告警级别或系统级 SLO。
 - Collector、Exporter、Dashboard、告警规则、密钥注入、证书挂载和环境值由
   `<deploy>` 维护，组件设计只声明交付要求。
 
@@ -161,7 +159,7 @@ Command、Handler、Factory、DomainService 或 DomainEvent。
 - Frontend 和 Backend 模式逐项检查各自列出的全部设计关注点。
 - 每个适用关注点只有一个权威文件，契约和执行配置不在 Markdown 中重复。
 - `component.md` 的设计架构索引列出设计目录内每个实际文件及其唯一作用。
-- C3、C4、各关注点文件和契约使用相同稳定名称及依赖方向。
+- `component.md` 中的组件图、代码结构、各关注点文件和契约使用相同稳定名称及依赖方向。
 - 安全与可观测性文件引用系统基线，只包含当前组件的落实、信号、需求或例外。
 - 没有按 URL、数据库表或技术类型错误划分业务模块。
 - 没有为未来需求创建空文件、空目录或无调用方的抽象。
@@ -179,8 +177,8 @@ Command、Handler、Factory、DomainService 或 DomainEvent。
 | 文件 | 作用 | 创建条件 | 可修改内容 |
 |---|---|---|---|
 | `component.md` | 组件入口文档 | 始终 | 概述、设计架构文件索引和完整受版本控制文件结构 |
-| `architecture.md` | 组件内部结构和依赖关系图 | 始终 | 当前组件的组件架构图 |
-| `structure.md` | 关键代码单元和依赖关系 | 存在需要长期维护的代码结构 | 当前组件的主要代码结构 |
+| `architecture.md` | 非 Backend 组件内部结构和依赖关系图 | 非 Backend 模式 | 当前组件的组件架构图 |
+| `structure.md` | 非 Backend 关键代码单元和依赖关系 | 非 Backend 且存在长期维护的代码结构 | 当前组件的主要代码结构 |
 
 ### Frontend 文件
 
@@ -209,22 +207,13 @@ Command、Handler、Factory、DomainService 或 DomainEvent。
 
 | 文件 | 作用 | 创建条件 | 可修改内容 |
 |---|---|---|---|
-| `interface.md` | 后端接口原则 | 存在入口 | HTTP、事件、任务、版本、幂等和兼容策略 |
-| `authentication.md` | 身份认证 | 存在身份要求 | 身份、凭据、Session、Token、轮换和撤销 |
-| `authorization.md` | 权限控制 | 存在非公开操作 | 角色、关系、所有权、数据范围和执行点 |
-| `ddd.md` | 领域设计 | 完整 DDD 模式 | 每个限界上下文独立维护领域命令、统一语言、业务规则、一致性及按需的事件和图 |
-| `data-access.md` | 数据访问 | 存在持久化或查询 | Repository、查询、Unit of Work、Outbox/Inbox、并发、迁移和保留 |
-| `validation.md` | 输入校验 | 存在外部输入 | 信任边界、格式校验、标准化和领域校验职责 |
-| `errors.md` | 后端错误处理 | 存在失败场景 | 错误分类、稳定错误码、协议 Code 映射、重试和脱敏 |
-| `coding.md` | 后端编码规范 | 始终 | 架构映射、应用执行管线、目录约定、文件命名、编码规范、依赖方向和例外 |
-| `background.md` | 后台任务 | 存在由 API 或 Worker 进程托管的后台任务 | 任务元信息、功能点、运行时序、约束和验证依据 |
-| `worker.md` | 异步任务 | 存在由独立 Worker 运行单元执行的异步任务 | 任务元信息、功能点、消息消费时序、约束和验证依据 |
-| `configuration.md` | 后端配置 | 存在配置 | 配置来源、默认值和启动校验 |
-| `secrets.md` | 密钥要求 | 存在敏感配置 | 密钥来源、敏感级别、轮换和泄漏防护 |
-| `observability.md` | 后端可观测性 | 存在运行要求 | 日志、审计、指标、追踪、健康检查和告警 |
-| `testing.md` | 后端测试策略 | 始终 | 单元、集成、契约、安全、并发和 E2E |
-| `runtime.md` | 运行要求 | 存在运行进程 | 进程、依赖、启动关闭、健康检查和资源 |
-| `deployment.md` | 部署交付要求 | 存在部署要求 | 镜像、迁移、初始化及向 `<deploy>` 的交付 |
+| `interface.md` | 接口、输入与错误设计 | 始终 | 入口、协议、操作、校验、错误、幂等、兼容和契约索引 |
+| `domain.md` | 领域设计 | 完整 DDD 模式 | 领域命令、统一语言、业务规则、一致性及按需的事件和图 |
+| `security.md` | 认证与授权 | 存在身份或权限要求 | 身份、凭据、会话、权限模型、执行点和数据范围 |
+| `data.md` | 数据与一致性 | 存在持久化或查询 | Repository、查询、Unit of Work、Outbox/Inbox、并发、迁移和保留 |
+| `engineering.md` | 编码与测试 | 始终 | 架构映射、目录命名、编码、依赖方向、测试规划和命令 |
+| `jobs.md` | 后台与异步任务 | 存在后台任务或独立 Worker | 任务元信息、功能点、运行时序、投递和幂等 |
+| `operations.md` | 运行与交付 | 存在配置、密钥、可观测、进程或部署要求 | 配置、密钥、信号、进程、资源、迁移、发布和回滚 |
 | `openapi.json` | 同步 HTTP API 契约 | 当前组件提供同步接口 | 路径、操作、Schema、错误和示例 |
 | `asyncapi.json` | 异步事件契约 | 当前组件提供事件 | Channel、Message、生产者和消费者 |
 | `schema.dbml` | 持久化数据结构和关系 | 当前组件拥有持久化数据模型 | 表、字段、索引和关系 |
@@ -493,8 +482,8 @@ flowchart LR
   接口由 `interface.md` 与机器可读契约、代码依赖由 `structure.md` 分别维护。
 - 组件信息、对象名称、技术版本、架构、框架和职责全部根据当前项目事实填写，不照抄模板示例或保留空字符串。
 - 使用 `UpdateLayoutConfig($c4ShapeInRow="5", $c4BoundaryInRow="1")` 保持每个边界独占一行、边界内对象横向排列。
-- Backend C3 按限界上下文、入口、独立运行单元和实际公共技术能力展示稳定模块，不用 C3 元素模拟
-  接入层、应用层、领域层和适配层。上下文内部的代码分层及应用服务与领域模型的映射放入 `coding.md` 和 `structure.md`。
+- Backend 不创建独立 `architecture.md` 或 `structure.md`；同样的 C3 和 C4 图分别放入 `component.md` 的
+  “组件架构”和“代码结构”章节，代码规则与测试规划放入 `engineering.md`。
 - C3 异步部分只列出生产者、内嵌 Outbox Relay、消息基础设施和 Worker/下游消费者，不绘制关系连线；
   Relay 不作为独立运行单元。
 - `structure.md` 包含一级标题、一个“总览”章节和按实际业务能力创建的详细章节。
@@ -508,7 +497,7 @@ flowchart LR
 - 同一代码单元在总览和各详细章节中使用相同名称；公共依赖只在相关章节出现，不为展示完整性复制无关节点和连线。
 - C3、C4、`component.md` 和契约中的名称及依赖方向保持一致。
 - 跨组件业务流程和调用顺序只放入系统 `process.md`；组件设计目录不创建 `process.md`。
-- 状态图和时序图按需放入 `ddd.md` 对应的限界上下文章节，不创建独立的 `state.md` 或
+- 状态图和时序图按需放入 Backend `domain.md` 对应的限界上下文章节，不创建独立的 `state.md` 或
   `sequence.md`；时序图引用系统流程的稳定 BP 编号，不复制系统业务流程。
 
 ## AI-COMPONENT-009
@@ -522,8 +511,12 @@ flowchart LR
 Backend 专用 Markdown、机器可读模型及其固定结构统一由
 `docs/workflows/templates/backend-design.template.md` 维护，本文件不复制模板正文。
 
-- 完整 DDD 模式的 `ddd.md` 按限界上下文分章，只记录领域命令、统一语言、业务规则、一致性及按需的事件和图，
-  不复制 C4 的实现包、Adapter、技术依赖或完整代码签名。
+- Backend 只使用 `component.md`、`domain.md`、`interface.md`、`security.md`、`data.md`、`engineering.md`、
+  `jobs.md` 和 `operations.md`；后三个基础文件中的 `component.md`、`interface.md`、`engineering.md` 始终创建，其余按需创建。
+- `component.md` 开头必须先展示实际文件关系，再展示组件架构、代码结构、设计索引和完整文件树；Backend 不创建独立
+  `architecture.md`、`structure.md`、`coding.md` 或 `testing.md`。
+- 完整 DDD 模式的 `domain.md` 按限界上下文分章，只记录领域命令、统一语言、业务规则、一致性及按需的事件和图，
+  不复制代码包、Adapter、技术依赖或完整代码签名。
 - 一个组件默认对应一个限界上下文；只有组件内确实存在多个独立语言和模型边界时才分别列出，
   边界表明应拆分组件时切换 `<system>` 调整组件划分。
 - 完整 DDD 模式的每个限界上下文必须包含领域命令、统一语言、业务规则和一致性；领域事件、状态图和时序图
@@ -531,16 +524,14 @@ Backend 专用 Markdown、机器可读模型及其固定结构统一由
 - 领域事件使用过去时表达聚合成功改变后发生的领域事实，仅在存在真实消费方或业务反应时创建；
   它不是命令，也不自动等于集成事件或事件溯源记录。对外发布时映射为独立、可版本化的集成事件，
   不直接暴露领域对象；消息重试等队列运行状态不写入业务聚合，除非业务明确需要相应状态和事件。
-- 领域命令表只保留“命令、说明”两列；Handler、领域对象和 Result 的代码映射由 `coding.md` 和 `structure.md` 维护。
+- 领域命令表只保留“命令、说明”两列；Handler、领域对象和 Result 的代码映射由 `engineering.md` 和 `component.md` 维护。
 - 一致性表只保留“事务边界、要求”两列，只表达必须原子成立的业务状态与事件；Command Bus、Outbox、
   事务中间件、重试和锁等技术实现放入相应技术设计文件。
-- Command Bus 与 Handler/Middleware 映射放入 `coding.md`；Unit of Work、Outbox、Inbox 的事务和一致性设计放入
-  `data-access.md`；Relay、Processor 和 Worker 的代码关系放入 `structure.md`，`runtime.md` 记录 Relay 的现有宿主进程和 Worker 的独立入口。
-- `ddd.md` 展示概念角色和关键公开业务行为；`structure.md` 使用相同稳定名称展示实现代码单元、
-  包、Port、Adapter 和依赖，不重复 DDD 的业务语义。
-- 数据库字段和约束、HTTP Schema、异步消息结构分别由 `schema.dbml`、`openapi.json` 和 `asyncapi.json` 维护，不写入 `ddd.md`。
-- 轻量 Backend 不创建 `ddd.md`，只在 `component.md` 概述记录业务词汇、边界、设计强度和不采用完整 DDD 的事实依据；
-  不虚构聚合、实体、值对象、领域服务或领域事件。Frontend 不创建 `ddd.md`，除非用户明确要求共享领域模型。
+- Command Bus、Handler/Middleware 和测试规划放入 `engineering.md`；Unit of Work、Outbox、Inbox 放入 `data.md`；
+  Relay、Processor 和 Worker 功能放入 `jobs.md`，运行入口放入 `operations.md`。
+- 数据库字段和约束、HTTP Schema、异步消息结构分别由 `schema.dbml`、`openapi.json` 和 `asyncapi.json` 维护，不写入 `domain.md`。
+- 轻量 Backend 不创建 `domain.md`，只在 `component.md` 概述记录业务词汇、边界、设计强度和判断事实；
+  不虚构聚合、实体、值对象、领域服务或领域事件。
 
 ## AI-COMPONENT-010
 
@@ -647,20 +638,18 @@ accessibility:
 
 - 实际修改全部位于组件清单声明的当前组件设计目录。
 - 没有修改源码、其他组件、需求、系统规范或部署文件。
-- `component.md` 只包含概述、设计架构文件索引和完整的受版本控制文件结构；
-  索引覆盖设计目录内全部实际文件且作用唯一。
+- Backend 的 `component.md` 包含文件关系、概述、组件架构、代码结构、设计索引和完整文件树；
+  非 Backend 的 `component.md` 继续只维护概述、索引和文件树。索引覆盖设计目录内全部实际文件且作用唯一。
 - `component.md` 的完整文件结构包含实际需要的测试层级、测试文件、fixture、支持代码和配置；没有通配符、空测试目录或重复的测试方案正文。
 - 已执行组件文件树自动校验且没有遗漏实际受版本控制文件；要求设计与当前文件完全一致时使用了 `--strict`。
-- `architecture.md` 只有一级标题、标题下的一句文件职责说明和一个 `C4Component` Mermaid 图，没有其他说明；图中只包含当前组件的
-  主要内部模块、职责和必要外部对象，不绘制关系连线，不展开类、函数或内部代码分层。
+- 非 Backend 的 `architecture.md` 只有一级标题和一个 `C4Component` Mermaid 图；Backend 的同类图位于 `component.md`。
 - 需要长期维护代码结构时，`structure.md` 使用一个代码总览和按业务能力划分的详细 `flowchart LR`；总览不展示函数，详细章节只展示关键公开函数，所有图均为主分层从左到右、分层内部从上到下。
-- Backend 完整 DDD 模式下，`ddd.md` 的每个限界上下文记录领域命令、统一语言、业务规则和一致性，
+- Backend 完整 DDD 模式下，`domain.md` 的每个限界上下文记录领域命令、统一语言、业务规则和一致性，
   按需记录领域事件、状态图和时序图；不创建独立的 `state.md` 或 `sequence.md`，不复制系统流程、C4、DBML 或契约内容。
-- Backend 轻量模式下不创建 `ddd.md`，`component.md` 概述已记录轻量判定条件且没有遗漏任何完整 DDD 触发信号。
-- Backend 模式下始终创建 `coding.md`；工程规则与实际技术栈一致，`component.md` 的完整文件树符合其目录和命名规则，
-  `coding.md` 不重复维护完整文件树。
-- Backend 存在 `structure.md` 时，`component.md` 的完整文件树覆盖其中实际代码单元，并保持分层、稳定名称和依赖方向一致。
-- Backend 的 `component.md` 读取 `testing.md`，完整文件树覆盖其中实际测试文件、Fixture、支持代码、配置和精确 `Src`，
+- Backend 轻量模式下不创建 `domain.md`，`component.md` 概述已记录轻量判定条件且没有遗漏任何完整 DDD 触发信号。
+- Backend 模式下始终创建 `engineering.md`；工程规则与实际技术栈一致，`component.md` 的完整文件树符合其目录和命名规则，
+  `engineering.md` 不重复维护完整文件树。
+- Backend 的 `component.md` 完整文件树覆盖 `engineering.md` 中实际测试文件、Fixture、支持代码、配置和精确 `Src`，
   不复制测试策略正文。
 - Backend 模式下，适用文件遵循 `docs/workflows/templates/backend-design.template.md`
   的依赖顺序和固定章节，机器可读模型分别来自接口、授权和数据访问设计。

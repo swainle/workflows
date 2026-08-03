@@ -156,7 +156,7 @@ Issue #1000 → docs/requirements/REQ-1000-<slug>/
 <booking-api> backend 设计预约后端
 <booking-api> opt component.md 补充组件职责
 <web> frontend opt layout.md 调整页面布局边界
-<booking-api> backend opt ddd.md 调整聚合边界
+<booking-api> backend opt domain.md 调整聚合边界
 <web dev> 调整登录按钮圆角
 <web test> 验证登录页面
 <booking-api> 讨论预约接口

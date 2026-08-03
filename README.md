@@ -53,7 +53,7 @@ node docs/workflows/install.mjs --branch develop
 组件名必须已登记在宿主项目的 `docs/system/system.md`。Frontend 与 Backend 模式只增强组件设计阶段，不是独立阶段。
 
 Backend 模式完整读取 `templates/backend-design.template.md`。其中固定标题和顺序必须保留；图、表、目录、技术、依赖和业务名称均为示例，必须根据当前组件的实际情况调整。
-Backend 设计按“分析 → 结构 → 专项 → 模型 → 工程 → 交付”六个阶段执行；后台任务与异步任务分别由工程阶段的 `background.md` 和 `worker.md` 按需维护。
+Backend 设计按“领域 → 接口 → 模型 → 工程 → 运行 → 汇总”执行；始终创建 `component.md`、`interface.md` 和 `engineering.md`，其他 Markdown 与机器契约按需创建。
 
 ## 执行回显
 
