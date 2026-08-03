@@ -993,8 +993,9 @@ test("supports frontend and backend component design modes", () => {
   assert.match(backend, /### 领域事件[\s\S]*\| 事件 \| 触发条件 \| 字段 \|/);
   assert.match(backend, /### 状态图[\s\S]*```mermaid\r?\nstateDiagram-v2/);
   assert.match(backend, /### 业务一致性[\s\S]*\| 编号 \| 必须同时成立的业务事实 \|[\s\S]*\| 001 \|/);
-  assert.match(backend, /### 时序图\r?\n\r?\n> Ref: process:业务流程:BP-001\r?\n\r?\n```mermaid\r?\nsequenceDiagram/);
-  assert.match(backend, /时序图使用 `> Ref: process:业务流程:<BP 编号>` 引用实际系统流程，不复制跨组件调用顺序/);
+  assert.match(backend, /### 时序图\r?\n\r?\n- \*\*<流程>\*\*\r?\n\r?\n> Ref: process:业务流程:BP-001\r?\n\r?\n```mermaid\r?\nsequenceDiagram/);
+  assert.match(backend, /每个时序图先使用 `- \*\*<流程>\*\*` 简短说明引用对象，再使用 `> Ref: process:业务流程:<BP 编号>`/);
+  assert.match(component, /`domain\.md` 的每个时序图依次使用 `- \*\*<流程>\*\*` 说明引用对象、`> Ref: process:业务流程:<BP 编号>`/);
   assert.doesNotMatch(backend, /### 领域结构/);
   assert.match(component, /一个组件默认对应一个限界上下文/);
   assert.match(component, /完整 DDD 模式的每个限界上下文必须包含领域模型、统一语言、业务规则和业务一致性/);
