@@ -315,7 +315,7 @@ export function runValidation(args, root = WORKFLOW_ROOT) {
 
 test("describes prompt capabilities with numbered five-point definitions", () => {
   const expected = new Map([
-    ["templates/AGENTS.template.md", { prefix: "AI", count: 14 }],
+    ["templates/AGENTS.template.md", { prefix: "AI", count: 15 }],
     ["stages/requirement.md", { prefix: "AI-REQUIREMENT", count: 9 }],
     ["stages/system.md", { prefix: "AI-SYSTEM", count: 14 }],
     ["stages/component.md", { prefix: "AI-COMPONENT", count: 14 }],
@@ -840,16 +840,42 @@ test("optimizes one component design file using only template prerequisites", ()
   assert.match(agents, /<组件> backend opt <目标文件> <意见>/);
   assert.match(agents, /`opt` 可直接跟在指令头后/);
   assert.match(component, /\*\*What\*\*：提供“模板单文件优化”功能/);
-  assert.match(component, /目标文件本身/);
+  assert.match(component, /目标文件本身（存在时）/);
   assert.match(component, /位于目标之前、且当前实际存在的设计文件/);
   assert.match(component, /同级文件不互为前置依赖/);
   assert.match(component, /不得读取目标之后的设计文件/);
   assert.match(component, /不得读取组件源码、测试、验收或部署文件/);
   assert.match(component, /\| `<目标之前的设计依赖文件>` \| 禁止 \| 允许 \| 禁止 \| 禁止 \|/);
-  assert.match(component, /\| `<目标文件>` \| 禁止 \| 允许 \| 允许 \| 禁止 \|/);
-  assert.match(component, /不创建、删除、移动、重命名或顺手修改模板、前置文件及关联文件/);
-  assert.match(readme, /\| `<api> opt component\.md <意见>` \|/);
-  assert.match(readme, /\| `<api> backend opt <文件> <意见>` \|/);
+  assert.match(component, /\| `<目标文件>` \| 允许 \| 允许 \| 允许 \| 禁止 \|/);
+  assert.match(component, /除目标文件外，不创建、删除、移动、重命名或顺手修改模板、前置文件及关联文件/);
+  assert.match(readme, /\| `<任意指令> opt <文件> <意见>` \|/);
+});
+
+test("supports single-file opt for every managed command", () => {
+  const agents = readFileSync(path.join(WORKFLOW_ROOT, "templates/AGENTS.template.md"), "utf8");
+  const component = readFileSync(path.join(WORKFLOW_ROOT, "stages/component.md"), "utf8");
+  const readme = readFileSync(path.join(WORKFLOW_ROOT, "README.md"), "utf8");
+  assert.match(agents, /## AI-015/);
+  assert.match(agents, /\*\*What\*\*：提供“通用单文件优化”功能/);
+  for (const syntax of [
+    "<编号> opt <目标文件> <可选意见>",
+    "<system> opt <目标文件> <可选意见>",
+    "<组件> opt <目标文件> <可选意见>",
+    "<组件> frontend opt <目标文件> <可选意见>",
+    "<组件> backend opt <目标文件> <可选意见>",
+    "<组件 dev> opt <目标文件> <可选意见>",
+    "<组件 test> opt <目标文件> <可选意见>",
+    "<test> opt <目标文件> <可选意见>",
+    "<deploy> opt <目标文件> <可选意见>",
+    "<组件 deploy> opt <目标文件> <可选意见>",
+    "<deploy update> opt <目标文件> <可选意见>",
+  ]) assert.match(agents, new RegExp(syntax.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")));
+  assert.match(agents, /文件已存在时原阶段操作权限表必须允许修改，文件不存在时必须允许创建/);
+  assert.match(agents, /写入权限收窄为只允许创建或修改目标文件/);
+  assert.match(agents, /目标存在时更新，不存在时创建/);
+  assert.match(agents, /组件设计使用 AI-COMPONENT-014/);
+  assert.match(component, /`<组件 dev>`、`<组件 test>` 和 `<组件 deploy>` 的 `opt` 使用根提示词 AI-015/);
+  assert.match(readme, /所有指令都支持 `opt`/);
 });
 
 test("separates stable runbook guidance from generated update plans", () => {

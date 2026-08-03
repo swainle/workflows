@@ -43,20 +43,20 @@ node docs/workflows/install.mjs --branch develop
 | `<web> <任务>` | 维护已登记组件的设计规范 |
 | `<web> frontend <任务>` | 启用 Frontend 完整设计模式 |
 | `<api> backend <任务>` | 按复杂度启用轻量 Backend 或完整 DDD 设计 |
-| `<api> opt component.md <意见>` | 按通用组件设计顺序优化一个现有设计文件 |
 | `<web dev> <任务>` | 开发目标组件 |
 | `<web test> <任务>` | 编写并执行目标组件测试 |
 | `<test> <任务>` | 实现并执行跨组件验收测试 |
 | `<deploy> <任务>` | 维护构建、编排、CI/CD 和部署 |
 | `<api deploy> <任务>` | 维护目标组件的开发基础设施配置 |
 | `<deploy update> <任务>` | 生成正式系统升级方案 |
-| `<web> frontend opt <文件> <意见>` | 按 Frontend 模板前置依赖优化一个现有设计文件 |
-| `<api> backend opt <文件> <意见>` | 按 Backend 模板前置依赖优化一个现有设计文件 |
+| `<任意指令> opt <文件> <意见>` | 在原阶段权限内只创建或更新一个文件 |
 
 组件名必须已登记在宿主项目的 `docs/system/system.md`。Frontend 与 Backend 模式只增强组件设计阶段，不是独立阶段。
 
 Backend 模式完整读取 `templates/backend-design.template.md`。其中固定标题和顺序必须保留；图、表、目录、技术、依赖和业务名称均为示例，必须根据当前组件的实际情况调整。
 Backend 设计按“领域 → 接口 → 模型 → 工程 → 运行 → 汇总”执行；始终创建 `component.md`、`interface.md` 和 `engineering.md`，其他 Markdown 与机器契约按需创建。
+
+所有指令都支持 `opt`。例如 `<12> opt requirement.md <意见>`、`<system> opt process.md <意见>`、`<api dev> opt src/app.ts <意见>`、`<api test> opt test/app.test.ts <意见>`、`<test> opt test/acceptance/app.test.ts <意见>` 和 `<deploy> opt deploy/runbook.md <意见>`。目标存在时更新，不存在时创建；原阶段必须允许对应的修改或创建操作，并且只操作该目标文件，不删除、移动或顺手创建、修改关联文件。组件设计的 Frontend/Backend `opt` 继续遵循模板前置依赖顺序。
 
 ## 执行回显
 
