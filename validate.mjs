@@ -808,7 +808,8 @@ test("requires design-driven development with zero unresolved decisions", () => 
   const readme = readFileSync(path.join(WORKFLOW_ROOT, "README.md"), "utf8");
 
   assert.match(development, /\*\*What\*\*：提供“开发前确认”功能/);
-  assert.match(development, /先读取 `component\.md` 的概述、设计架构索引和完整文件结构/);
+  assert.match(development, /Backend 先读取 `component\.md` 的文件关系、架构图、代码结构和完整文件结构/);
+  assert.match(development, /其他模式先读取 `component\.md` 的概述、设计架构索引和完整文件结构/);
   assert.match(development, /“任务行为 → 需求或设计依据 → 目标代码文件 → 验证方式”的实现映射/);
   assert.match(development, /没有写明不等于允许自行决定/);
   assert.match(development, /确认一个问题后继续检查，直到未确认项为零/);
@@ -1068,7 +1069,7 @@ test("supports frontend and backend component design modes", () => {
   assert.match(backend, /operations --> component/);
   assert.doesNotMatch(backend, /component --> engineering/);
   assert.match(backend, /最后更新 `component\.md` 开头的文件关系/);
-  assert.match(backend, /\*\*What\*\*：定义文件关系、组件架构、代码结构、设计索引和完整文件树[\s\S]*```mermaid\r?\nC4Component/);
+  assert.match(backend, /\*\*What\*\*：定义文件关系、架构图、按上下文组织的代码结构和完整文件树[\s\S]*## 架构图\r?\n\r?\n```mermaid\r?\nC4Component/);
   assert.match(backend, /title <组件名称> 组件图/);
   assert.match(backend, /Container_Boundary\(context_layout, "上下文"\)/);
   assert.match(backend, /无关系连线的 `C4Component`/);
@@ -1130,7 +1131,7 @@ test("supports frontend and backend component design modes", () => {
     "定义当前 Backend 的实现映射、执行管线、工程约束和测试规划。",
     "定义当前 Backend 的后台任务与独立 Worker 异步任务。",
     "定义当前 Backend 的配置、密钥、运行信号、运行单元和交付快照。",
-    "汇总当前 Backend 的文件关系、职责边界、架构、设计索引和完整文件结构。",
+    "汇总当前 Backend 的文件关系、架构、代码结构和完整文件结构。",
   ]) {
     assert.match(backend, new RegExp(`^# .+\\r?\\n\\r?\\n${responsibility}$`, "m"));
   }
@@ -1217,12 +1218,15 @@ test("supports frontend and backend component design modes", () => {
   assert.match(backend, /## 交付要求[\s\S]*### 20260804045512[\s\S]*```bash[\s\S]*# 构建交付物。[\s\S]*# 执行初始化或迁移[\s\S]*# 按确认的顺序发布。[\s\S]*# 发布失败时执行/);
   assert.match(backend, /14 位本地时间 `YYYYMMDDHHmmss`[\s\S]*最新快照表示当前有效交付要求，已有快照不得修改/);
   assert.match(backend, /每个交付快照只使用一个与实际 Shell 匹配的代码块[\s\S]*使用 Shell 注释就近说明条件/);
-  assert.match(backend, /最后更新 `component\.md` 开头的文件关系、组件图、代码结构、设计索引和完整文件树/);
+  assert.match(backend, /最后更新 `component\.md` 开头的文件关系、架构图、按上下文组织的代码结构和完整文件树/);
+  assert.match(backend, /## 文件关系[\s\S]*jobs --> component[\s\S]*## 架构图[\s\S]*## 代码结构[\s\S]*### <上下文>[\s\S]*> Mode: <轻量 Backend 或完整 DDD>[\s\S]*flowchart LR/);
+  assert.match(backend, /每个上下文只使用一个 `flowchart LR` 展示内部对象、必要的关键公开方法及对象之间的调用或实现关系/);
+  assert.match(backend, /`component\.md` 不保留“概述”或“设计索引”章节/);
   assert.match(backend, /`目录结构` 递归列出全部应受版本控制的生产、测试和配置文件/);
   assert.match(component, /\| `engineering\.md` \| 编码与测试 \| 始终 \|/);
   assert.match(component, /Command Bus、Handler\/Middleware 和测试规划放入 `engineering\.md`/);
   assert.match(component, /Backend 的 `component\.md` 完整文件树覆盖 `engineering\.md`/);
-  assert.match(development, /Backend 生产代码任务必须读取索引中的 `engineering\.md`/);
+  assert.match(development, /Backend[\s\S]*并必须读取 `engineering\.md`/);
   for (const file of ["openapi.json", "asyncapi.json", "authorization.fga", "schema.dbml"]) {
     assert.ok(backend.includes(`### \`${file}\``), `missing Backend model template for ${file}`);
   }
@@ -1526,7 +1530,7 @@ test("lists C2 components by type with development endpoints", () => {
 test("defines single-purpose component documents and horizontal-first code diagrams", () => {
   const agents = readFileSync(path.join(WORKFLOW_ROOT, "templates/AGENTS.template.md"), "utf8");
   const component = readFileSync(path.join(WORKFLOW_ROOT, "stages/component.md"), "utf8");
-  assert.match(component, /\| `component\.md` \| 组件入口文档 \| 始终 \| 概述、设计架构文件索引和完整受版本控制文件结构 \|/);
+  assert.match(component, /\| `component\.md` \| 组件入口文档 \| 始终 \| 非 Backend 维护概述、索引和文件树；Backend 维护文件关系、架构图、代码结构和文件树 \|/);
   assert.match(component, /\| `architecture\.md` \|[^|\r\n]+ \| 非 Backend 模式 \|/);
   assert.match(component, /\| `structure\.md` \|[^|\r\n]+ \| 非 Backend 且存在长期维护的代码结构 \|/);
   assert.match(component, /\| `domain\.md` \| 领域设计 \| 完整 DDD 模式 \|/);

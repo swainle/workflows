@@ -112,7 +112,7 @@ Backend 模板中的每个具体范例必须就近包含单行提示 `> - 范例
 
 Backend 固定按“领域 → 接口 → 模型 → 工程 → 运行 → 汇总”六步设计：按复杂度创建 `domain.md`，完成 `interface.md`，
 按需完成 `security.md`、`data.md` 和机器可读模型，再完成 `engineering.md`，按需完成 `jobs.md`、`operations.md`，
-最后更新包含文件关系、组件架构、代码结构、设计索引和完整文件树的 `component.md`。
+最后更新包含文件关系、架构图、按上下文组织的代码结构和完整文件树的 `component.md`。
 每个适用文件使用模板规定的标题名称和顺序；仅完整 DDD 模式创建 `domain.md`，且其中每个限界上下文完整保留必须章节，
 其他不适用的可选文件或章节直接省略，不创建空文件，
 也不填写“无”“不适用”或其他占位正文。
@@ -158,7 +158,7 @@ Command、Handler、Factory、DomainService 或 DomainEvent。
 
 - Frontend 和 Backend 模式逐项检查各自列出的全部设计关注点。
 - 每个适用关注点只有一个权威文件，契约和执行配置不在 Markdown 中重复。
-- `component.md` 的设计架构索引列出设计目录内每个实际文件及其唯一作用。
+- 非 Backend 的 `component.md` 设计架构索引列出设计目录内每个实际文件及其唯一作用；Backend 由文件关系图的节点记录文件职责。
 - `component.md` 中的组件图、代码结构、各关注点文件和契约使用相同稳定名称及依赖方向。
 - 安全与可观测性文件引用系统基线，只包含当前组件的落实、信号、需求或例外。
 - 没有按 URL、数据库表或技术类型错误划分业务模块。
@@ -176,7 +176,7 @@ Command、Handler、Factory、DomainService 或 DomainEvent。
 
 | 文件 | 作用 | 创建条件 | 可修改内容 |
 |---|---|---|---|
-| `component.md` | 组件入口文档 | 始终 | 概述、设计架构文件索引和完整受版本控制文件结构 |
+| `component.md` | 组件入口文档 | 始终 | 非 Backend 维护概述、索引和文件树；Backend 维护文件关系、架构图、代码结构和文件树 |
 | `architecture.md` | 非 Backend 组件内部结构和依赖关系图 | 非 Backend 模式 | 当前组件的组件架构图 |
 | `structure.md` | 非 Backend 关键代码单元和依赖关系 | 非 Backend 且存在长期维护的代码结构 | 当前组件的主要代码结构 |
 
@@ -482,13 +482,14 @@ flowchart LR
   接口由 `interface.md` 与机器可读契约、代码依赖由 `structure.md` 分别维护。
 - 组件信息、对象名称、技术版本、架构、框架和职责全部根据当前项目事实填写，不照抄模板示例或保留空字符串。
 - 使用 `UpdateLayoutConfig($c4ShapeInRow="5", $c4BoundaryInRow="1")` 保持每个边界独占一行、边界内对象横向排列。
-- Backend 不创建独立 `architecture.md` 或 `structure.md`；同样的 C3 和 C4 图分别放入 `component.md` 的
-  “组件架构”和“代码结构”章节，代码规则与测试规划放入 `engineering.md`。
+- Backend 不创建独立 `architecture.md` 或 `structure.md`；组件图和内部对象关系图分别放入 `component.md` 的
+  “架构图”和“代码结构”章节，代码规则与测试规划放入 `engineering.md`。
 - C3 异步部分只列出生产者、内嵌 Outbox Relay、消息基础设施和 Worker/下游消费者，不绘制关系连线；
   Relay 不作为独立运行单元。
 - `structure.md` 包含一级标题、一个“总览”章节和按实际业务能力创建的详细章节。
 - 总览使用一个 `flowchart LR`，只展示模块、业务能力及主要依赖，不展示字段或函数。
 - 每个详细章节只描述一个业务能力并使用一个 `flowchart LR`；图仍过大时继续按内聚的子能力拆分章节。
+- Backend 的“代码结构”不创建总览，每个三级标题直接表示一个实际上下文，并使用一个 `flowchart LR` 展示该上下文内部对象、关键公开方法以及对象之间的调用或实现关系。
 - C4 各图的主分层按依赖方向从左到右排列；每个分层使用 `subgraph` 和 `direction TB`，使同层代码单元从上到下排列。
 - 分层名称和数量按组件实际结构确定，不为套用模板创建空层；前端可以使用页面、功能、状态和适配器，后端可以使用接口、应用、领域、端口和适配器，任务处理器可以使用消费者、任务、规则和外部适配器。
 - C4 节点按实际情况标注 `ApplicationService`、`AggregateRoot`、`Entity`、`ValueObject`、`DomainService`、`Repository`、`DomainEvent`、`Page`、`Component`、`Hook`、`Store`、`Handler` 或 `Adapter`，不存在的角色不创建。
@@ -514,7 +515,7 @@ Backend 专用 Markdown、机器可读模型及其固定结构统一由
 - Backend 只使用 `component.md`、`domain.md`、`interface.md`、`security.md`、`data.md`、`engineering.md`、
   `jobs.md` 和 `operations.md`；后三个基础文件中的 `component.md`、`interface.md`、`engineering.md` 始终创建，其余按需创建。
 - Backend Markdown 最多使用三级标题；测试分组使用二级标题，每个测试用例直接使用只含用例编号的三级标题，例如 `### AUTH-DOM-USER-001`。任务功能点或规则使用 `- **001**：` 编号项。测试用例的 `Desc`、`Given`、`When`、`Then` 使用英文名称和全角冒号连续书写，彼此之间不留空行。
-- `component.md` 开头必须先展示实际文件关系，再展示组件架构、代码结构、设计索引和完整文件树；Backend 不创建独立
+- `component.md` 开头必须先展示实际文件关系，再展示架构图、按上下文组织的代码结构和完整文件树；Backend 不创建“概述”或“设计索引”，也不创建独立
   `architecture.md`、`structure.md`、`coding.md` 或 `testing.md`。
 - 完整 DDD 模式的 `domain.md` 按限界上下文分章，只记录领域模型、统一语言、业务规则、业务一致性及按需的事件和图，
   不复制代码包、Adapter、技术依赖或完整代码签名。
@@ -535,7 +536,7 @@ Backend 专用 Markdown、机器可读模型及其固定结构统一由
 - `data.md` 将 Repository、查询模型及其他访问对象统一放入“数据访问”表；类型只使用仓储、查询模型、缓存、对象存储、搜索索引或事件存储，对象填写稳定接口或访问对象，操作只列关键稳定方法名。DAO、Mapper、ORM 和具体存储技术放入 `engineering.md`。
 - `operations.md` 用表格统一维护配置、密钥和运行单元；“运行信号”只保留日志与审计、指标与追踪、健康检查。“交付要求”以 14 位本地时间三级标题保存交付快照，并在单个 Shell 代码块中用注释说明有序操作；实际部署资源仍由 `<组件 deploy>` 维护。
 - 数据库字段和约束、HTTP Schema、异步消息结构分别由 `schema.dbml`、`openapi.json` 和 `asyncapi.json` 维护，不写入 `domain.md`。
-- 轻量 Backend 不创建 `domain.md`，只在 `component.md` 概述记录业务词汇、边界、设计强度和判断事实；
+- 轻量 Backend 不创建 `domain.md`，只在 `component.md` 对应上下文的代码结构中记录设计强度和判断事实，并用实际对象名称表达业务词汇和边界；
   不虚构聚合、实体、值对象、领域服务或领域事件。
 
 ## AI-COMPONENT-010
@@ -643,7 +644,7 @@ accessibility:
 
 - 实际修改全部位于组件清单声明的当前组件设计目录。
 - 没有修改源码、其他组件、需求、系统规范或部署文件。
-- Backend 的 `component.md` 包含文件关系、概述、组件架构、代码结构、设计索引和完整文件树；
+- Backend 的 `component.md` 包含文件关系、架构图、按上下文组织的代码结构和完整文件树；文件关系中的 `jobs.md` 直接指向 `component.md`；
   非 Backend 的 `component.md` 继续只维护概述、索引和文件树。索引覆盖设计目录内全部实际文件且作用唯一。
 - `component.md` 的完整文件结构包含实际需要的测试层级、测试文件、fixture、支持代码和配置；没有通配符、空测试目录或重复的测试方案正文。
 - 已执行组件文件树自动校验且没有遗漏实际受版本控制文件；要求设计与当前文件完全一致时使用了 `--strict`。
@@ -651,7 +652,7 @@ accessibility:
 - 需要长期维护代码结构时，`structure.md` 使用一个代码总览和按业务能力划分的详细 `flowchart LR`；总览不展示函数，详细章节只展示关键公开函数，所有图均为主分层从左到右、分层内部从上到下。
 - Backend 完整 DDD 模式下，`domain.md` 的每个限界上下文记录领域模型、统一语言、业务规则和业务一致性，
   按需记录领域事件、状态图和时序图；不创建独立的 `state.md` 或 `sequence.md`，不复制系统流程、C4、DBML 或契约内容。
-- Backend 轻量模式下不创建 `domain.md`，`component.md` 概述已记录轻量判定条件且没有遗漏任何完整 DDD 触发信号。
+- Backend 轻量模式下不创建 `domain.md`，`component.md` 对应上下文的代码结构已记录轻量判定条件且没有遗漏任何完整 DDD 触发信号。
 - Backend 模式下始终创建 `engineering.md`；工程规则与实际技术栈一致，`component.md` 的完整文件树符合其目录和命名规则，
   `engineering.md` 不重复维护完整文件树。
 - Backend 的 `component.md` 完整文件树覆盖 `engineering.md` 中实际测试文件、Fixture、支持代码、配置和精确 `Src`，

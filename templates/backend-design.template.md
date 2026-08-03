@@ -17,7 +17,7 @@
 - 需要引用前置文件的信息时，在所属二级或三级标题后、正文前使用独立引用行 `> Ref: <文件名>:<二级标题>:<三级标题或编号>`，例如 `> Ref: process:xx:xx`；多个引用各占一行。只有 `interface.md`“操作定义”和 `security.md`“权限控制”的“关联需求”列可以列当前条目直接实现的需求编号；除此之外不创建引用列、引用表或递归展开上游引用。
 - 仅当以下条件全部成立时使用轻量 Backend：任务是简单 CRUD、纯查询或数据转换，且没有领域不变量、业务状态生命周期、跨实体强一致事务、并发竞争、补偿、领域事件或多个统一语言边界。
 - 上述任一复杂度信号存在时使用完整 DDD；证据不足时先确认，不得通过选择轻量模式规避设计。
-- 轻量 Backend 不创建 `domain.md`，只在 `component.md` 概述记录业务词汇、边界、设计强度和判断事实。
+- 轻量 Backend 不创建 `domain.md`，只在 `component.md` 对应上下文的代码结构中记录设计强度和判断事实，并用实际对象名称表达业务词汇与边界。
 - 本文件中的图、表、目录、名称和技术全部是格式与表达示例，不是待复制的默认设计。必须根据已确认的实际需求逐项替换、增删和重组；禁止因示例中出现认证、资源、预约、Outbox、Redis、Prisma 或 BullMQ 就创建对应内容。
 - 每个具体范例都必须就近包含单行提示 `> - 范例适配声明：<具体调整范围>`；尖括号占位符和具体示例名称不得原样进入最终文档。
 - Backend Markdown 最多使用三级标题，不得出现四级及更深标题。设计标识按“文件名 → 二级标题 → 三级标题 → 可选编号”生成；表格“编号”列或 `- **001**：` 编号项追加三位编号，找不到三级标题或编号时停在已经识别到的二级或三级标题。
@@ -64,7 +64,7 @@ flowchart LR
     engineering["engineering.md<br/>编码与测试"]
     jobs["jobs.md<br/>后台与异步任务"]
     operations["operations.md<br/>运行与交付"]
-    component["component.md<br/>架构、索引与文件树"]
+    component["component.md<br/>关系、架构与文件树"]
 
     source --> domain
     source --> interface
@@ -95,47 +95,44 @@ flowchart LR
 3. 从 Markdown 设计生成或更新适用的机器契约，并以机器契约作为字段和关系的唯一事实源。
 4. 用 `engineering.md` 落实实现映射、工程约束和测试规划。
 5. 按需用 `jobs.md` 设计后台与异步任务，再用 `operations.md` 汇总运行和部署交付要求。
-6. 最后更新 `component.md` 开头的文件关系、组件图、代码结构、设计索引和完整文件树。
+6. 最后更新 `component.md` 开头的文件关系、架构图、按上下文组织的代码结构和完整文件树。
 
 ## AI-BACKEND-004
 
 - **Who**：处理 `<组件> backend <任务>` 的组件设计 Agent。
 - **When**：创建或更新 Backend 组件的最终设计入口时。
 - **Where**：`<组件设计目录>/component.md`。
-- **What**：定义文件关系、组件架构、代码结构、设计索引和完整文件树。
+- **What**：定义文件关系、架构图、按上下文组织的代码结构和完整文件树。
 - **Why**：让读者从一个入口定位全部设计与实现路径，而不重复各文件正文。
 
-> - 范例适配声明：以下文件关系、架构元素、代码分层、索引和目录必须替换为当前组件的实际内容。
+> - 范例适配声明：以下文件关系、架构元素、上下文代码结构和目录必须替换为当前组件的实际内容。
 
 ````md
 # <组件名称>
 
-汇总当前 Backend 的文件关系、职责边界、架构、设计索引和完整文件结构。
+汇总当前 Backend 的文件关系、架构、代码结构和完整文件结构。
 
 ## 文件关系
 
 ```mermaid
 flowchart LR
-    requirement["需求与系统规范"] --> interface["interface.md"]
-    domain["domain.md"] --> interface
-    domain --> data["data.md"]
-    interface --> security["security.md"]
-    interface --> contracts["机器契约"]
+    requirement["需求与系统规范"] --> interface["interface.md<br/>接口与错误"]
+    domain["domain.md<br/>领域设计"] --> interface
+    domain --> data["data.md<br/>数据与一致性"]
+    interface --> security["security.md<br/>认证与授权"]
+    interface --> contracts["机器契约<br/>协议与模型"]
     data --> contracts
-    interface --> engineering["engineering.md"]
+    interface --> engineering["engineering.md<br/>实现与测试"]
     data --> engineering
-    engineering --> jobs["jobs.md"]
-    engineering --> operations["operations.md"]
+    engineering --> jobs["jobs.md<br/>后台与异步任务"]
+    engineering --> operations["operations.md<br/>运行与交付"]
     jobs --> operations
-    engineering --> component["component.md"]
+    engineering --> component["component.md<br/>设计入口"]
+    jobs --> component
     operations --> component
 ```
 
-## 概述
-
-<说明组件是什么、负责什么、不负责什么、主要使用者、业务边界和设计强度。>
-
-## 组件架构
+## 架构图
 
 ```mermaid
 C4Component
@@ -155,22 +152,43 @@ C4Component
 
 ## 代码结构
 
+### <上下文>
+
+> Mode: <轻量 Backend 或完整 DDD>
+> Why: <判断事实>
+
 ```mermaid
 flowchart LR
-    interface_layer["接口层"] --> application_layer["应用层"]
-    application_layer --> domain_layer["领域或核心层"]
-    application_layer --> ports["端口"]
-    ports -.-> adapters["适配器"]
+    subgraph interface_layer["接口层"]
+        direction TB
+        entry["<入口对象><br/>«Handler»<br/>+<公开方法>(...): <结果>"]
+    end
+
+    subgraph application_layer["应用层"]
+        direction TB
+        use_case["<应用对象><br/>«ApplicationService»<br/>+<公开方法>(...): <结果>"]
+    end
+
+    subgraph domain_layer["领域或核心层"]
+        direction TB
+        domain_object["<领域或核心对象><br/>«AggregateRoot / Entity / Service»<br/>+<公开方法>(...): <结果>"]
+    end
+
+    subgraph port_layer["端口层"]
+        direction TB
+        port["<端口对象><br/>«Repository / Port»<br/>+<公开方法>(...): <结果>"]
+    end
+
+    subgraph adapter_layer["适配器层"]
+        direction TB
+        adapter["<适配器对象><br/>«Adapter»"]
+    end
+
+    entry --> use_case
+    use_case --> domain_object
+    use_case --> port
+    port -.->|"implemented by"| adapter
 ```
-
-## 设计索引
-
-| 文件 | 作用 |
-|---|---|
-| `component.md` | 文件关系、组件与代码架构、设计索引和完整文件树 |
-| `interface.md` | 接口、输入校验、错误、幂等和兼容策略 |
-| `engineering.md` | 编码规则与测试规划 |
-| `<实际可选文件>` | <唯一职责> |
 
 ## 目录结构
 
@@ -182,10 +200,11 @@ flowchart LR
 ```
 ````
 
-- `文件关系` 必须是一级标题后的第一个二级章节，只展示实际存在的文件和机器契约。
-- `组件架构` 使用一个无关系连线的 `C4Component` 图展示稳定模块、运行单元与必要外部对象，不展开代码分层。
-- `代码结构` 使用 `flowchart LR` 展示主要代码单元和依赖方向，不复制业务规则或契约字段。
-- `设计索引` 逐个列出设计目录内全部实际文件及唯一作用；`目录结构` 递归列出全部应受版本控制的生产、测试和配置文件。
+- `文件关系` 必须是一级标题后的第一个二级章节，只展示实际存在的文件和机器契约；每个文件节点同时写明唯一职责，`jobs.md` 存在时必须直接指向 `component.md`。
+- `架构图` 使用一个无关系连线的 `C4Component` 图展示稳定模块、运行单元与必要外部对象，不展开代码分层。
+- `代码结构` 的每个三级标题表示一个实际上下文；上下文名称与 `domain.md` 保持一致，轻量 Backend 使用实际业务边界名称且记录 `Mode` 和 `Why`。
+- 每个上下文只使用一个 `flowchart LR` 展示内部对象、必要的关键公开方法及对象之间的调用或实现关系；不展示私有方法、简单访问器、全部字段或重复 CRUD 签名，不复制业务规则或契约字段。
+- `component.md` 不保留“概述”或“设计索引”章节；`目录结构` 递归列出全部应受版本控制的生产、测试和配置文件。
 - 文件树不得使用通配符、省略号或“同上”，不得列出依赖目录、构建产物、缓存、日志、密钥和运行时生成内容。
 
 ## AI-BACKEND-005
