@@ -1127,7 +1127,7 @@ test("supports frontend and backend component design modes", () => {
     "定义当前 Backend 的操作边界、输入处理、错误语义、幂等、兼容和契约索引。",
     "定义当前 Backend 的身份认证、权限控制和安全失败处理。",
     "定义当前 Backend 的数据访问、持久化边界和一致性策略。",
-    "约束当前 Backend 的代码架构、目录命名、执行管线、依赖方向和测试规划。",
+    "定义当前 Backend 的实现映射、执行管线、工程约束和测试规划。",
     "定义当前 Backend 的后台任务与独立 Worker 异步任务。",
     "定义当前 Backend 的配置、密钥、可观测性、运行生命周期和部署交付要求。",
     "汇总当前 Backend 的文件关系、职责边界、架构、设计索引和完整文件结构。",
@@ -1177,10 +1177,12 @@ test("supports frontend and backend component design modes", () => {
   assert.match(backend, /engineering --> operations/);
   assert.match(backend, /engineering --> component/);
   assert.match(backend, /operations --> component/);
-  assert.match(backend, /# 工程设计[\s\S]*## 架构映射[\s\S]*## 目录约定[\s\S]*## 文件命名[\s\S]*## 编码规范[\s\S]*## 依赖方向[\s\S]*## 测试策略/);
+  assert.match(backend, /# 工程设计\s+[\s\S]*定义当前 Backend 的实现映射、执行管线、工程约束和测试规划。\s+```mermaid[\s\S]*flowchart LR[\s\S]*接口层[\s\S]*应用层[\s\S]*领域层[\s\S]*端口[\s\S]*适配器/);
   assert.match(backend, /@design <设计标识>[\s\S]*@design-ref <设计标识>/);
-  assert.match(backend, /## 应用执行管线[\s\S]*### Command Bus[\s\S]*\| Command \| Handler \| Middleware 顺序 \| Unit of Work \| Result \|/);
-  assert.match(backend, /### 事务与消息代码[\s\S]*\| Unit of Work \| `<实现或 Middleware>`[\s\S]*\| Outbox Writer \| `<代码单元>`[\s\S]*\| Inbox \| `<代码单元>`/);
+  assert.match(backend, /## 实现映射[\s\S]*\| 编号 \| 类型 \| 设计对象 \| 实现对象 \| 技术 \|[\s\S]*\| 001 \| 数据访问 \| `UserRepository` \| `PrismaUserRepository` \| Prisma \|/);
+  assert.match(backend, /## 执行管线[\s\S]*\| 编号 \| 入口 \| 执行顺序 \| 事务边界 \| 说明 \|/);
+  assert.match(backend, /## 工程约束[\s\S]*### 目录约定[\s\S]*### 文件命名[\s\S]*### 编码规范/);
+  assert.doesNotMatch(backend, /## 架构映射|## 应用执行管线|### 事务与消息代码|## 依赖方向|## 测试策略|## 测试配置|## 测试命令|## 例外/);
   assert.match(backend, /Command Bus 只在多个用例需要统一分派或共享 Middleware 时采用/);
   assert.match(backend, /\| Command \| `<action>\.command\.ts` \|/);
   assert.match(backend, /\| Handler \| `<action>\.handler\.ts` \|/);
@@ -1191,7 +1193,9 @@ test("supports frontend and backend component design modes", () => {
   assert.match(backend, /同一聚合或能力内只有字段、类型和简单校验的 Entity、Value Object 可以合并/);
   assert.match(backend, /\| Domain Event \| `<event>\.event\.ts` \|/);
   assert.match(backend, /\| Repository Adapter \| `<subject>\.<technology>\.repository\.ts` \|/);
-  assert.match(backend, /不适用的角色和章节直接删除/);
+  assert.match(backend, /Fixture 与测试支持保留独立二级标题/);
+  assert.match(backend, /## Fixture 与测试支持[\s\S]*## 单元测试[\s\S]*### AUTH-DOM-USER-001[\s\S]*> Design：`domain:Auth认证:业务规则:001`[\s\S]*> Src：`test\/unit\/domain\/user\.test\.ts`[\s\S]*Desc：校验手机号唯一规则\r?\nGiven：已存在同一手机号的用户。\r?\nWhen：创建新用户。\r?\nThen：返回手机号已注册的稳定错误。/);
+  assert.match(backend, /测试命令不在 `engineering\.md` 维护/);
   assert.match(backend, /精确生产与测试文件树只由 `component\.md` 维护/);
   assert.match(backend, /## 数据访问[\s\S]*\| 编号 \| 类型 \| 对象 \| 操作 \| 说明 \|[\s\S]*\| 001 \| 仓储 \| `UserRepository` \| `findByPhone`、`save` \|/);
   assert.match(backend, /“数据访问”的类型只使用：[\s\S]*`仓储`[\s\S]*`查询模型`[\s\S]*`缓存`[\s\S]*`对象存储`[\s\S]*`搜索索引`[\s\S]*`事件存储`/);
@@ -1367,18 +1371,18 @@ test("plans the component test structure before implementing tests", () => {
   assert.match(testing, /每个已实现用例位于其 `Src` 指定的测试文件中/);
   assert.match(backend, /本组件使用 <语言和版本>，沿用 <构建或包管理工具>、<测试框架>/);
   assert.match(backend, /不创建语言映射表或\s*测试用例总表/);
-  assert.match(backend, /## Fixture 与测试支持[\s\S]*## 单元测试[\s\S]*## 集成测试[\s\S]*## 契约测试[\s\S]*## 并发测试[\s\S]*## 端到端测试[\s\S]*## 测试配置[\s\S]*## 测试命令/);
-  assert.match(backend, /### 单元测试[\s\S]*- \*\*<CONTEXT>-DOM-<CAPABILITY>-001\*\*/);
-  assert.match(backend, /> Design：`domain:<上下文>:业务规则:001`\r?\n> Src：`test\/unit\/domain\/<capability>\.test\.ts`\r?\n> BR：`<需求编号>`\r?\n> AC：`<验收条件>`/);
+  assert.match(backend, /## Fixture 与测试支持[\s\S]*## 单元测试[\s\S]*## 集成测试[\s\S]*## 契约测试[\s\S]*## 并发测试[\s\S]*## 端到端测试/);
+  assert.match(backend, /## 单元测试[\s\S]*### AUTH-DOM-USER-001/);
+  assert.match(backend, /> Design：`domain:Auth认证:业务规则:001`\r?\n> Src：`test\/unit\/domain\/user\.test\.ts`/);
   assert.doesNotMatch(backend, /> Req：/);
-  assert.match(backend, /\| 字段 \| 内容 \|[\s\S]*\| Desc \| <主要行为> \|[\s\S]*\| Given \| <前置状态> \|[\s\S]*\| When \| <动作> \|[\s\S]*\| Then \| <当前组件边界内可观察结果> \|/);
-  assert.match(backend, /例如 `- \*\*AUTH-DOM-USER-001\*\*`/);
+  assert.match(backend, /Desc：校验手机号唯一规则\r?\nGiven：已存在同一手机号的用户。\r?\nWhen：创建新用户。\r?\nThen：返回手机号已注册的稳定错误。/);
+  assert.match(backend, /例如 `### AUTH-DOM-USER-001`/);
   assert.match(backend, /`Design` 必须是可解析设计标识/);
   assert.match(backend, /测试实现对每个标识使用 `@verifies`/);
   assert.match(backend, /消息行为由集成测试验证，Schema 兼容性由契约测试验证/);
   assert.match(backend, /组件测试不引用 Requirement TC，不声称验证跨组件 BP/);
   assert.match(backend, /`Src` 必须是精确测试文件路径并由 `component\.md` 文件树收录/);
-  assert.match(backend, /只记录真实可执行命令/);
+  assert.match(backend, /测试命令不在 `engineering\.md` 维护/);
   assert.match(backend, /测试报告和覆盖率报告按需由用户手动导出/);
   assert.match(readme, /`<web test> <任务>` \| 编写并执行目标组件测试/);
   assert.match(readme, /详细规则以模板和对应阶段提示词为准/);

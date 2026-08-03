@@ -26,7 +26,7 @@
 ## AI-BACKEND-002
 
 - **Who**：处理 `<组件> backend <任务>` 的组件设计 Agent。
-- **When**：创建或更新 Backend 的架构映射、代码组织、运行单元或技术约定时。
+- **When**：创建或更新 Backend 的实现映射、代码组织、运行单元或技术约定时。
 - **Where**：`<组件设计目录>/component.md`、`engineering.md`、`jobs.md` 与 `operations.md`。
 - **What**：定义领域边界、分层依赖、代码角色、运行单元和条件性 TypeScript 约定。
 - **Why**：避免合并文档后业务边界、代码依赖与运行职责混在一起。
@@ -41,7 +41,7 @@
 - 技术约定只在实际技术栈采用对应工具时启用。TypeScript 普通职责文件使用 `<subject>.<role>.ts`，技术 Adapter 使用 `<subject>.<technology>.<role>.ts`。
 - Command、Handler、Query、Aggregate、Entity、Value Object、Domain Event、Port、Repository 和 Adapter 仅在有真实职责和调用方时创建。
 - 框架固定文件名优先；Prisma 迁移使用 `prisma/migrations/<timestamp_name>/migration.sql`；独立 Worker 入口按项目约定启动，不为 Outbox Relay 创建独立入口。
-- 精确生产与测试文件树只由 `component.md` 维护；`engineering.md` 只维护长期有效的目录、命名和测试规则。
+- 精确生产与测试文件树只由 `component.md` 维护；`engineering.md` 只维护实现映射、共享执行管线、长期有效的工程约束和测试规划。
 
 ## AI-BACKEND-003
 
@@ -93,7 +93,7 @@ flowchart LR
 1. 从需求与系统规范判断轻量或完整 DDD；完整 DDD 先完成 `domain.md`。
 2. 完成 `interface.md`，再按需完成 `security.md` 和 `data.md`。
 3. 从 Markdown 设计生成或更新适用的机器契约，并以机器契约作为字段和关系的唯一事实源。
-4. 用 `engineering.md` 落实架构映射、代码规则和测试规划。
+4. 用 `engineering.md` 落实实现映射、工程约束和测试规划。
 5. 按需用 `jobs.md` 设计后台与异步任务，再用 `operations.md` 汇总运行和部署交付要求。
 6. 最后更新 `component.md` 开头的文件关系、组件图、代码结构、设计索引和完整文件树。
 
@@ -513,40 +513,41 @@ sequenceDiagram
 - **Who**：处理 `<组件> backend <任务>` 的组件设计 Agent。
 - **When**：Backend 需要创建或更新代码结构、工程规则或组件测试规划时。
 - **Where**：`<组件设计目录>/engineering.md`。
-- **What**：定义架构到代码的映射、执行管线、目录命名、编码规范、依赖方向和测试策略。
+- **What**：定义设计到代码的实现映射、执行管线、工程约束和测试规划。
 - **Why**：避免领域与接口设计无法落到具体代码和测试路径，并统一工程约束。
 
-> - 范例适配声明：以下架构、目录、命名、执行管线、测试层级、路径和命令必须按实际技术栈调整。
+> - 范例适配声明：以下实现映射、依赖图、工程约束、执行管线、测试层级和示例必须按实际技术栈调整。
 
 ````md
 # 工程设计
 
-约束当前 Backend 的代码架构、目录命名、执行管线、依赖方向和测试规划。
+定义当前 Backend 的实现映射、执行管线、工程约束和测试规划。
 
-## 架构映射
+```mermaid
+flowchart LR
+    interface["接口层"] --> application["应用层"]
+    application --> domain["领域层"]
+    application --> port["端口"]
+    adapter["适配器"] --> port
+```
 
-| 设计对象 | 代码位置 | 命名方式 |
-|---|---|---|
-| <用例、领域对象、Port 或 Adapter> | `<实际目录>` | `<实际模式>` |
+## 实现映射
 
-## 应用执行管线
-
-### Command Bus
-
-| Command | Handler | Middleware 顺序 | Unit of Work | Result |
+| 编号 | 类型 | 设计对象 | 实现对象 | 技术 |
 |---|---|---|---|---|
-| `<Command>` | `<Handler>` | <实际顺序> | <边界> | `<Result>` |
+| 001 | 数据访问 | `UserRepository` | `PrismaUserRepository` | Prisma |
 
-### 事务与消息代码
+## 执行管线
 
-| 角色 | 代码单元 |
-|---|---|
-| Unit of Work | `<实现或 Middleware>` |
-| Outbox Writer | `<代码单元>` |
-| Inbox | `<代码单元>` |
+| 编号 | 入口 | 执行顺序 | 事务边界 | 说明 |
+|---|---|---|---|---|
+| 001 | `registerUser` | Validator → Handler → Unit of Work | 001 | 注册用户 |
 
-## 目录约定
-## 文件命名
+## 工程约束
+
+### 目录约定
+
+### 文件命名
 
 | 角色 | 文件命名 |
 |---|---|
@@ -559,53 +560,40 @@ sequenceDiagram
 | Domain Event | `<event>.event.ts` |
 | Repository Adapter | `<subject>.<technology>.repository.ts` |
 
-## 编码规范
-## 依赖方向
+### 编码规范
 
-## 测试策略
+## Fixture 与测试支持
 
 本组件使用 <语言和版本>，沿用 <构建或包管理工具>、<测试框架> 及项目现有测试工具链。
 
-### Fixture 与测试支持
-### 单元测试
+## 单元测试
 
-- **<CONTEXT>-DOM-<CAPABILITY>-001**
+### AUTH-DOM-USER-001
 
-> Design：`domain:<上下文>:业务规则:001`
-> Src：`test/unit/domain/<capability>.test.ts`
-> BR：`<需求编号>`
-> AC：`<验收条件>`
+> Design：`domain:Auth认证:业务规则:001`
+> Src：`test/unit/domain/user.test.ts`
 
-| 字段 | 内容 |
-| --- | --- |
-| Desc | <主要行为> |
-| Given | <前置状态> |
-| When | <动作> |
-| Then | <当前组件边界内可观察结果> |
+Desc：校验手机号唯一规则
+Given：已存在同一手机号的用户。
+When：创建新用户。
+Then：返回手机号已注册的稳定错误。
 
-### 集成测试
-### 契约测试
-### 并发测试
-### 端到端测试
-
-## 测试配置
-## 测试命令
-
-| 范围 | 命令 | 前置条件 |
-|---|---|---|
-| 受影响测试 | `<实际命令>` | <条件> |
-| 当前组件全部测试 | `<实际命令>` | <条件> |
-
-## 例外
+## 集成测试
+## 契约测试
+## 并发测试
+## 端到端测试
 ````
 
-- Command Bus 只在多个用例需要统一分派或共享 Middleware 时采用；不适用的角色和章节直接删除。
+- “实现映射”只记录设计对象到实现对象的稳定映射和实际技术，不记录文件路径；精确生产与测试文件树只由 `component.md` 维护。
+- “执行管线”只记录多个入口共享或影响行为边界的执行顺序；简单直接调用不创建该章节。Command Bus 只在多个用例需要统一分派或共享 Middleware 时采用。
+- 目录约定、文件命名和编码规范统一放在“工程约束”下，但继续使用各自的三级标题和现有表达格式；依赖方向只由一级标题说明后的 Mermaid 图维护。
 - 同一聚合或能力内只有字段、类型和简单校验的 Entity、Value Object 可以合并；出现独立行为、生命周期、复杂不变量或复用时再拆分。
-- 测试按单元、集成、契约、并发和端到端分组；每个稳定用例使用 `- **<限界上下文>-<测试层级>-<对象或能力>-<三位序号>**` 编号项，例如 `- **AUTH-DOM-USER-001**`。`Src` 必须是精确测试文件路径并由 `component.md` 文件树收录。
+- Fixture 与测试支持保留独立二级标题；测试按单元、集成、契约、并发和端到端使用二级标题分组，不适用的测试分组直接删除。
+- 每个稳定测试用例直接使用 `### <限界上下文>-<测试层级>-<对象或能力>-<三位序号>` 三级标题，例如 `### AUTH-DOM-USER-001`。`Src` 必须是精确测试文件路径并由 `component.md` 文件树收录。
 - 不创建语言映射表或测试用例总表；Requirement TC 或验收跨组件 BP 的场景归全局 `<test>`，不在组件测试中重复规划。
 - `Design` 必须是可解析设计标识；测试实现对每个标识使用 `@verifies`。组件测试不引用 Requirement TC，不声称验证跨组件 BP。
-- `Desc`、`Given`、`When`、`Then` 使用“字段 / 内容”小表格连续记录且各描述一个主要行为。消息行为由集成测试验证，Schema 兼容性由契约测试验证。
-- 测试工具链沿用项目现状；没有既有 JavaScript/TypeScript 测试工具链时默认使用 `pnpm` 和 Vitest。只记录真实可执行命令。
+- `Design` 和 `Src` 使用连续的 Markdown 引用行；`Desc`、`Given`、`When`、`Then` 使用英文名称和全角冒号连续书写，彼此之间不留空行且各描述一个主要行为。消息行为由集成测试验证，Schema 兼容性由契约测试验证。
+- 测试工具链沿用项目现状；没有既有 JavaScript/TypeScript 测试工具链时默认使用 `pnpm` 和 Vitest。测试命令不在 `engineering.md` 维护。
 - 测试报告和覆盖率报告按需由用户手动导出，不作为默认提交文件。
 
 ## AI-BACKEND-011
