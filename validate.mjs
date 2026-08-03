@@ -955,7 +955,8 @@ test("supports frontend and backend component design modes", () => {
   assert.match(backend, /领域层不得依赖框架、ORM、HTTP、JWT、授权引擎或消息队列/);
   assert.match(backend, /\*\*What\*\*：提供“`domain\.md`”功能[\s\S]*# 领域设计[\s\S]*## <限界上下文>/);
   assert.match(backend, /### 领域命令[\s\S]*\| 命令 \| 说明 \|[\s\S]*### 统一语言/);
-  assert.match(backend, /\| 对象 \| 术语 \| 定义 \|[\s\S]*### 业务规则[\s\S]*\| 对象 \| 规则 \| 违反结果 \|/);
+  assert.match(backend, /\| 对象 \| 术语 \| 定义 \|[\s\S]*### 业务规则[\s\S]*\| 编号 \| 类型 \| 对象或范围 \| 规则 \| 违反结果 \|/);
+  assert.match(backend, /`不变量`[\s\S]*`前置条件`[\s\S]*`资格规则`[\s\S]*`计算规则`[\s\S]*`业务策略`[\s\S]*`跨聚合规则`/);
   assert.match(backend, /### 领域事件[\s\S]*\| 事件 \| 触发条件 \| 字段 \|/);
   assert.match(backend, /### 状态图[\s\S]*```mermaid\r?\nstateDiagram-v2/);
   assert.match(backend, /### 一致性[\s\S]*\| 事务边界 \| 要求 \|/);
