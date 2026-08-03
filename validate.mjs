@@ -1158,6 +1158,17 @@ test("supports frontend and backend component design modes", () => {
   assert.match(backend, /`Code` 直接填写当前协议的对外 Code，例如 HTTP `401`、gRPC `UNAUTHENTICATED`/);
   assert.match(backend, /不再创建独立“协议映射”章节/);
   assert.match(backend, /“产生位置”填写稳定的业务上下文或输入、领域、授权、数据、外部依赖等边界/);
+  assert.match(backend, /# 安全设计[\s\S]*## 身份认证[\s\S]*\| 对象 \| 规则 \|[\s\S]*\| 密码 \|[\s\S]*\| Access Token \|[\s\S]*\| Refresh Token \|[\s\S]*\| Session \|/);
+  assert.match(backend, /## 权限控制[\s\S]*\| 权限 \| 主体或角色 \| 资源 \| 条件 \| 数据范围 \| 执行点 \|/);
+  assert.match(backend, /## 失败处理[\s\S]*\| 场景 \| 处理 \| 审计 \|/);
+  assert.doesNotMatch(backend, /## 系统基线引用|## 授权模型引用|### 身份来源与信任边界|### 凭据与会话|### Token 生命周期|### 轮换、撤销与防重放|### 权限矩阵|### 权限执行点|### 数据范围/);
+  assert.match(backend, /身份认证和权限控制分别在章节开头用 `> Ref` 引用系统安全基线/);
+  assert.match(backend, /只有当前组件实际接收、签发、保存或撤销对应凭据时才保留密码、Access Token、Refresh Token 或 Session 行/);
+  assert.match(backend, /密码只保存不可逆的自适应哈希[\s\S]*使用 bcrypt 时记录实际 cost 和输入长度限制/);
+  assert.match(backend, /Token 状态使用 `active → used`[\s\S]*Session 状态只使用 `active → revoked` 或 `active → expired`，不使用 `used`/);
+  assert.match(backend, /“权限控制”不重复 `interface\.md` 中操作到权限的映射/);
+  assert.match(backend, /稳定错误码及协议 Code 只由 `interface\.md` 维护，不在本文件重复/);
+  assert.match(backend, /密钥变量、注入和运行时轮换由 `operations\.md` 维护/);
   assert.match(component, /\| `interface\.md` \| 接口、输入与错误设计 \| 始终 \|/);
   assert.match(backend, /engineering --> jobs/);
   assert.match(backend, /engineering --> operations/);
