@@ -359,6 +359,36 @@ test("describes prompt capabilities with numbered five-point definitions", () =>
   }
 });
 
+test("uses concrete 5W metadata for file-oriented prompt capabilities", () => {
+  const backend = readFileSync(path.join(WORKFLOW_ROOT, "templates/backend-design.template.md"), "utf8");
+  const system = readFileSync(path.join(WORKFLOW_ROOT, "stages/system.md"), "utf8");
+  const systemFiles = system.slice(system.indexOf("## AI-SYSTEM-006"), system.indexOf("## AI-SYSTEM-013"));
+
+  for (const location of [
+    "`<组件设计目录>/component.md`。",
+    "`<组件设计目录>/domain.md`。",
+    "`<组件设计目录>/interface.md`。",
+    "`<组件设计目录>/security.md`。",
+    "`<组件设计目录>/data.md`。",
+    "`<组件设计目录>/engineering.md`。",
+    "`<组件设计目录>/jobs.md`。",
+    "`<组件设计目录>/operations.md`。",
+  ]) assert.match(backend, new RegExp(location.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")));
+
+  for (const location of [
+    "`docs/system/context.md` 与 `docs/system/system.md`。",
+    "`docs/system/process.md`。",
+    "`docs/system/gitflow.md`。",
+    "`docs/system/technology.md`。",
+    "`docs/system/security.md`。",
+    "`docs/system/observability.md`。",
+  ]) assert.match(systemFiles, new RegExp(location.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")));
+
+  assert.doesNotMatch(backend, /^- \*\*What\*\*：提供/m);
+  assert.doesNotMatch(systemFiles, /`docs\/system\/\*\*` 与允许读取的需求事实/);
+  assert.doesNotMatch(systemFiles, /确保跨组件规范统一、自洽并可供下游组件设计使用/);
+});
+
 test("automatically validates prompt structure and complete component trees", () => {
   assert.deepEqual(
     validatePromptFile(path.join(WORKFLOW_ROOT, "stages/component-test.md"), "AI-TEST"),
@@ -992,7 +1022,7 @@ test("supports frontend and backend component design modes", () => {
   assert.doesNotMatch(backend, /^#### /m);
   assert.match(backend, /`@design <设计标识>` 标记唯一主实现/);
   assert.match(backend, /每个 Markdown 文件都在一级标题下用一句简短正文说明该文件的职责/);
-  assert.match(backend, /\*\*What\*\*：提供“文件关系与设计顺序”功能/);
+  assert.match(backend, /\*\*What\*\*：定义 Backend 设计文件的事实所有权、单向依赖和生成顺序/);
   assert.match(backend, /domain --> interface/);
   assert.match(backend, /domain --> data/);
   assert.match(backend, /interface --> engineering/);
@@ -1001,15 +1031,15 @@ test("supports frontend and backend component design modes", () => {
   assert.match(backend, /operations --> component/);
   assert.doesNotMatch(backend, /component --> engineering/);
   assert.match(backend, /最后更新 `component\.md` 开头的文件关系/);
-  assert.match(backend, /\*\*What\*\*：提供“`component\.md`”功能[\s\S]*```mermaid\r?\nC4Component/);
+  assert.match(backend, /\*\*What\*\*：定义文件关系、组件架构、代码结构、设计索引和完整文件树[\s\S]*```mermaid\r?\nC4Component/);
   assert.match(backend, /title <组件名称> 组件图/);
   assert.match(backend, /Container_Boundary\(context_layout, "上下文"\)/);
   assert.match(backend, /无关系连线的 `C4Component`/);
   assert.doesNotMatch(backend, /\b(?:BiRel|Rel(?:_[DULR])?)\(/);
   assert.match(backend, /flowchart LR/);
-  assert.match(backend, /\*\*What\*\*：提供“文件关系与设计顺序”功能/);
+  assert.match(backend, /\*\*What\*\*：定义 Backend 设计文件的事实所有权、单向依赖和生成顺序/);
   assert.match(backend, /领域层不得依赖框架、ORM、HTTP、JWT、授权引擎或消息队列/);
-  assert.match(backend, /\*\*What\*\*：提供“`domain\.md`”功能[\s\S]*# 领域设计[\s\S]*## <限界上下文>/);
+  assert.match(backend, /\*\*What\*\*：定义限界上下文内的领域模型、统一语言、业务规则、事件、状态和业务一致性[\s\S]*# 领域设计[\s\S]*## <限界上下文>/);
   assert.match(backend, /### 领域模型[\s\S]*\| 类型 \| 名称 \| 职责 \| 承担的领域命令 \|[\s\S]*### 统一语言/);
   assert.doesNotMatch(backend, /### 领域命令/);
   assert.match(backend, /`聚合根（Aggregate Root）`[\s\S]*`实体（Entity）`[\s\S]*`值对象（Value Object）`[\s\S]*`领域服务（Domain Service）`[\s\S]*`领域策略（Domain Policy）`/);
@@ -1048,7 +1078,7 @@ test("supports frontend and backend component design modes", () => {
     "jobs.md",
     "operations.md",
   ]) {
-    assert.ok(backend.includes(`**What**：提供“\`${file}\`”功能`), `missing Backend template for ${file}`);
+    assert.ok(backend.includes(`**Where**：\`<组件设计目录>/${file}\``), `missing Backend template for ${file}`);
   }
   for (const responsibility of [
     "定义当前 Backend 的领域语言、业务规则、状态变化和一致性边界。",
@@ -1112,7 +1142,7 @@ test("designs background and worker tasks in the backend engineering phase", () 
 
   assert.match(backend, /engineering --> jobs/);
   assert.match(backend, /jobs --> operations/);
-  assert.match(backend, /\*\*What\*\*：提供“`jobs\.md`”功能[\s\S]*# 任务设计/);
+  assert.match(backend, /\*\*What\*\*：定义后台任务与异步 Worker 的入口、功能点、运行时序、投递和幂等要求[\s\S]*# 任务设计/);
   assert.match(backend, /## 后台任务[\s\S]*## 异步任务/);
   assert.match(backend, /> Src：`<精确生产文件路径>`[\s\S]*> Host：`<现有 API 或 Worker 进程>`[\s\S]*> 触发方式：/);
   assert.match(backend, /> Runtime：`<Worker 运行单元>`[\s\S]*> AsyncAPI：`asyncapi\.json#\/channels\/<channel>`[\s\S]*> Topic：`<topic>`/);
@@ -1134,7 +1164,7 @@ test("defines bounded-context backend runtimes and conditional TypeScript conven
   assert.match(component, /Backend 不创建独立 `architecture\.md` 或 `structure\.md`/);
   assert.match(component, /代码规则与测试规划放入 `engineering\.md`/);
 
-  assert.match(backend, /\*\*What\*\*：提供“架构、代码与运行约定”功能/);
+  assert.match(backend, /\*\*What\*\*：定义领域边界、分层依赖、代码角色、运行单元和条件性 TypeScript 约定/);
   assert.match(backend, /Container_Boundary\(caller_layout, "<调用方>"\)[\s\S]*Container_Boundary\(context_layout, "上下文"\)[\s\S]*Container_Boundary\(infra_layout, "基础设施"\)/);
   assert.match(backend, /UpdateLayoutConfig\(\$c4ShapeInRow="5", \$c4BoundaryInRow="1"\)/);
   assert.match(backend, /一个 Backend 可以包含 API、内嵌后台任务和独立 Worker 入口/);
