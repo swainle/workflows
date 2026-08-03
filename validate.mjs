@@ -1126,7 +1126,7 @@ test("supports frontend and backend component design modes", () => {
     "定义当前 Backend 的领域语言、业务规则、状态变化和一致性边界。",
     "定义当前 Backend 的操作边界、输入处理、错误语义、幂等、兼容和契约索引。",
     "定义当前 Backend 的身份认证、权限控制和安全失败处理。",
-    "定义当前 Backend 的数据所有权、持久化边界和一致性策略。",
+    "定义当前 Backend 的数据访问、持久化边界和一致性策略。",
     "约束当前 Backend 的代码架构、目录命名、执行管线、依赖方向和测试规划。",
     "定义当前 Backend 的后台任务与独立 Worker 异步任务。",
     "定义当前 Backend 的配置、密钥、可观测性、运行生命周期和部署交付要求。",
@@ -1193,10 +1193,17 @@ test("supports frontend and backend component design modes", () => {
   assert.match(backend, /\| Repository Adapter \| `<subject>\.<technology>\.repository\.ts` \|/);
   assert.match(backend, /不适用的角色和章节直接删除/);
   assert.match(backend, /精确生产与测试文件树只由 `component\.md` 维护/);
-  assert.match(backend, /\| 编号 \| Unit of Work \| 入口 \| 参与写入 \| 原子要求 \| 回滚条件 \|/);
+  assert.match(backend, /## 数据访问[\s\S]*\| 编号 \| 类型 \| 对象 \| 操作 \| 说明 \|[\s\S]*\| 001 \| 仓储 \| `UserRepository` \| `findByPhone`、`save` \|/);
+  assert.match(backend, /“数据访问”的类型只使用：[\s\S]*`仓储`[\s\S]*`查询模型`[\s\S]*`缓存`[\s\S]*`对象存储`[\s\S]*`搜索索引`[\s\S]*`事件存储`/);
+  assert.match(backend, /“对象”填写稳定的数据访问接口或对象名称[\s\S]*“操作”只列关键稳定方法名[\s\S]*DAO、Mapper、ORM、Prisma、Redis 等实现名称由 `engineering\.md` 维护/);
+  assert.match(backend, /\| 编号 \| 入口 \| 原子写入 \| 失败结果 \|/);
   assert.match(backend, /同一一致性事项在 `domain\.md` 的“业务一致性”和 `data\.md` 的 Unit of Work 中使用相同三位编号并从 `001` 开始，不增加跨文件引用列/);
-  assert.match(backend, /### Outbox[\s\S]*\| 生产用例 \| 事务内 Writer \| 集成事件 \| Relay 或 Publisher \| 投递语义 \|/);
-  assert.match(backend, /### Inbox[\s\S]*\| 消费入口 \| 幂等键 \| 原子写入 \| 重复消息结果 \| 保留策略 \|/);
+  assert.match(backend, /### Outbox[\s\S]*\| 编号 \| Unit of Work \| 集成事件 \| 投递语义 \|/);
+  assert.match(backend, /### Inbox[\s\S]*\| 编号 \| 消费入口 \| 幂等键 \| 原子写入 \| 重复消息结果 \| 保留策略 \|/);
+  assert.match(backend, /## 并发控制[\s\S]*\| 编号 \| 竞争场景 \| 控制策略 \| 冲突结果 \|/);
+  assert.match(backend, /## 数据演进[\s\S]*\| 编号 \| 变更场景 \| 兼容策略 \| 回填与回滚 \|/);
+  assert.match(backend, /## 数据保留[\s\S]*\| 编号 \| 数据 \| 保留要求 \| 清理或归档 \|/);
+  assert.doesNotMatch(backend, /## 数据所有权|## Repository|## 查询模型|## 索引策略|## 迁移策略|## Schema 引用/);
   assert.match(backend, /业务写入与 Outbox 记录必须由同一 Unit of Work 原子提交/);
   assert.match(backend, /最后更新 `component\.md` 开头的文件关系、组件图、代码结构、设计索引和完整文件树/);
   assert.match(backend, /`目录结构` 递归列出全部应受版本控制的生产、测试和配置文件/);

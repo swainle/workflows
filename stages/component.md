@@ -210,7 +210,7 @@ Command、Handler、Factory、DomainService 或 DomainEvent。
 | `interface.md` | 接口、输入与错误设计 | 始终 | 入口、协议、操作、校验、错误、幂等、兼容和契约索引 |
 | `domain.md` | 领域设计 | 完整 DDD 模式 | 领域模型、统一语言、业务规则、业务一致性及按需的事件和图 |
 | `security.md` | 认证与授权 | 存在身份或权限要求 | 身份、凭据、会话、权限模型、执行点和数据范围 |
-| `data.md` | 数据与一致性 | 存在持久化或查询 | Repository、查询、Unit of Work、Outbox/Inbox、并发、迁移和保留 |
+| `data.md` | 数据与一致性 | 存在持久化或查询 | 数据访问、Unit of Work、Outbox/Inbox、并发、数据演进和保留 |
 | `engineering.md` | 编码与测试 | 始终 | 架构映射、目录命名、编码、依赖方向、测试规划和命令 |
 | `jobs.md` | 后台与异步任务 | 存在后台任务或独立 Worker | 任务元信息、功能点、运行时序、投递和幂等 |
 | `operations.md` | 运行与交付 | 存在配置、密钥、可观测、进程或部署要求 | 配置、密钥、信号、进程、资源、迁移、发布和回滚 |
@@ -531,6 +531,7 @@ Backend 专用 Markdown、机器可读模型及其固定结构统一由
   事务中间件、重试和锁等技术实现放入相应技术设计文件。
 - Command Bus、Handler/Middleware 和测试规划放入 `engineering.md`；Unit of Work、Outbox、Inbox 放入 `data.md`；
   Relay、Processor 和 Worker 功能放入 `jobs.md`，运行入口放入 `operations.md`。
+- `data.md` 将 Repository、查询模型及其他访问对象统一放入“数据访问”表；类型只使用仓储、查询模型、缓存、对象存储、搜索索引或事件存储，对象填写稳定接口或访问对象，操作只列关键稳定方法名。DAO、Mapper、ORM 和具体存储技术放入 `engineering.md`。
 - 数据库字段和约束、HTTP Schema、异步消息结构分别由 `schema.dbml`、`openapi.json` 和 `asyncapi.json` 维护，不写入 `domain.md`。
 - 轻量 Backend 不创建 `domain.md`，只在 `component.md` 概述记录业务词汇、边界、设计强度和判断事实；
   不虚构聚合、实体、值对象、领域服务或领域事件。
