@@ -1052,7 +1052,8 @@ test("supports frontend and backend component design modes", () => {
   assert.match(backend, /Backend Markdown 最多使用三级标题，不得出现四级及更深标题/);
   assert.match(backend, /标题后、正文前使用独立引用行 `> Ref: <文件名>:<二级标题>:<三级标题或编号>`/);
   assert.match(backend, /例如 `> Ref: process:xx:xx`/);
-  assert.match(backend, /不创建引用列、引用表或递归展开上游引用/);
+  assert.match(backend, /除 `interface\.md`“操作定义”的“关联需求”列只列当前操作直接实现的需求编号外，不创建引用列、引用表或递归展开上游引用/);
+  assert.match(component, /只有 `interface\.md`“操作定义”的“关联需求”列可以直接列出当前操作实现的需求编号/);
   assert.match(backend, /表格“编号”列或 `- \*\*001\*\*：` 编号项追加三位编号/);
   assert.match(backend, /找不到三级标题或编号时停在已经识别到的二级或三级标题/);
   assert.doesNotMatch(backend, /^#### /m);
@@ -1134,6 +1135,13 @@ test("supports frontend and backend component design modes", () => {
     assert.match(backend, new RegExp(`^# .+\\r?\\n\\r?\\n${responsibility}$`, "m"));
   }
   assert.match(backend, /始终创建 `component\.md`、`interface\.md` 和 `engineering\.md`/);
+  assert.match(backend, /## 入口清单[\s\S]*\| 入口 \| 协议 \| 调用方 \| 契约 \|[\s\S]*## 操作定义/);
+  assert.match(backend, /### <业务能力>[\s\S]*\| 编号 \| HTTP \| 路径 \| operationId \| 权限 \| 关联需求 \|[\s\S]*\| 001 \| POST \|[\s\S]*\| 002 \| GET \|/);
+  assert.match(backend, /每个实际 HTTP 操作占一行，同一分组允许多行/);
+  assert.match(backend, /操作编号在整个 `interface\.md` 内使用唯一且稳定的三位编号并从 `001` 开始/);
+  assert.match(backend, /`operationId` 与 OpenAPI 完全一致并在组件内唯一/);
+  assert.match(backend, /“关联需求”只列当前操作直接实现的 FR、AC、BR 或 PERM 完整编号[\s\S]*不递归展开需求关系/);
+  assert.match(backend, /Markdown 操作表不复制字段/);
   assert.match(backend, /### 稳定错误码[\s\S]*### 协议映射[\s\S]*\| 错误码 \| 协议 \| Code \| 对外含义 \|/);
   assert.match(backend, /`Code` 是当前协议状态码，例如 HTTP `403`/);
   assert.match(component, /\| `interface\.md` \| 接口、输入与错误设计 \| 始终 \|/);
