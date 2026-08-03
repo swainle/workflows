@@ -583,13 +583,18 @@ test("marks every reusable stage template for actual-situation adaptation", () =
 
 test("lists matched rule identifiers before executing managed instructions", () => {
   const agents = readFileSync(path.join(WORKFLOW_ROOT, "templates/AGENTS.template.md"), "utf8");
+  const readme = readFileSync(path.join(WORKFLOW_ROOT, "README.md"), "utf8");
   assert.match(agents, /## AI-011/);
   assert.match(agents, /\*\*What\*\*：提供“命中规则回显”功能/);
   assert.match(agents, /任何实质操作开始前/);
-  assert.match(agents, /命中规则：AI-001、AI-005、AI-006、AI-007、AI-011、AI-TEST-001、AI-TEST-002/);
+  assert.match(agents, /提示词版本：<完整 SHA>（一致）/);
+  assert.match(agents, /命中规则：AI-001、AI-004、AI-005、AI-006、AI-007、AI-011、AI-TEST-001、AI-TEST-002/);
+  assert.match(agents, /提示词版本：<新完整 SHA>（已从 <旧完整 SHA> 刷新）/);
+  assert.match(agents, /版本门禁未通过、版本行没有输出或 SHA 与门禁结果不一致时停止/);
   assert.match(agents, /只把 `When` 在当前时点为真的规则视为命中/);
   assert.match(agents, /根提示词、阶段提示词、模式提示词的顺序排列/);
   assert.match(agents, /未命中本工作流的普通自然语言任务不强制回显/);
+  assert.match(readme, /只有三个完整 SHA 一致时才执行指令/);
 });
 
 test("lists changed prompt capabilities in the final response", () => {
@@ -630,9 +635,12 @@ test("refreshes cached prompts when the local workflows revision changes", () =>
   const readme = readFileSync(path.join(WORKFLOW_ROOT, "README.md"), "utf8");
   assert.match(agents, /git -C docs\/workflows rev-parse HEAD/);
   assert.match(agents, /<!-- workflows-revision: <完整 SHA> -->/);
+  assert.match(agents, /当前任务最近采用的托管提示词 SHA、磁盘中宿主根 `AGENTS\.md`[\s\S]*本地工作流 HEAD/);
+  assert.match(agents, /门禁完成前只允许读取宿主根 `AGENTS\.md`、读取工作流 Git 元数据[\s\S]*禁止其他项目文件操作、项目命令、外部系统访问或澄清问题/);
   assert.match(agents, /node docs\/workflows\/install\.mjs --workflows-updated/);
-  assert.match(agents, /完整重读宿主根 `AGENTS\.md`、重新解析当前指令/);
-  assert.match(agents, /工作流规则已从 <旧 SHA> 刷新到 <新 SHA>/);
+  assert.match(agents, /完整重读宿主根 `AGENTS\.md`[\s\S]*重新解析当前指令/);
+  assert.match(agents, /同一条指令最多刷新一次/);
+  assert.match(agents, /没有版本回显的指令不得执行/);
   assert.match(readme, /每个尖括号指令路由前比较本地 HEAD/);
 });
 
