@@ -932,6 +932,9 @@ test("supports frontend and backend component design modes", () => {
   assert.match(backend, /尖括号占位符和具体示例名称不得原样进入最终文档/);
   assert.match(backend, /文件名 → 二级标题 → 三级标题 → 可选编号/);
   assert.match(backend, /Backend Markdown 最多使用三级标题，不得出现四级及更深标题/);
+  assert.match(backend, /标题后、正文前使用独立引用行 `> Ref: <文件名>:<二级标题>:<三级标题或编号>`/);
+  assert.match(backend, /例如 `> Ref: process:xx:xx`/);
+  assert.match(backend, /不创建引用列、引用表或递归展开上游引用/);
   assert.match(backend, /表格“编号”列或 `- \*\*001\*\*：` 编号项追加三位编号/);
   assert.match(backend, /找不到三级标题或编号时停在已经识别到的二级或三级标题/);
   assert.doesNotMatch(backend, /^#### /m);
