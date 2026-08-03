@@ -1,4 +1,4 @@
-# `<test>` 全局验收测试
+# `<test>` 全局验收测试阶段
 
 ## AI-ACCEPTANCE-001
 
