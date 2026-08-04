@@ -1472,7 +1472,7 @@ test("separates context.md and system.md architecture", () => {
   assert.match(content, /docs\/system\/system\.md/);
   assert.match(content, /C4Context/);
   assert.doesNotMatch(content, /C4Container/);
-  assert.match(content, /`system\.md` 容器图 \| `flowchart LR`；组件类型从左到右、类型内部从上到下/);
+  assert.match(content, /`system\.md` 容器图 \| `flowchart TB`；组件类型从上到下、类型内部从左到右/);
 });
 
 test("lays out context.md peers horizontally and levels vertically", () => {
@@ -1504,11 +1504,11 @@ test("lists system.md components by type with development endpoints", () => {
   assert.match(system, /\| `api` \| `3001` \| `\/api\/v1\/doc` \| HTTPS \|/);
   assert.match(system, /\| `api` \| `3001` \| `\/api\/v1\/openapi\.json` \| HTTPS \|/);
   assert.match(system, /\| `worker` \| `不暴露` \| `不暴露` \| `不暴露` \| 职责：处理异步任务；应用：`apps\/worker\/`；设计：`docs\/component\/worker\/` \|/);
-  assert.match(system, /## 容器图\r?\n\r?\n```mermaid\r?\nflowchart LR/);
-  assert.match(system, /subgraph system\["系统"\]\r?\n\s+direction LR/);
-  assert.match(system, /subgraph frontend_layer\["前端组件"\]\r?\n\s+direction TB/);
-  assert.match(system, /subgraph backend_layer\["后端组件"\]\r?\n\s+direction TB/);
-  assert.match(system, /subgraph infrastructure_layer\["基础设施组件"\]\r?\n\s+direction TB/);
+  assert.match(system, /## 容器图\r?\n\r?\n```mermaid\r?\nflowchart TB/);
+  assert.match(system, /subgraph system\["系统"\]\r?\n\s+direction TB/);
+  assert.match(system, /subgraph frontend_layer\["前端组件"\]\r?\n\s+direction LR/);
+  assert.match(system, /subgraph backend_layer\["后端组件"\]\r?\n\s+direction LR/);
+  assert.match(system, /subgraph infrastructure_layer\["基础设施组件"\]\r?\n\s+direction LR/);
   assert.match(system, /worker\["worker<br\/>Worker/);
   assert.ok(system.indexOf('web["web<br/>') < system.indexOf('api["api<br/>'));
   assert.ok(system.indexOf('api["api<br/>') < system.indexOf('redis[("redis<br/>'));
@@ -1516,8 +1516,8 @@ test("lists system.md components by type with development endpoints", () => {
   assert.match(system, /frontend_layer -->\|"web → api<br\/>调用 · HTTPS\/JSON"\| backend_layer/);
   assert.match(system, /backend_layer -->\|"api → redis<br\/>读写 · Redis"\| infrastructure_layer/);
   assert.match(system, /backend_layer -->\|"api → openfga<br\/>鉴权 · HTTP\/gRPC"\| infrastructure_layer/);
-  assert.match(system, /从左到右分层；不存在的层级直接省略/);
-  assert.match(system, /每个组件类型内部使用 `direction TB`，使同类组件从上到下排列/);
+  assert.match(system, /从上到下分层；不存在的层级直接省略/);
+  assert.match(system, /每个组件类型内部使用 `direction LR`，使同类组件从左到右排列/);
   assert.match(system, /跨层关系连接层级 `subgraph`/);
   assert.match(system, /标签中明确写出“源组件 → 目标组件”、用途和协议/);
   assert.match(system, /### 基础设施组件/);

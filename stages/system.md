@@ -160,29 +160,29 @@ C4Context
 ## 容器图
 
 ```mermaid
-flowchart LR
+flowchart TB
     subgraph actors["用户与外部系统"]
-        direction TB
+        direction LR
         user["用户"]
     end
 
     subgraph system["系统"]
-        direction LR
+        direction TB
 
         subgraph frontend_layer["前端组件"]
-            direction TB
+            direction LR
             web["web<br/>Web 应用<br/>主要技术栈<br/>容器职责"]
         end
 
         subgraph backend_layer["后端组件"]
-            direction TB
+            direction LR
             api["api<br/>API 服务<br/>主要技术栈<br/>容器职责"]
             worker["worker<br/>Worker<br/>主要技术栈<br/>处理异步任务"]
             api -->|"提交任务<br/>消息协议"| worker
         end
 
         subgraph infrastructure_layer["基础设施组件"]
-            direction TB
+            direction LR
             redis[("redis<br/>Redis<br/>缓存和队列")]
             openfga["openfga<br/>OpenFGA<br/>授权关系"]
         end
@@ -225,10 +225,10 @@ flowchart LR
 - 跨层级关系按实际方向使用 `Rel_D` 或 `Rel_U`，`UpdateLayoutConfig` 的 `c4ShapeInRow`
   设置为同一层级需要容纳的最大元素数，`c4BoundaryInRow` 使用 `1`。
 - 不使用 Mermaid C4 尚未支持的 `Lay_D`、`Lay_R` 等布局语句。
-- `system.md` 的“容器图”始终使用 `flowchart LR`，展示系统内的容器、各容器的主要技术栈，以及容器之间和容器与外部系统之间的通信方式。
-- `system.md` 容器图先按“用户与外部系统 → 前端组件 → 后端组件 → 基础设施组件”从左到右分层；不存在的层级直接省略。
-- 系统使用一个主 `subgraph`，组件类型分别使用嵌套 `subgraph`；主分层使用 `direction LR`，
-  每个组件类型内部使用 `direction TB`，使同类组件从上到下排列。
+- `system.md` 的“容器图”始终使用 `flowchart TB`，展示系统内的容器、各容器的主要技术栈，以及容器之间和容器与外部系统之间的通信方式。
+- `system.md` 容器图先按“用户与外部系统 → 前端组件 → 后端组件 → 基础设施组件”从上到下分层；不存在的层级直接省略。
+- 系统使用一个主 `subgraph`，组件类型分别使用嵌套 `subgraph`；主分层使用 `direction TB`，
+  每个组件类型内部使用 `direction LR`，使同类组件从左到右排列。
 - Mermaid 会在子图内部节点直接连接外部时忽略子图方向，因此跨层关系连接层级 `subgraph`，
   并在标签中明确写出“源组件 → 目标组件”、用途和协议；同层关系直接连接实际组件节点。
 - 组件清单和容器图中的组件名称保持一致；同一关系不再用文本图重复表达。
@@ -610,8 +610,8 @@ flowchart LR
 - `system.md` 组件清单没有凭证值或官方默认凭据值；账密只引用 `security.md`“凭证”表中的开发环境变量名。
 - 测试和生产使用独立凭据来源，没有复用开发凭据来源。
 - `context.md` 包含 `C4Context` 系统上下文图，不包含内部容器；同级元素水平排列，整体按层级垂直排列。
-- `system.md` 包含组件清单和 `flowchart LR` 容器图；用户与外部系统、前端、后端和基础设施
-  从左到右分层，同类组件从上到下排列，没有组件内部实现、技术版本、部署内容或重复关系图。
+- `system.md` 包含组件清单和 `flowchart TB` 容器图；用户与外部系统、前端、后端和基础设施
+  从上到下分层，同类组件从左到右排列，没有组件内部实现、技术版本、部署内容或重复关系图。
 - `process.md` 的业务流程按实际用户角色、“通用”或“系统”二级标题分组，以 BP 编号作为三级标题并使用 `sequenceDiagram`；
   每个业务流程只保留 `Desc`、`Ref` 和跨组件业务主链路，具有唯一且稳定的 BP 编号并引用实际存在的需求项，
   参与组件名称与组件清单一致；没有构建、CI/CD、发布、部署或回滚流程。
