@@ -1035,14 +1035,14 @@ test("supports frontend and backend component design modes", () => {
   assert.doesNotMatch(agents, /<组件> ddd <DDD设计任务>/);
   assert.match(component, /\*\*What\*\*：提供“完整组件设计模式”功能/);
   assert.match(component, /### Frontend 模式/);
-  for (const file of ["experience.md", "state.md", "ui/*.ui.yml", "<组件>.design-token.json", "configuration.md", "testing.md"]) {
+  for (const file of ["ux.md", "state.md", "ui/*.ui.yml", "<组件>.design-token.json", "configuration.md", "testing.md"]) {
     assert.ok(frontend.includes(`\`${file}\``), `missing Frontend design file: ${file}`);
   }
   assert.match(component, /完整读取并执行\s+`docs\/workflows\/templates\/frontend-design\.template\.md`/);
   assert.match(frontend, /`docs\/system\/openapi\.json`；每个请求引用其中稳定的 `operationId`/);
   assert.match(frontend, /临时 Mock 必须标记 `pending`/);
   assert.match(frontend, /# Frontend 设计模板/);
-  assert.match(frontend, /experience\["experience\.md/);
+  assert.match(frontend, /ux\["ux\.md/);
   assert.match(frontend, /\] --> state\["state\.md/);
   assert.match(frontend, /AI-FRONTEND-004/);
   assert.match(component, /UI YAML 格式、示例和引用规则只由 `templates\/frontend-design\.template\.md`/);

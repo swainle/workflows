@@ -53,7 +53,7 @@ node docs/workflows/install.mjs --branch develop
 | `<deploy update> <任务>` | 生成正式系统升级方案 |
 | `<任意指令> opt <文件> <意见>` | 在原阶段权限内只创建或更新一个文件 |
 
-组件名必须已登记在宿主项目的 `docs/system/system.md`。Frontend 与 Backend 模式只增强组件设计阶段，不是独立阶段。Frontend 完整读取 `templates/frontend-design.template.md`，按其中 `experience.md`、`state.md`、`ui/*.ui.yml`、`<组件>.design-token.json`、`configuration.md`、`testing.md` 和最终 `component.md` 的顺序设计；`component.md` 仅维护文件关系、概述和完整文件树。
+组件名必须已登记在宿主项目的 `docs/system/system.md`。Frontend 与 Backend 模式只增强组件设计阶段，不是独立阶段。Frontend 完整读取 `templates/frontend-design.template.md`，按其中 `ux.md`、`state.md`、`ui/*.ui.yml`、`<组件>.design-token.json`、`configuration.md`、`testing.md` 和最终 `component.md` 的顺序设计；`component.md` 仅维护文件关系、概述和完整文件树。
 
 Backend 模式完整读取 `templates/backend-design.template.md`。其中固定标题和顺序必须保留；图、表、目录、技术、依赖和业务名称均为示例，必须根据当前组件的实际情况调整。
 Backend 设计按“领域 → 接口 → 模型 → 工程 → 运行 → 汇总”执行；始终创建 `component.md`、`interface.md` 和 `engineering.md`，其他 Markdown 与机器契约按需创建。

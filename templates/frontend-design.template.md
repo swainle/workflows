@@ -12,7 +12,7 @@
 
 ```mermaid
 flowchart LR
-    experience["experience.md<br/>页面体验"] --> state["state.md<br/>数据与状态"]
+    ux["ux.md<br/>页面体验"] --> state["state.md<br/>数据与状态"]
     state --> ui["ui/*.ui.yml<br/>页面交互"]
     ui --> tokens["<组件>.design-token.json<br/>设计 Token"]
     tokens --> configuration["configuration.md<br/>配置与运行"]
@@ -20,7 +20,7 @@ flowchart LR
     testing --> component["component.md<br/>文件关系与文件树"]
 ```
 
-1. `experience.md`：模块、页面、路由、页面权限表现、布局、表单、通用可访问性和页面规则。
+1. `ux.md`：模块、页面、路由、页面权限表现、布局、表单、通用可访问性和页面规则。
 2. `state.md`：状态资源、状态机、请求、缓存、失效、页面状态、错误、恢复和反馈。
 3. `ui/*.ui.yml`：单页结构、动作和对 Experience、State、Token 的稳定引用。
 4. `<组件>.design-token.json`：机器可读的颜色、间距、字体、圆角、阴影、动效和断点 Token。
@@ -40,7 +40,7 @@ flowchart LR
 
 | 文件 | 作用 | 创建条件 | 可修改内容 |
 |---|---|---|---|
-| `experience.md` | 页面体验设计 | 存在页面或界面 | 模块、页面、路由、权限表现、布局、表单、A11y 和页面规则 |
+| `ux.md` | 页面体验设计 | 存在页面或界面 | 模块、页面、路由、权限表现、布局、表单、A11y 和页面规则 |
 | `state.md` | 数据与状态设计 | 存在远程数据、客户端状态或失败场景 | 状态资源、状态机、请求、缓存、页面状态、错误、恢复和反馈 |
 | `ui/*.ui.yml` | 页面交互契约 | 存在稳定页面 | 单页结构、动作和对 Experience、State、Token 的引用 |
 | `<组件>.design-token.json` | 语义 Design Token | 需要组件级 Token | 颜色、间距、字体、圆角、阴影、动效和断点变量 |
@@ -76,14 +76,14 @@ id: P-002
 title: 创建预约
 platform: web
 
-experience: experience.md:P-002
+ux: ux.md:P-002
 state:
   - state.md:STATE-002
   - state.md:DATA-001
 tokens: web.design-token.json
 
 layout:
-  ref: experience.md:LAYOUT-001
+  ref: ux.md:LAYOUT-001
   regions:
     - id: booking-form
       component: Form
@@ -102,7 +102,7 @@ states:
   success: state.md:STATE-002:success
 ```
 
-- `id` 使用 `experience.md` 中稳定的页面 ID；页面需求、路由、权限和通用可访问性只由 `experience.md` 维护。
+- `id` 使用 `ux.md` 中稳定的页面 ID；页面需求、路由、权限和通用可访问性只由 `ux.md` 维护。
 - `state` 和 `states` 只引用 `state.md` 中稳定的状态与数据 ID；每个 action 关联系统 OpenAPI `operationId`、本地行为或外部跳转。
 - `.ui.yml` 是交互契约，不复制特定框架源码、页面规则、错误策略或 Token 值。
 - `.ui.yml` 引用当前组件 Token，不保存可复用的颜色、间距、字体和圆角常量。
