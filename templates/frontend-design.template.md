@@ -76,6 +76,7 @@ id: M-001:P-002
 title: 创建预约
 platform: web
 route: /bookings/new
+ux: ux:模块:M-001:P-002
 
 requirements:
   - REQ-001-FR-001
@@ -112,9 +113,9 @@ tokens:
   theme: web.design-token.json
 ```
 
-- `id` 使用 `ux.md` 的完整页面引用 `M-001:P-001`；`route`、`permissions` 是该页面的可验证投影，必须与 `ux.md` 页面表一致，不得独立修改。
+- `id` 使用模块内页面标识 `M-001:P-001`，`ux` 使用跨文件引用 `ux:模块:M-001:P-001`；`route`、`permissions` 是该页面的可验证投影，必须与 `ux.md` 页面表一致，不得独立修改。
 - `requirements` 只列该页面直接实现的需求编号；`state` 和 `states` 只引用 `state.md` 中稳定的状态与数据 ID；每个 action 关联系统 OpenAPI `operationId`、本地行为或外部跳转。
-- `accessibility` 只补充当前页面的实现策略；通用可访问性规则只由 `ux.md:GLOBAL` 维护。
+- `accessibility` 只补充当前页面的实现策略；通用可访问性规则只由 `ux:页面规则:GLOBAL` 维护。
 - `.ui.yml` 是交互契约，不复制页面规则、错误策略或 Token 值。
 - `.ui.yml` 引用当前组件 Token，不保存可复用的颜色、间距、字体和圆角常量。
 
@@ -150,7 +151,7 @@ tokens:
 
 ### LAYOUT-001
 
-> Ref: ux.md:M-001
+> Ref: M-001
 
 - 适用页面：M-001:P-001、M-001:P-002
 - 结构：<页面区域、导航、内容区与响应式行为>
@@ -185,7 +186,7 @@ tokens:
 ````
 
 - 模块、页面、布局和表单标识分别使用 `M-001`、`P-001`、`LAYOUT-001`、`FORM-001` 格式；页面编号在每个模块内从 `P-001` 开始，新增项不重排已有编号。
-- `ux.md` 内引用页面一律使用 `M-001:P-001`；其他文件引用页面一律使用完整路径 `ux.md:M-001:P-001`。
+- `ux.md` 内引用页面一律使用 `M-001:P-001`；其他文件引用模块或页面一律使用 `ux:模块:M-001` 或 `ux:模块:M-001:P-001`。
 - “模块”中的页面表是页面名称、入口、前置页面、登录要求、权限表现和无权处理的唯一事实源；`ui/*.ui.yml` 通过 `M-001:P-001` 标识页面，不复制这些信息。
 - “布局”只维护页面区域和响应式行为；颜色、尺寸、间距、圆角和动效值只引用 Token 路径，不写具体常量。
 - “表单”的“字段”使用 OpenAPI Schema 中已确认的字段名；“校验”和“错误展示”只说明界面校验与呈现，不复制 Schema 类型、长度、正则或业务不变量。
@@ -214,7 +215,7 @@ tokens:
 
 ### STATE-001
 
-> Ref: ux.md:M-001
+> Ref: ux:模块:M-001
 
 ```mermaid
 stateDiagram-v2
@@ -238,7 +239,7 @@ stateDiagram-v2
 
 ### DATA-001
 
-> Ref: ux.md:M-001:P-001
+> Ref: ux:模块:M-001:P-001
 
 | 编号 | operationId | 触发动作 | 缓存策略 | 失效策略 |
 |---|---|---|---|---|
@@ -247,15 +248,15 @@ stateDiagram-v2
 
 ## 页面状态
 
-> Ref: ux.md:M-001
+> Ref: ux:模块:M-001
 
 | 编号 | 状态 | 用户反馈 | 可执行操作 | 页面 |
 |---|---|---|---|---|
-| 001 | loading | Skeleton | 无 | ux.md:M-001:P-001 |
-| 002 | empty | 空状态说明 | 创建预约 | ux.md:M-001:P-001 |
-| 003 | error | 错误提示 | 重试 | ux.md:M-001:P-001 |
-| 004 | submitting | 禁止重复提交 | 取消 | ux.md:M-001:P-002 |
-| 005 | success | 成功提示 | 返回详情 | ux.md:M-001:P-002 |
+| 001 | loading | Skeleton | 无 | ux:模块:M-001:P-001 |
+| 002 | empty | 空状态说明 | 创建预约 | ux:模块:M-001:P-001 |
+| 003 | error | 错误提示 | 重试 | ux:模块:M-001:P-001 |
+| 004 | submitting | 禁止重复提交 | 取消 | ux:模块:M-001:P-002 |
+| 005 | success | 成功提示 | 返回详情 | ux:模块:M-001:P-002 |
 ````
 
 ````json
@@ -321,7 +322,7 @@ stateDiagram-v2
 
 ### BOOKING-DOM-001
 
-> Design: ux.md:FORM-001
+> Design: ux:表单:FORM-001
 > Src: apps/web/test/booking-create.dom.test.ts
 
 Desc: 创建预约字段校验
