@@ -92,7 +92,7 @@ Mock 只替换开发或测试环境的网络边界，按同一 `operationId` 返
 当任务使用 `<组件> backend <任务>` 时，按可验证复杂度条件选择轻量 Backend 或完整 DDD。开始确认或修改前必须完整读取
 `docs/workflows/templates/backend-design.template.md`，把其中的“使用规则”“文件关系与设计顺序”
 “执行流程”和各文件固定结构作为 Backend 模式的强制提示词。本文件继续作为文件权限、创建条件、
-通用 C3/C4 格式、契约规则和跨阶段边界的权威来源。
+通用架构图、代码结构图格式、契约规则和跨阶段边界的权威来源。
 
 模板中的图、表、目录、上下文、技术、运行单元和依赖仅用于说明格式，不是默认设计。除模板明确声明的
 固定标题与顺序外，执行时必须依据当前组件的真实需求替换、增删和重组全部示例内容，不得照抄示例名称，
@@ -333,7 +333,7 @@ flowchart LR
 - **Who**：处理 `<组件>` 指令的组件设计 Agent。
 - **When**：组件需要表达内部模块关系，或存在需要长期维护的关键代码结构时。
 - **Where**：当前组件设计目录与允许读取的前置规范。
-- **What**：提供“C3 和 C4 文件格式”功能；具体规则、格式和约束如下。
+- **What**：提供“`architecture.md` 和 `structure.md` 文件格式”功能；具体规则、格式和约束如下。
 - **Why**：确保组件设计按真实边界完整落地且不复制上游事实。
 
 `architecture.md` 使用 `C4Component` 描述当前组件内部的长期模块、职责和必要外部对象，不绘制关系连线：
@@ -451,27 +451,27 @@ flowchart LR
 ````
 
 - `architecture.md` 只包含一级标题、标题下的一句文件职责说明和一个 `C4Component` Mermaid 代码块，不包含其他概述、正文、列表、表格或图外说明。
-- C3 图按展示或调用方、业务上下文、基础设施三个 `Container_Boundary` 组织；不存在的区域直接省略，不创建空边界。
+- `architecture.md` 图按展示或调用方、业务上下文、基础设施三个 `Container_Boundary` 组织；不存在的区域直接省略，不创建空边界。
 - 展示或调用方和基础设施使用 `System_Ext`，当前组件的入口、中间件、业务上下文、对象和独立运行单元使用 `Component`。
-- C3 图不使用 `Rel`、`BiRel`、`Rel_D`、`Rel_U`、`Rel_L` 或 `Rel_R`；组件协作顺序由系统 `process.md`、
+- `architecture.md` 图不使用 `Rel`、`BiRel`、`Rel_D`、`Rel_U`、`Rel_L` 或 `Rel_R`；组件协作顺序由系统 `process.md`、
   接口由 `interface.md` 与机器可读契约、代码依赖由 `structure.md` 分别维护。
 - 组件信息、对象名称、技术版本、架构、框架和职责全部根据当前项目事实填写，不照抄模板示例或保留空字符串。
 - 使用 `UpdateLayoutConfig($c4ShapeInRow="5", $c4BoundaryInRow="1")` 保持每个边界独占一行、边界内对象横向排列。
 - Backend 不创建独立 `architecture.md` 或 `structure.md`；组件图和内部对象关系图分别放入 `component.md` 的
   “架构图”和“代码结构”章节，代码规则与测试规划放入 `engineering.md`。
-- C3 异步部分只列出生产者、内嵌 Outbox Relay、消息基础设施和 Worker/下游消费者，不绘制关系连线；
+- `architecture.md` 的异步部分只列出生产者、内嵌 Outbox Relay、消息基础设施和 Worker/下游消费者，不绘制关系连线；
   Relay 不作为独立运行单元。
 - `structure.md` 包含一级标题、一个“总览”章节和按实际业务能力创建的详细章节。
 - 总览使用一个 `flowchart LR`，只展示模块、业务能力及主要依赖，不展示字段或函数。
 - 每个详细章节只描述一个业务能力并使用一个 `flowchart LR`；图仍过大时继续按内聚的子能力拆分章节。
 - Backend 的“代码结构”不创建总览，每个三级标题直接表示一个实际上下文，并使用一个 `flowchart LR` 展示该上下文内部对象、关键公开方法以及对象之间的调用或实现关系。
-- C4 各图的主分层按依赖方向从左到右排列；每个分层使用 `subgraph` 和 `direction TB`，使同层代码单元从上到下排列。
+- `structure.md` 和 Backend `component.md` 中的代码结构图按依赖方向从左到右排列；每个分层使用 `subgraph` 和 `direction TB`，使同层代码单元从上到下排列。
 - 分层名称和数量按组件实际结构确定，不为套用模板创建空层；前端可以使用页面、功能、状态和适配器，后端可以使用接口、应用、领域、端口和适配器，任务处理器可以使用消费者、任务、规则和外部适配器。
-- C4 节点按实际情况标注 `ApplicationService`、`AggregateRoot`、`Entity`、`ValueObject`、`DomainService`、`Repository`、`DomainEvent`、`Page`、`Component`、`Hook`、`Store`、`Handler` 或 `Adapter`，不存在的角色不创建。
+- `structure.md` 和 Backend `component.md` 中的节点按实际情况标注 `ApplicationService`、`AggregateRoot`、`Entity`、`ValueObject`、`DomainService`、`Repository`、`DomainEvent`、`Page`、`Component`、`Hook`、`Store`、`Handler` 或 `Adapter`，不存在的角色不创建。
 - 详细章节只展示理解设计所需的关键公开函数、参数和返回类型，不展示私有函数、简单访问器、全部字段或重复的 CRUD 签名。
-- HTTP 请求、响应、错误和 Schema 由 `docs/system/openapi.json` 维护；异步消息结构由 `asyncapi.json` 维护；C4 只引用稳定的操作名和类型名。
+- HTTP 请求、响应、错误和 Schema 由 `docs/system/openapi.json` 维护；异步消息结构由 `asyncapi.json` 维护；代码结构图只引用稳定的操作名和类型名。
 - 同一代码单元在总览和各详细章节中使用相同名称；公共依赖只在相关章节出现，不为展示完整性复制无关节点和连线。
-- C3、C4、`component.md` 和契约中的名称及依赖方向保持一致。
+- `architecture.md`、`structure.md`、`component.md` 和契约中的名称及依赖方向保持一致。
 - 跨组件业务流程和调用顺序只放入系统 `process.md`；组件设计目录不创建 `process.md`。
 - 状态图和时序图按需放入 Backend `domain.md` 对应的限界上下文章节，不创建独立的 `state.md` 或
   `sequence.md`；时序图引用系统流程的稳定 BP 编号，不复制系统业务流程。
@@ -613,7 +613,7 @@ states:
 - 非 Frontend、非 Backend 的 `architecture.md` 只有一级标题和一个 `C4Component` Mermaid 图；Backend 的同类图位于 `component.md`。
 - 需要长期维护代码结构时，`structure.md` 使用一个代码总览和按业务能力划分的详细 `flowchart LR`；总览不展示函数，详细章节只展示关键公开函数，所有图均为主分层从左到右、分层内部从上到下。
 - Backend 完整 DDD 模式下，`domain.md` 的每个限界上下文记录领域模型、统一语言、业务规则和业务一致性，
-  按需记录领域事件、状态图和时序图；不创建独立的 `state.md` 或 `sequence.md`，不复制系统流程、C4、DBML 或契约内容。
+  按需记录领域事件、状态图和时序图；不创建独立的 `state.md` 或 `sequence.md`，不复制系统流程、架构图、DBML 或契约内容。
 - Backend 轻量模式下不创建 `domain.md`，`component.md` 对应上下文的代码结构已记录轻量判定条件且没有遗漏任何完整 DDD 触发信号。
 - Backend 模式下始终创建 `engineering.md`；工程规则与实际技术栈一致，`component.md` 的完整文件树符合其目录和命名规则，
   `engineering.md` 不重复维护完整文件树。

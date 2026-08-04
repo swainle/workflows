@@ -994,7 +994,7 @@ test("configures component development infrastructure with deploy targets", () =
   assert.match(readme, /`<api deploy> <任务>` \| 维护目标组件的开发基础设施配置/);
 });
 
-test("resolves nested deploy paths from the C2 component registry", () => {
+test("resolves nested deploy paths from the system.md component registry", () => {
   const deploy = readFileSync(path.join(WORKFLOW_ROOT, "stages/deploy.md"), "utf8");
   assert.match(deploy, /`<组件应用目录>\/Dockerfile`/);
   assert.match(deploy, /`<组件应用目录>\/deploy\/\*\*`/);
@@ -1295,7 +1295,7 @@ test("separates system, component, and deploy security and observability ownersh
   assert.match(system, /## 信任边界[\s\S]*flowchart LR[\s\S]*subgraph external\["外部与不可信区域"\]/);
   assert.match(system, /## 全局控制基线[\s\S]*\| 领域 \| 全局规则 \| 适用范围 \| 验证方式 \|/);
   assert.match(system, /## 凭证[\s\S]*\| 变量 \| 值 \| 说明 \|/);
-  assert.match(system, /C2 只引用变量名[\s\S]*不得猜测值，不登记测试、生产凭证/);
+  assert.match(system, /`system\.md` 组件清单只引用变量名[\s\S]*不得猜测值，不登记测试、生产凭证/);
   assert.match(system, /## 风险与例外[\s\S]*\| 风险 \| 适用范围 \| 控制措施 \| 验证方式 \|/);
   assert.match(system, /没有实际安全例外时删除“例外”三级章节和表格/);
   assert.doesNotMatch(system, /## 身份与凭据基线/);
@@ -1456,7 +1456,7 @@ test("separates runtime components and component documentation", () => {
   assert.match(system, /不使用博客、搜索结果或非官方教程/);
 });
 
-test("separates C1 context and C2 container architecture", () => {
+test("separates context.md and system.md architecture", () => {
   const files = [
     "templates/AGENTS.template.md",
     "stages/component.md",
@@ -1470,10 +1470,10 @@ test("separates C1 context and C2 container architecture", () => {
   assert.match(content, /docs\/system\/system\.md/);
   assert.match(content, /C4Context/);
   assert.doesNotMatch(content, /C4Container/);
-  assert.match(content, /系统容器 \| `flowchart LR`；组件类型从左到右、类型内部从上到下/);
+  assert.match(content, /`system\.md` 容器图 \| `flowchart LR`；组件类型从左到右、类型内部从上到下/);
 });
 
-test("lays out C1 peers horizontally and levels vertically", () => {
+test("lays out context.md peers horizontally and levels vertically", () => {
   const system = readFileSync(path.join(WORKFLOW_ROOT, "stages/system.md"), "utf8");
   assert.match(system, /Rel_D\(customer, system,/);
   assert.match(system, /Rel_D\(operator, system,/);
@@ -1483,7 +1483,7 @@ test("lays out C1 peers horizontally and levels vertically", () => {
   assert.match(system, /不使用 Mermaid C4 尚未支持的 `Lay_D`、`Lay_R`/);
 });
 
-test("lists C2 components by type with development endpoints", () => {
+test("lists system.md components by type with development endpoints", () => {
   const agents = readFileSync(path.join(WORKFLOW_ROOT, "templates/AGENTS.template.md"), "utf8");
   const system = readFileSync(path.join(WORKFLOW_ROOT, "stages/system.md"), "utf8");
   assert.doesNotMatch(system, /^## (?:概述|组件边界|依赖方向)$/m);
@@ -1496,7 +1496,8 @@ test("lists C2 components by type with development endpoints", () => {
   assert.match(system, /即使端口相同但访问路径不同也必须拆行/);
   assert.match(system, /每行重复组件名称和完整说明，不留空、不合并单元格，五列表格内不使用 `<br>`/);
   assert.match(system, /\| `openapi\.json` \| 跨组件同步 HTTP 契约 \| 存在同步 HTTP 调用 \|/);
-  assert.match(system, /`docs\/system\/openapi\.json` 是跨组件同步 HTTP 契约唯一源文件/);
+  assert.match(system, /`docs\/system\/openapi\.json` 是版本库中跨组件同步 HTTP 契约唯一源文件/);
+  assert.match(system, /`x-provider: <组件名称>` 指定一个已登记的提供方/);
   assert.match(system, /\| `api` \| `3001` \| `\/api\/v1` \| HTTPS\/JSON \|/);
   assert.match(system, /\| `api` \| `3001` \| `\/api\/v1\/doc` \| HTTPS \|/);
   assert.match(system, /\| `api` \| `3001` \| `\/api\/v1\/openapi\.json` \| HTTPS \|/);
@@ -1520,7 +1521,7 @@ test("lists C2 components by type with development endpoints", () => {
   assert.match(system, /### 基础设施组件/);
   assert.match(system, /\| `<基础设施名称>` \| `<项目确认的暴露端口>` \| `<官方文档确认的访问路径>` \| `<官方文档确认的协议>` \|/);
   assert.match(system, /用途：<实际用途>；账密：`<用户名变量>` `<密码变量>`/);
-  assert.match(system, /C2 和除 `security\.md`“凭证”表之外的版本控制文件不得记录凭证值/);
+  assert.match(system, /`system\.md` 组件清单和除 `security\.md`“凭证”表之外的版本控制文件不得记录凭证值/);
   assert.match(system, /任何文件都不得记录测试、生产凭证、\s*官方默认凭据、令牌、证书或私钥/);
   assert.match(system, /所有组件分类统一使用规定的五列表格/);
   assert.match(system, /不使用记忆、镜像默认值、博客、搜索摘要或非官方教程作结论/);
@@ -1528,9 +1529,9 @@ test("lists C2 components by type with development endpoints", () => {
   assert.match(system, /官方文档声明的默认或监听端口不等于项目实际暴露端口/);
   assert.match(system, /状态未知时先询问，不填猜测值/);
   assert.match(system, /对应版本官方文档/);
-  assert.match(system, /C2 的“账密”只引用\s+`security\.md`“凭证”表中已登记的变量名/);
+  assert.match(system, /`system\.md` 组件清单的“账密”只引用\s+`security\.md`“凭证”表中已登记的变量名/);
   assert.match(system, /测试和生产凭据必须由 `<deploy>` 通过独立环境配置或密钥系统注入/);
-  assert.match(system, /C2 只记录开发环境端口、路径和协议/);
+  assert.match(system, /`system\.md` 组件清单只记录开发环境端口、路径和协议/);
   assert.match(system, /测试、生产及其他环境由 `<deploy>` 维护/);
   assert.match(agents, /从该组件表格行“说明”列的固定字段“应用：`<路径>`；设计：`<路径>`”解析/);
 });
@@ -1573,14 +1574,14 @@ test("defines single-purpose component documents and horizontal-first code diagr
   assert.match(component, /subgraph adapter_layer\["适配器层"\]\r?\n\s+direction TB/);
   assert.match(component, /前端可以使用页面、功能、状态和适配器/);
   assert.match(component, /任务处理器可以使用消费者、任务、规则和外部适配器/);
-  assert.match(component, /C4 节点按实际情况标注 `ApplicationService`、`AggregateRoot`/);
+  assert.match(component, /`structure\.md` 和 Backend `component\.md` 中的节点按实际情况标注 `ApplicationService`、`AggregateRoot`/);
   assert.doesNotMatch(component, /```mermaid\r?\nclassDiagram/);
   assert.match(component, /完整 DDD 模式的 `domain\.md` 按限界上下文分章/);
   assert.match(component, /轻量 Backend 不创建 `domain\.md`/);
   assert.match(component, /Backend 不创建独立 `architecture\.md` 或 `structure\.md`/);
-  assert.match(component, /C3 异步部分只列出生产者、内嵌 Outbox Relay、消息基础设施和 Worker\/下游消费者，不绘制关系连线/);
-  assert.match(agents, /\| 组件内部结构 \| `C4Component`；展示内部模块、职责和必要外部对象，不绘制关系连线 \|/);
-  assert.match(agents, /\| 组件代码结构 \| `flowchart`；先总览后按业务能力分章，主分层从左到右、分层内部从上到下 \|/);
+  assert.match(component, /`architecture\.md` 的异步部分只列出生产者、内嵌 Outbox Relay、消息基础设施和 Worker\/下游消费者，不绘制关系连线/);
+  assert.match(agents, /\| `architecture\.md` 组件内部结构 \| `C4Component`；展示内部模块、职责和必要外部对象，不绘制关系连线 \|/);
+  assert.match(agents, /\| `structure\.md` 或 Backend `component\.md` 代码结构 \| `flowchart`；先总览后按业务能力分章，主分层从左到右、分层内部从上到下 \|/);
 });
 
 test("groups business processes by role and delegates deployment flows", () => {

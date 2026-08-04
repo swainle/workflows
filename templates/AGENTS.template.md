@@ -337,10 +337,10 @@ Git                            文件历史
 
 | 目的 | 图类型 |
 |---|---|
-| 系统上下文 | `C4Context` |
-| 系统容器 | `flowchart LR`；组件类型从左到右、类型内部从上到下 |
-| 组件内部结构 | `C4Component`；展示内部模块、职责和必要外部对象，不绘制关系连线 |
-| 组件代码结构 | `flowchart`；先总览后按业务能力分章，主分层从左到右、分层内部从上到下 |
+| `context.md` 系统上下文 | `C4Context` |
+| `system.md` 容器图 | `flowchart LR`；组件类型从左到右、类型内部从上到下 |
+| `architecture.md` 组件内部结构 | `C4Component`；展示内部模块、职责和必要外部对象，不绘制关系连线 |
+| `structure.md` 或 Backend `component.md` 代码结构 | `flowchart`；先总览后按业务能力分章，主分层从左到右、分层内部从上到下 |
 | 跨组件业务流程和调用顺序 | `sequenceDiagram` |
 | 组件内部调用时序 | `sequenceDiagram` |
 | 状态转换 | `stateDiagram-v2` |

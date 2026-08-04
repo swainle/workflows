@@ -10,7 +10,7 @@
 
 维护组件构建、全局环境、编排、CI/CD、发布、运维和回滚规范。
 仅在指令为 `<deploy update> <升级内容>` 时生成一份正式系统升级方案。
-目标组件的开发基础设施使用 `<组件 deploy> <任务>`，组件名必须存在于 C2。
+目标组件的开发基础设施使用 `<组件 deploy> <任务>`，组件名必须存在于 `docs/system/system.md` 组件清单。
 
 不负责业务需求、架构技术选型、组件规范、契约或业务源码。
 
@@ -101,7 +101,7 @@
 全局部署文件统一位于项目根目录的 `deploy/`；`<组件应用目录>/deploy/**` 仅保存组件专属部署资源。
 
 - 初始化脚本统一直接放在 `deploy/init/`，文件名使用 `<基础设施>.<sh|mjs|sql>`，例如
-  `postgre.sh`、`postgre.mjs`、`postgre.sql`；基础设施名称使用 C2 登记的稳定名称，不创建基础设施子目录。
+  `postgre.sh`、`postgre.mjs`、`postgre.sql`；基础设施名称使用 `docs/system/system.md` 组件清单登记的稳定名称，不创建基础设施子目录。
 - 基础设施配置统一放在 `deploy/config/`，文件名使用 `<基础设施>.config.<扩展名>`，例如
   `grafana.config.yml`、`prometheus.config.yml`；Compose 从该目录挂载配置，不把配置文件放入 `init/`。
 
@@ -290,7 +290,7 @@ pnpm --dir <组件应用目录相对deploy的路径> dev
 
 1. 读取部署与运维规范、实际配置和目标环境信息。
 2. 检查构建、测试、制品、变量、迁移、健康检查、备份、恢复和回滚。
-3. 指令为 `<组件 deploy>` 且组件名存在于 C2 时，更新该组件的 Runbook 开发配置、
+3. 指令为 `<组件 deploy>` 且组件名存在于 `docs/system/system.md` 组件清单时，更新该组件的 Runbook 开发配置、
    Compose 服务、开发环境变量、必要的 `init/` 初始化脚本和 `config/` 基础设施配置，不执行其中的启动或初始化命令。
 4. 指令为 `<deploy update>` 时，只生成并验证一份升级方案，不执行其中的操作。
 5. 其他 `<deploy>` 指令按任务处理运维规范、配置或实际操作，不创建升级方案。
