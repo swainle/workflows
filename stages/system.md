@@ -88,12 +88,12 @@
 - **What**：定义运行组件清单、组件说明字段、开发地址和容器关系。
 - **Why**：避免组件名称、应用路径、设计路径和调用关系在下游阶段出现多套来源。
 
-`system.md` 按组件类型分组，使用稳定名称登记容器图中的前端、后端、任务处理器和其他部署单元：
+`system.md` 使用稳定名称逐个登记容器图中的前端、后端、任务处理器和其他部署单元：
 
-- 三级标题按实际职责使用“前端组件”“后端组件”“任务处理器”“基础设施组件”或其他稳定分类，不创建空分类。
-- 前端、后端、任务处理器和基础设施分类统一且只使用“组件名称”“暴露端口”“访问路径”“协议”“说明”五列表格，不在表格后追加连接信息列表。
+- 每个组件使用 `### <组件名称> <职责类型>` 三级标题；组件名称必须与容器图和 `<组件>` 指令一致，职责类型简短说明其角色，不按组件类型创建额外分组。
+- 每个组件标题下只使用“暴露端口”“访问路径”“协议”“说明”四列表格，不在表格后追加连接信息列表。
 - 每个“暴露端口 + 访问路径 + 协议”组合单独占一行；同一组件存在多个组合时使用连续多行，
-  即使端口相同但访问路径不同也必须拆行。每行重复组件名称和完整说明，不留空、不合并单元格，五列表格内不使用 `<br>`。
+  即使端口相同但访问路径不同也必须拆行。每行只填写端口、路径、协议和说明，不留空、不合并单元格，四列表格内不使用 `<br>`。
 - 自研组件名称对应 `<组件>` 指令；“说明”固定使用“职责：<职责>；应用：`apps/<路径>/`；设计：`docs/component/<路径>/`”，
   应用和设计路径不包含 `..` 且不得重复。基础设施的“说明”只写“用途：<实际用途>”；存在凭证时追加
   “账密：`<变量名>` `<变量名>`”，不登记应用目录、设计目录、凭证值或官方默认凭据。
@@ -160,77 +160,72 @@ C4Context
 ## 容器图
 
 ```mermaid
-flowchart TB
-    subgraph actors["用户与外部系统"]
-        direction LR
-        user["用户"]
-    end
+C4Container
+    title 系统容器图
 
-    subgraph system["系统"]
-        direction TB
+    Person(user, "用户", "使用 Web 应用")
 
-        subgraph frontend_layer["前端组件"]
-            direction LR
-            web["web<br/>Web 应用<br/>主要技术栈<br/>容器职责"]
-        end
+    System_Boundary(system, "系统") {
+        Container_Boundary(frontend_layer, "前端组件") {
+            Container(web, "web", "主要技术栈", "Web 应用")
+        }
 
-        subgraph backend_layer["后端组件"]
-            direction LR
-            api["api<br/>API 服务<br/>主要技术栈<br/>容器职责"]
-            worker["worker<br/>Worker<br/>主要技术栈<br/>处理异步任务"]
-            api -->|"提交任务<br/>消息协议"| worker
-        end
+        Container_Boundary(backend_layer, "后端组件") {
+            Container(api, "api", "主要技术栈", "API 服务")
+            Container(worker, "worker", "主要技术栈", "处理异步任务")
+        }
 
-        subgraph infrastructure_layer["基础设施组件"]
-            direction LR
-            redis[("redis<br/>Redis<br/>缓存和队列")]
-            openfga["openfga<br/>OpenFGA<br/>授权关系"]
-        end
+        Container_Boundary(infrastructure_layer, "基础设施组件") {
+            ContainerDb(redis, "redis", "Redis", "缓存和队列")
+            Container(openfga, "openfga", "OpenFGA", "授权关系")
+        }
+    }
 
-        frontend_layer -->|"web → api<br/>调用 · HTTPS/JSON"| backend_layer
-        backend_layer -->|"api → redis<br/>读写 · Redis"| infrastructure_layer
-        backend_layer -->|"api → openfga<br/>鉴权 · HTTP/gRPC"| infrastructure_layer
-    end
-
-    actors -->|"user → web<br/>使用 · HTTPS"| frontend_layer
+    Rel(user, web, "使用", "HTTPS")
+    Rel(web, api, "调用", "HTTPS/JSON")
+    Rel(api, worker, "提交任务", "消息协议")
+    Rel(api, redis, "读写", "Redis")
+    Rel(api, openfga, "鉴权", "HTTP/gRPC")
 ```
 
 ## 组件清单
 
-### 前端组件
+### web 网页前端
 
-| 组件名称 | 暴露端口 | 访问路径 | 协议 | 说明 |
-|---|---|---|---|---|
-| `web` | `3000` | `/` | HTTP | 职责：Web 前端；应用：`apps/web/`；设计：`docs/component/web/` |
+| 暴露端口 | 访问路径 | 协议 | 说明 |
+|---|---|---|---|
+| `3000` | `/` | HTTP | 职责：Web 前端；应用：`apps/web/`；设计：`docs/component/web/` |
 
-### 后端组件
+### api 后端 API
 
-| 组件名称 | 暴露端口 | 访问路径 | 协议 | 说明 |
-|---|---|---|---|---|
-| `api` | `3001` | `/api/v1` | HTTPS/JSON | 职责：业务 API、Swagger UI 和 OpenAPI 契约；应用：`apps/api/`；设计：`docs/component/api/` |
-| `api` | `3001` | `/api/v1/doc` | HTTPS | 职责：业务 API、Swagger UI 和 OpenAPI 契约；应用：`apps/api/`；设计：`docs/component/api/` |
-| `api` | `3001` | `/api/v1/openapi.json` | HTTPS | 职责：业务 API、Swagger UI 和 OpenAPI 契约；应用：`apps/api/`；设计：`docs/component/api/` |
-| `worker` | `不暴露` | `不暴露` | `不暴露` | 职责：处理异步任务；应用：`apps/worker/`；设计：`docs/component/worker/` |
+| 暴露端口 | 访问路径 | 协议 | 说明 |
+|---|---|---|---|
+| `3001` | `/api/v1` | HTTPS/JSON | 职责：业务 API、Swagger UI 和 OpenAPI 契约；应用：`apps/api/`；设计：`docs/component/api/` |
+| `3001` | `/api/v1/doc` | HTTPS | 职责：Swagger UI；应用：`apps/api/`；设计：`docs/component/api/` |
+| `3001` | `/api/v1/openapi.json` | HTTPS | 职责：系统 HTTP 契约运行时地址；应用：`apps/api/`；设计：`docs/component/api/` |
 
-### 基础设施组件
+### worker 异步任务处理
 
-| 组件名称 | 暴露端口 | 访问路径 | 协议 | 说明 |
-|---|---|---|---|---|
-| `<基础设施名称>` | `<项目确认的暴露端口>` | `<官方文档确认的访问路径>` | `<官方文档确认的协议>` | 用途：<实际用途>；账密：`<用户名变量>` `<密码变量>` |
+| 暴露端口 | 访问路径 | 协议 | 说明 |
+|---|---|---|---|
+| `不暴露` | `不暴露` | `不暴露` | 职责：处理异步任务；应用：`apps/worker/`；设计：`docs/component/worker/` |
+
+### <基础设施名称> <职责类型>
+
+| 暴露端口 | 访问路径 | 协议 | 说明 |
+|---|---|---|---|
+| `<项目确认的暴露端口>` | `<官方文档确认的访问路径>` | `<官方文档确认的协议>` | 用途：<实际用途>；账密：`<用户名变量>` `<密码变量>` |
 ````
 
-- “组件清单”始终存在；所有组件分类统一使用规定的五列表格，组件目录、职责、基础设施用途和凭证变量按固定格式写入“说明”。
+- “组件清单”始终存在；每个组件标题下统一使用规定的四列表格，组件目录、职责、基础设施用途和凭证变量按固定格式写入“说明”。
 - `context.md` 的“系统上下文图”始终使用 `C4Context`，展示系统边界、用户或角色、交互的外部系统及其关系，不展示内部容器。
 - `context.md` 按“用户或角色 → 目标系统 → 外部系统”自上而下排列；同一层级元素连续声明并水平排列。
 - 跨层级关系按实际方向使用 `Rel_D` 或 `Rel_U`，`UpdateLayoutConfig` 的 `c4ShapeInRow`
   设置为同一层级需要容纳的最大元素数，`c4BoundaryInRow` 使用 `1`。
 - 不使用 Mermaid C4 尚未支持的 `Lay_D`、`Lay_R` 等布局语句。
-- `system.md` 的“容器图”始终使用 `flowchart TB`，展示系统内的容器、各容器的主要技术栈，以及容器之间和容器与外部系统之间的通信方式。
-- `system.md` 容器图先按“用户与外部系统 → 前端组件 → 后端组件 → 基础设施组件”从上到下分层；不存在的层级直接省略。
-- 系统使用一个主 `subgraph`，组件类型分别使用嵌套 `subgraph`；主分层使用 `direction TB`，
-  每个组件类型内部使用 `direction LR`，使同类组件从左到右排列。
-- Mermaid 会在子图内部节点直接连接外部时忽略子图方向，因此跨层关系连接层级 `subgraph`，
-  并在标签中明确写出“源组件 → 目标组件”、用途和协议；同层关系直接连接实际组件节点。
+- `system.md` 的“容器图”始终使用 `C4Container`，展示系统内的容器、各容器的主要技术栈，以及容器之间和容器与外部系统之间的通信方式。
+- 用户和外部系统使用 `Person` 或 `System_Ext`；系统使用一个 `System_Boundary`，组件类型按需使用嵌套 `Container_Boundary`；应用使用 `Container`，数据存储使用 `ContainerDb`。
+- 每条通信使用实际源、目标之间的 `Rel`，标签写明用途和协议；不存在的角色、组件类型或关系直接省略。C4 图不使用 `flowchart`、`subgraph`、`direction` 或未支持的 `Lay_D`、`Lay_R` 布局语句。
 - 组件清单和容器图中的组件名称保持一致；同一关系不再用文本图重复表达。
 - 容器图可以标注主要语言、框架和数据库；具体选型约束和版本策略放入 `technology.md`。
 - 跨组件业务或工程步骤放入 `process.md`。
@@ -600,8 +595,8 @@ flowchart LR
 
 - 实际修改只位于明确列出的全局文件。
 - 没有修改需求、组件规范、源码或部署。
-- 组件清单按类型使用三级章节；所有分类只有“组件名称”“暴露端口”“访问路径”“协议”“说明”五列表格。
-  每个端口、路径和协议组合独占一行；同一组件的连续多行重复组件名称与完整说明，不留空、不使用 `<br>`，相同组合不得重复。
+- 组件清单每个组件使用 `### <组件名称> <职责类型>` 三级标题；每个标题下只有“暴露端口”“访问路径”“协议”“说明”四列表格。
+  每个端口、路径和协议组合独占一行；同一组件的连续多行不重复组件名称，不留空、不使用 `<br>`，相同组合不得重复。
 - 自研组件的“说明”包含职责、应用目录和设计目录；基础设施的“说明”只包含用途和可选的账密变量名。
 - `system.md` 组件清单只登记已确认的开发环境实际暴露端口、路径和协议；确认不暴露时三个字段一致，未知信息没有使用猜测值，测试和生产地址不写入组件清单。
 - 对外文档只包含实际运行时暴露的 Swagger UI、OpenAPI、AsyncAPI 或其他文档，每个端口、路径和协议组合单独一行。
@@ -610,8 +605,8 @@ flowchart LR
 - `system.md` 组件清单没有凭证值或官方默认凭据值；账密只引用 `security.md`“凭证”表中的开发环境变量名。
 - 测试和生产使用独立凭据来源，没有复用开发凭据来源。
 - `context.md` 包含 `C4Context` 系统上下文图，不包含内部容器；同级元素水平排列，整体按层级垂直排列。
-- `system.md` 包含组件清单和 `flowchart TB` 容器图；用户与外部系统、前端、后端和基础设施
-  从上到下分层，同类组件从左到右排列，没有组件内部实现、技术版本、部署内容或重复关系图。
+- `system.md` 包含按组件标题维护的四列表格清单和 `C4Container` 容器图；用户与外部系统、前端、后端和基础设施
+  使用实际 C4 元素及 `Rel` 表达，没有组件内部实现、部署内容或重复关系图。
 - `process.md` 的业务流程按实际用户角色、“通用”或“系统”二级标题分组，以 BP 编号作为三级标题并使用 `sequenceDiagram`；
   每个业务流程只保留 `Desc`、`Ref` 和跨组件业务主链路，具有唯一且稳定的 BP 编号并引用实际存在的需求项，
   参与组件名称与组件清单一致；没有构建、CI/CD、发布、部署或回滚流程。

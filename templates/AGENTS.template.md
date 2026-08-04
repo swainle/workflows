@@ -338,7 +338,7 @@ Git                            文件历史
 | 目的 | 图类型 |
 |---|---|
 | `context.md` 系统上下文 | `C4Context` |
-| `system.md` 容器图 | `flowchart TB`；组件类型从上到下、类型内部从左到右 |
+| `system.md` 容器图 | `C4Container`；用容器、数据存储与实际通信关系表达 |
 | `architecture.md` 组件内部结构 | `C4Component`；展示内部模块、职责和必要外部对象，不绘制关系连线 |
 | `structure.md` 或 Backend `component.md` 代码结构 | `flowchart`；先总览后按业务能力分章，主分层从左到右、分层内部从上到下 |
 | 跨组件业务流程和调用顺序 | `sequenceDiagram` |
