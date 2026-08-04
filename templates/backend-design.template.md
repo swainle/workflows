@@ -90,9 +90,9 @@ flowchart LR
     operations --> component
 ```
 
-1. 从需求与系统规范判断轻量或完整 DDD；完整 DDD 先完成 `domain.md`。
-2. 完成 `interface.md`，再按需完成 `security.md` 和 `data.md`。
-3. 从 Markdown 设计生成或更新适用的机器契约，并以机器契约作为字段和关系的唯一事实源。
+1. 先读取 `docs/system/openapi.json` 中由当前组件 `x-provider` 标记的操作，再从需求与系统规范判断轻量或完整 DDD；完整 DDD 先完成 `domain.md`。
+2. 完成 `interface.md`，逐项引用并映射稳定 `operationId`、错误和实现边界，再按需完成 `security.md` 和 `data.md`。
+3. 从 Markdown 设计生成或更新适用的组件私有机器契约，并以机器契约作为字段和关系的唯一事实源；不得生成或修改 `openapi.json`。
 4. 用 `engineering.md` 落实实现映射、工程约束和测试规划。
 5. 按需用 `jobs.md` 设计后台与异步任务，再用 `operations.md` 汇总运行和部署交付要求。
 6. 最后更新 `component.md` 开头的文件关系、架构图、按上下文组织的代码结构和完整文件树。
@@ -502,13 +502,13 @@ sequenceDiagram
 - **Who**：处理 `<组件> backend <任务>` 的组件设计 Agent。
 - **When**：Backend 需要识别 HTTP、异步消息、授权关系或数据结构契约时。
 - **Where**：`docs/system/openapi.json`、`<组件设计目录>/asyncapi.json`、`authorization.fga` 与 `schema.dbml`。
-- **What**：定义机器可验证的协议 Schema、消息 Channel、授权关系和持久化结构。
+- **What**：引用系统同步 HTTP 契约，并定义组件私有机器可验证的消息 Channel、授权关系和持久化结构。
 - **Why**：避免 Markdown 与实现各自维护字段、关系和协议，确保契约只有一个事实源。
 
 ### `openapi.json`
 
-- 由需求与系统边界驱动并由 `<system>` 维护；`interface.md` 只映射稳定 `operationId`、错误和实现边界，Backend 只实现和验证。
-- 只有当前组件提供同步 HTTP 接口时创建，并通过 HTTP(S) 暴露 Swagger UI 和契约。
+- 由需求与系统边界驱动并由 `<system>` 在 Backend 设计前维护；`interface.md` 只引用并映射稳定 `operationId`、错误和实现边界，Backend 只实现和验证。
+- 不在组件目录创建或复制该文件。当前组件缺少所需操作、Schema 或示例时停止并切换 `<system>`；通过 HTTP(S) 暴露的 Swagger UI 和 OpenAPI 地址只登记在 `system.md`。
 
 ### `asyncapi.json`
 

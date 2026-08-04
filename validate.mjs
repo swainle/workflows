@@ -1114,7 +1114,9 @@ test("supports frontend and backend component design modes", () => {
   assert.doesNotMatch(backend, /## `state\.md`/);
   assert.doesNotMatch(backend, /## `sequence\.md`/);
   assert.match(backend, /`docs\/system\/openapi\.json` 是跨组件同步 HTTP 契约唯一源/);
-  assert.match(backend, /`openapi\.json`[\s\S]*由需求与系统边界驱动并由 `<system>` 维护/);
+  assert.match(backend, /`openapi\.json`[\s\S]*由需求与系统边界驱动并由 `<system>` 在 Backend 设计前维护/);
+  assert.match(backend, /`interface\.md` 只引用并映射稳定 `operationId`、错误和实现边界/);
+  assert.match(backend, /不得生成或修改 `openapi\.json`/);
   assert.match(backend, /`authorization\.fga`[\s\S]*由 `security\.md` 驱动/);
   assert.match(backend, /`schema\.dbml`[\s\S]*由 `data\.md` 驱动/);
   for (const file of [

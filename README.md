@@ -57,7 +57,7 @@ node docs/workflows/install.mjs --branch develop
 
 Backend 模式完整读取 `templates/backend-design.template.md`。其中固定标题和顺序必须保留；图、表、目录、技术、依赖和业务名称均为示例，必须根据当前组件的实际情况调整。
 Backend 设计按“领域 → 接口 → 模型 → 工程 → 运行 → 汇总”执行；始终创建 `component.md`、`interface.md` 和 `engineering.md`，其他 Markdown 与机器契约按需创建。
-跨组件同步 HTTP 契约唯一维护在 `docs/system/openapi.json`；Backend 实现它，Frontend 通过 `operationId` 消费它，并在开发或测试环境用其 Schema 与示例驱动 Mock。
+跨组件同步 HTTP 契约唯一维护在 `docs/system/openapi.json`：`<system>` 先定义操作、Schema、示例和 `x-provider`，Backend `interface.md` 再映射并实现它，Frontend 通过 `operationId` 消费它，并在开发或测试环境用其 Schema 与示例驱动 Mock。
 
 所有指令都支持 `opt`。例如 `<12> opt requirement.md <意见>`、`<system> opt process.md <意见>`、`<api dev> opt src/app.ts <意见>`、`<api test> opt test/app.test.ts <意见>`、`<test> opt test/acceptance/app.test.ts <意见>` 和 `<deploy> opt deploy/runbook.md <意见>`。目标存在时更新，不存在时创建；原阶段必须允许对应的修改或创建操作，并且只操作该目标文件，不删除、移动或顺手创建、修改关联文件。组件设计的 Frontend/Backend `opt` 继续遵循模板前置依赖顺序。
 

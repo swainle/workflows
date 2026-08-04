@@ -522,7 +522,7 @@ Backend 专用 Markdown、机器可读模型及其固定结构统一由
 - **What**：提供“契约规则”功能；具体规则、格式和约束如下。
 - **Why**：确保组件设计按真实边界完整落地且不复制上游事实。
 
-- `docs/system/openapi.json` 使用稳定 `operationId`，Schema、示例和实际接口保持一致；Backend 实现它，Frontend 消费它并用其示例或 Schema 驱动 Mock。
+- `docs/system/openapi.json` 先定义稳定 `operationId`、Schema、示例和安全要求；Backend 的 `interface.md` 引用并映射它，Frontend 消费它并用其示例或 Schema 驱动 Mock。
 - 没有异步事件不创建 AsyncAPI。
 - 没有非公开操作不创建 OpenFGA。
 - 没有数据模型变化不创建 DBML。
