@@ -325,7 +325,7 @@ test("describes prompt capabilities with numbered five-point definitions", () =>
     ["stages/component-test.md", { prefix: "AI-TEST", count: 8 }],
     ["stages/test.md", { prefix: "AI-ACCEPTANCE", count: 9 }],
     ["stages/deploy.md", { prefix: "AI-DEPLOY", count: 10 }],
-    ["templates/frontend-design.template.md", { prefix: "AI-FRONTEND", count: 4 }],
+    ["templates/frontend-design.template.md", { prefix: "AI-FRONTEND", count: 6 }],
     ["templates/backend-design.template.md", { prefix: "AI-BACKEND", count: 12 }],
   ]);
 
@@ -1045,6 +1045,16 @@ test("supports frontend and backend component design modes", () => {
   assert.match(frontend, /ux\["ux\.md/);
   assert.match(frontend, /\] --> state\["state\.md/);
   assert.match(frontend, /AI-FRONTEND-004/);
+  assert.match(frontend, /AI-FRONTEND-005/);
+  assert.match(frontend, /AI-FRONTEND-006/);
+  assert.match(frontend, /# Experience[\s\S]*## 模块[\s\S]*### M-001[\s\S]*\| 编号 \| 页面名称 \| 入口 \| 前置页面 \| 主要目的 \| 是否登录 \| 页面权限 \| 无权处理 \|/);
+  assert.match(frontend, /## 布局[\s\S]*### LAYOUT-001[\s\S]*## 表单[\s\S]*### FORM-001[\s\S]*## 页面规则[\s\S]*### GLOBAL[\s\S]*### 错误规则/);
+  assert.match(frontend, /页面表是页面名称、入口、前置页面、登录要求、权限表现和无权处理的唯一事实源/);
+  assert.match(frontend, /# State[\s\S]*## 数据请求[\s\S]*### DATA-001[\s\S]*## 页面状态/);
+  assert.match(frontend, /\$schema[\s\S]*design-tokens\.org\/schema\.json/);
+  assert.match(frontend, /# Configuration[\s\S]*## 配置项[\s\S]*## 环境差异[\s\S]*## 启动校验/);
+  assert.match(frontend, /# Testing[\s\S]*## 基础设施配置[\s\S]*## 页面测试[\s\S]*Given:[\s\S]*When:[\s\S]*Then:/);
+  assert.match(frontend, /# Component[\s\S]*## 文件关系[\s\S]*U\["ux\.md"\] --> S\["state\.md"\][\s\S]*## 完整文件结构/);
   assert.match(component, /UI YAML 格式、示例和引用规则只由 `templates\/frontend-design\.template\.md`/);
   assert.match(component, /### Backend 模式/);
   assert.match(component, /按可验证复杂度条件选择轻量 Backend 或完整 DDD/);
