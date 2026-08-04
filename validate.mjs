@@ -1050,6 +1050,9 @@ test("supports frontend and backend component design modes", () => {
   assert.match(frontend, /# Experience[\s\S]*## 模块[\s\S]*### M-001[\s\S]*\| 编号 \| 页面名称 \| 入口 \| 前置页面 \| 主要目的 \| 是否登录 \| 页面权限 \| 无权处理 \|/);
   assert.match(frontend, /## 布局[\s\S]*### LAYOUT-001[\s\S]*## 表单[\s\S]*### FORM-001[\s\S]*## 页面规则[\s\S]*### GLOBAL[\s\S]*### 错误规则/);
   assert.match(frontend, /页面表是页面名称、入口、前置页面、登录要求、权限表现和无权处理的唯一事实源/);
+  assert.match(frontend, /页面编号在每个模块内从 `P-001` 开始/);
+  assert.match(frontend, /`ux\.md` 内引用页面一律使用 `M-001:P-001`；其他文件引用页面一律使用完整路径 `ux\.md:M-001:P-001`/);
+  assert.match(frontend, /id: M-001:P-002/);
   assert.match(frontend, /# State[\s\S]*## 数据请求[\s\S]*### DATA-001[\s\S]*## 页面状态/);
   assert.match(frontend, /\$schema[\s\S]*design-tokens\.org\/schema\.json/);
   assert.match(frontend, /# Configuration[\s\S]*## 配置项[\s\S]*## 环境差异[\s\S]*## 启动校验/);
