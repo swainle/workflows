@@ -161,31 +161,35 @@ C4Context
 
 ```mermaid
 C4Container
-    title 系统容器图
+    title <系统名称>容器图（主图）
 
-    Person(user, "用户", "使用 Web 应用")
+    Person(user, "系统用户", "<实际角色，例如患者、医生、管理员>")
 
-    System_Boundary(system, "系统") {
-        Container_Boundary(frontend_layer, "前端组件") {
-            Container(web, "web", "主要技术栈", "Web 应用")
-        }
+    System_Boundary(system, "<系统名称>") {
+        Container(proxy, "<代理名称>", "<代理技术>", "统一入口与反向代理")
+        Container(web, "<前端组件>", "<前端技术栈>", "Web 前端")
+        Container(backend, "<后端组件>", "<后端技术栈>", "业务 API 与任务处理")
 
-        Container_Boundary(backend_layer, "后端组件") {
-            Container(api, "api", "主要技术栈", "API 服务")
-            Container(worker, "worker", "主要技术栈", "处理异步任务")
-        }
+        ContainerDb(database, "<数据库名称>", "<数据库技术>", "业务数据")
+        ContainerDb(cache, "<缓存名称>", "<缓存技术>", "缓存")
+        ContainerDb(queue, "<队列名称>", "<队列技术>", "异步任务队列")
 
-        Container_Boundary(infrastructure_layer, "基础设施组件") {
-            ContainerDb(redis, "redis", "Redis", "缓存和队列")
-            Container(openfga, "openfga", "OpenFGA", "授权关系")
-        }
+        Container(authorization, "<授权服务名称>", "<授权技术>", "授权服务")
+        Container(telemetry, "<遥测平台名称>", "<遥测技术栈>", "可观测性平台")
     }
 
-    Rel(user, web, "使用", "HTTPS")
-    Rel(web, api, "调用", "HTTPS/JSON")
-    Rel(api, worker, "提交任务", "消息协议")
-    Rel(api, redis, "读写", "Redis")
-    Rel(api, openfga, "鉴权", "HTTP/gRPC")
+    Rel(user, proxy, "访问系统", "HTTPS")
+    Rel(proxy, web, "转发静态资源", "HTTP")
+    Rel(proxy, backend, "转发 API", "HTTP")
+    Rel(web, backend, "调用 API", "HTTPS/JSON, Bearer JWT")
+
+    Rel(backend, database, "读写业务数据", "<数据库访问协议>")
+    Rel(backend, cache, "读写缓存", "<缓存协议>")
+    Rel(backend, queue, "投递与消费任务", "<队列协议>")
+    Rel(backend, authorization, "授权检查", "<授权协议>")
+
+    Rel(web, telemetry, "发送前端遥测", "OTLP HTTP")
+    Rel(backend, telemetry, "发送后端遥测", "OTLP gRPC")
 ```
 
 ## 组件清单
@@ -224,8 +228,8 @@ C4Container
   设置为同一层级需要容纳的最大元素数，`c4BoundaryInRow` 使用 `1`。
 - 不使用 Mermaid C4 尚未支持的 `Lay_D`、`Lay_R` 等布局语句。
 - `system.md` 的“容器图”始终使用 `C4Container`，展示系统内的容器、各容器的主要技术栈，以及容器之间和容器与外部系统之间的通信方式。
-- 用户和外部系统使用 `Person` 或 `System_Ext`；系统使用一个 `System_Boundary`，组件类型按需使用嵌套 `Container_Boundary`；应用使用 `Container`，数据存储使用 `ContainerDb`。
-- 每条通信使用实际源、目标之间的 `Rel`，标签写明用途和协议；不存在的角色、组件类型或关系直接省略。C4 图不使用 `flowchart`、`subgraph`、`direction` 或未支持的 `Lay_D`、`Lay_R` 布局语句。
+- 用户和外部系统使用 `Person` 或 `System_Ext`；系统使用一个 `System_Boundary`，其中直接列出实际运行容器；应用、代理、授权与遥测平台使用 `Container`，数据、缓存和消息队列使用 `ContainerDb`。
+- 每条通信使用实际源、目标之间的 `Rel`，标签写明用途和协议；不存在的角色、容器或关系直接省略。C4 图不使用 `Container_Boundary`、`flowchart`、`subgraph`、`direction` 或未支持的 `Lay_D`、`Lay_R` 布局语句。
 - 组件清单和容器图中的组件名称保持一致；同一关系不再用文本图重复表达。
 - 容器图可以标注主要语言、框架和数据库；具体选型约束和版本策略放入 `technology.md`。
 - 跨组件业务或工程步骤放入 `process.md`。
