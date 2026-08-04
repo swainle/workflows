@@ -23,6 +23,7 @@ export const PROMPT_FILES = new Map([
   ["stages/component-test.md", "AI-TEST"],
   ["stages/test.md", "AI-ACCEPTANCE"],
   ["stages/deploy.md", "AI-DEPLOY"],
+  ["templates/frontend-design.template.md", "AI-FRONTEND"],
   ["templates/backend-design.template.md", "AI-BACKEND"],
 ]);
 
@@ -324,6 +325,7 @@ test("describes prompt capabilities with numbered five-point definitions", () =>
     ["stages/component-test.md", { prefix: "AI-TEST", count: 8 }],
     ["stages/test.md", { prefix: "AI-ACCEPTANCE", count: 9 }],
     ["stages/deploy.md", { prefix: "AI-DEPLOY", count: 10 }],
+    ["templates/frontend-design.template.md", { prefix: "AI-FRONTEND", count: 4 }],
     ["templates/backend-design.template.md", { prefix: "AI-BACKEND", count: 12 }],
   ]);
 
@@ -1021,6 +1023,7 @@ test("groups requirement test scenarios by acceptance criterion", () => {
 test("supports frontend and backend component design modes", () => {
   const agents = readFileSync(path.join(WORKFLOW_ROOT, "templates/AGENTS.template.md"), "utf8");
   const backend = readFileSync(path.join(WORKFLOW_ROOT, "templates/backend-design.template.md"), "utf8");
+  const frontend = readFileSync(path.join(WORKFLOW_ROOT, "templates/frontend-design.template.md"), "utf8");
   const component = readFileSync(path.join(WORKFLOW_ROOT, "stages/component.md"), "utf8");
   const development = readFileSync(path.join(WORKFLOW_ROOT, "stages/component-dev.md"), "utf8");
   const readme = readFileSync(path.join(WORKFLOW_ROOT, "README.md"), "utf8");
@@ -1033,10 +1036,16 @@ test("supports frontend and backend component design modes", () => {
   assert.match(component, /\*\*What\*\*：提供“完整组件设计模式”功能/);
   assert.match(component, /### Frontend 模式/);
   for (const file of ["experience.md", "state.md", "ui/*.ui.yml", "<组件>.design-token.json", "configuration.md", "testing.md"]) {
-    assert.ok(component.includes(`\`${file}\``), `missing Frontend design file: ${file}`);
+    assert.ok(frontend.includes(`\`${file}\``), `missing Frontend design file: ${file}`);
   }
-  assert.match(component, /`docs\/system\/openapi\.json`；每个请求引用其中稳定的 `operationId`/);
-  assert.match(component, /临时 Mock 必须标记 `pending`/);
+  assert.match(component, /完整读取并执行\s+`docs\/workflows\/templates\/frontend-design\.template\.md`/);
+  assert.match(frontend, /`docs\/system\/openapi\.json`；每个请求引用其中稳定的 `operationId`/);
+  assert.match(frontend, /临时 Mock 必须标记 `pending`/);
+  assert.match(frontend, /# Frontend 设计模板/);
+  assert.match(frontend, /experience\["experience\.md/);
+  assert.match(frontend, /\] --> state\["state\.md/);
+  assert.match(frontend, /AI-FRONTEND-004/);
+  assert.match(component, /UI YAML 格式、示例和引用规则只由 `templates\/frontend-design\.template\.md`/);
   assert.match(component, /### Backend 模式/);
   assert.match(component, /按可验证复杂度条件选择轻量 Backend 或完整 DDD/);
   assert.match(component, /完整读取\s+`docs\/workflows\/templates\/backend-design\.template\.md`/);
@@ -1240,6 +1249,7 @@ test("supports frontend and backend component design modes", () => {
   }
   assert.match(readme, /`<web> frontend <任务>`/);
   assert.match(readme, /`<api> backend <任务>`/);
+  assert.match(readme, /`templates\/frontend-design\.template\.md`/);
   assert.match(readme, /`templates\/backend-design\.template\.md`/);
 });
 

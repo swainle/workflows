@@ -185,7 +185,7 @@ Issue #1000 → docs/requirements/REQ-1000-<slug>/
 组件任务从该组件表格行“说明”列的固定字段“应用：`<路径>`；设计：`<路径>`”解析组件应用目录和组件设计目录，
 不根据组件名称猜测路径。
 `frontend` 和 `backend` 只能作为 `<组件>` 指令头后的第一个任务词，用于启用
-`stages/component.md` 中对应的完整组件设计模式；它们不是组件名或独立阶段，
+`templates/frontend-design.template.md` 或 `templates/backend-design.template.md` 中对应的完整组件设计模式；它们不是组件名或独立阶段，
 不得写入指令头，也不适用于 `dev`、`test` 或 `deploy` 任务。组件设计的 `opt` 可直接跟在指令头后，或紧跟
 `frontend`、`backend`，表示按当前组件设计顺序或所选模板依赖顺序创建或更新一个文件；
 具体读取和修改范围由 `stages/component.md` 定义。其他指令的 `opt` 统一遵循 AI-015。

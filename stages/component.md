@@ -70,22 +70,9 @@
 
 ### Frontend 模式
 
-当任务使用 `<组件> frontend <任务>` 时，按以下依赖顺序完成设计；只创建实际适用的文件：
-
-1. `experience.md`：模块、页面、路由、页面权限表现、布局、表单、通用可访问性和页面规则。
-2. `state.md`：状态资源、状态机、请求、缓存、失效、页面状态、错误、恢复和反馈。
-3. `ui/*.ui.yml`：单页结构、动作和对 Experience、State、Token 的稳定引用。
-4. `<组件>.design-token.json`：机器可读的颜色、间距、字体、圆角、阴影、动效和断点 Token。
-5. `configuration.md`：公开配置、构建与运行约束、环境差异、Mock 开关和启动校验。
-6. `testing.md`：测试基础设施、命令、用例和页面—动作—测试覆盖映射。
-7. 最后更新 `component.md`：文件关系、概述和完整应用文件树。
-
-前端权限只控制界面表现，后端是最终安全边界。HTTP 契约唯一维护在
-`docs/system/openapi.json`；每个请求引用其中稳定的 `operationId`，消费方不复制契约。
-Mock 只替换开发或测试环境的网络边界，按同一 `operationId` 返回符合 Schema 与示例的响应；
-没有已确认契约时，临时 Mock 必须标记 `pending`，仅使用页面当前所需的最小字段，并在契约发布后迁移或删除。
-能由 URL、表单或服务端缓存表达的状态不重复放入全局 Store。`ui/*.ui.yml` 不重复路由、权限或
-通用可访问性规则，只引用 `experience.md:<稳定 ID>`、`state.md:<稳定 ID>` 和 Token 路径。
+当任务使用 `<组件> frontend <任务>` 时，必须完整读取并执行
+`docs/workflows/templates/frontend-design.template.md`；其中的文件关系、文件清单、Mock 和 UI YAML
+规则是 Frontend 模式的唯一事实源。本文件继续作为文件权限、通用组件规则、契约规则和跨阶段边界的权威来源。
 
 ### Backend 模式
 
@@ -169,17 +156,6 @@ Command、Handler、Factory、DomainService 或 DomainEvent。
 | `component.md` | 组件入口文档 | 始终 | 非 Backend 维护文件关系、概述和文件树；Backend 维护文件关系、架构图、代码结构和文件树 |
 | `architecture.md` | 非 Frontend、非 Backend 组件内部结构和依赖关系图 | 非 Frontend、非 Backend 模式 | 当前组件的组件架构图 |
 | `structure.md` | 非 Frontend、非 Backend 关键代码单元和依赖关系 | 非 Frontend、非 Backend 且存在长期维护的代码结构 | 当前组件的主要代码结构 |
-
-### Frontend 文件
-
-| 文件 | 作用 | 创建条件 | 可修改内容 |
-|---|---|---|---|
-| `experience.md` | 页面体验设计 | 存在页面或界面 | 模块、页面、路由、权限表现、布局、表单、A11y 和页面规则 |
-| `state.md` | 数据与状态设计 | 存在远程数据、客户端状态或失败场景 | 状态资源、状态机、请求、缓存、页面状态、错误、恢复和反馈 |
-| `ui/*.ui.yml` | 页面交互契约 | 存在稳定页面 | 单页结构、动作和对 Experience、State、Token 的引用 |
-| `<组件>.design-token.json` | 语义 Design Token | 需要组件级 Token | 颜色、间距、字体、圆角、阴影、动效和断点变量 |
-| `configuration.md` | 前端配置与运行约束 | 存在构建、环境或托管要求 | 公开配置、环境差异、Mock 开关、构建、运行和启动校验 |
-| `testing.md` | 前端测试策略 | 始终 | 基础设施、命令、用例和覆盖映射 |
 
 ### Backend 文件
 
@@ -536,49 +512,13 @@ Backend 专用 Markdown、机器可读模型及其固定结构统一由
 
 ## AI-COMPONENT-011
 
-- **Who**：处理 `<组件>` 指令的组件设计 Agent。
+- **Who**：处理 `<组件> frontend <任务>` 的组件设计 Agent。
 - **When**：Frontend 组件需要定义页面、状态、操作、权限或反馈交互契约时。
-- **Where**：当前组件设计目录与允许读取的前置规范。
-- **What**：提供“UI YAML 格式”功能；具体规则、格式和约束如下。
-- **Why**：确保组件设计按真实边界完整落地且不复制上游事实。
+- **Where**：`docs/workflows/templates/frontend-design.template.md` 与当前组件设计目录。
+- **What**：将 UI YAML 格式和引用规则委托给 Frontend 模板。
+- **Why**：避免组件阶段与 Frontend 模板重复维护交互契约事实。
 
-> - 根据实际情况修改
-
-```yaml
-id: P-002
-title: 创建预约
-platform: web
-
-experience: experience.md:P-002
-state:
-  - state.md:STATE-002
-  - state.md:DATA-001
-tokens: web.design-token.json
-
-layout:
-  ref: experience.md:LAYOUT-001
-  regions:
-    - id: booking-form
-      component: Form
-
-actions:
-  submit:
-    trigger: booking-form.submit
-    operationId: createBooking
-    success: P-003
-    failure: state.md:STATE-002:error
-
-states:
-  loading: state.md:STATE-001:loading
-  submitting: state.md:STATE-002:submitting
-  error: state.md:STATE-002:error
-  success: state.md:STATE-002:success
-```
-
-- `id` 使用 `experience.md` 中稳定的页面 ID；页面需求、路由、权限和通用可访问性只由 `experience.md` 维护。
-- `state` 和 `states` 只引用 `state.md` 中稳定的状态与数据 ID；每个 action 关联系统 OpenAPI `operationId`、本地行为或外部跳转。
-- `.ui.yml` 是交互契约，不复制特定框架源码、页面规则、错误策略或 Token 值。
-- `.ui.yml` 引用当前组件 Token，不保存可复用的颜色、间距、字体和圆角常量。
+Frontend 的 UI YAML 格式、示例和引用规则只由 `templates/frontend-design.template.md` 的 AI-FRONTEND-004 维护。
 
 ## AI-COMPONENT-012
 
@@ -590,8 +530,9 @@ states:
 
 1. 从 `docs/system/system.md` 组件清单的当前组件表格行解析应用目录和设计目录，并读取其开发环境端口、访问地址和接口文档。
 2. 读取相关需求、系统规范、当前组件规范和契约，不读取源码、测试或部署文件。
-3. 识别任务是否以 `frontend` 或 `backend` 开头；Backend 模式额外完整读取并执行
-   `docs/workflows/templates/backend-design.template.md`，Frontend 模式执行本文件对应规则。
+3. 识别任务是否以 `frontend` 或 `backend` 开头；Frontend 模式额外完整读取并执行
+   `docs/workflows/templates/frontend-design.template.md`，Backend 模式额外完整读取并执行
+   `docs/workflows/templates/backend-design.template.md`。
 4. 自动识别需要确认的组件边界、行为、契约和平台限制。
 5. 按根 `AGENTS.md` 的对话确认规则完成确认。
 6. 只增量更新当前组件的长期规范；需要新增或修改同步 HTTP 契约时切换 `<system>`。
@@ -639,8 +580,9 @@ states:
 本规则只约束组件设计阶段；`<组件 dev>`、`<组件 test>` 和 `<组件 deploy>` 的 `opt` 使用根提示词 AI-015 及各自阶段规则。`<目标文件>` 使用相对于组件设计目录的路径，
 必须是 `.md` 文件且不包含 `..`，一次只能指定一个文件；文件存在时更新，不存在时按模板创建。
 
-执行时完整读取 `stages/component.md`。未指定模板时使用本文件声明的通用组件设计顺序；Frontend 使用
-AI-COMPONENT-005 的文件顺序；Backend 额外完整读取 `templates/backend-design.template.md` 的文件关系与设计顺序。
+执行时完整读取 `stages/component.md`。未指定模板时使用本文件声明的通用组件设计顺序；Frontend 额外完整读取
+`templates/frontend-design.template.md` 的文件关系与设计顺序；Backend 额外完整读取
+`templates/backend-design.template.md` 的文件关系与设计顺序。
 随后只读取：
 
 1. 操作权限允许读取的需求和系统规范；
