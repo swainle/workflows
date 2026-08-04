@@ -809,7 +809,7 @@ test("requires design-driven development with zero unresolved decisions", () => 
 
   assert.match(development, /\*\*What\*\*：提供“开发前确认”功能/);
   assert.match(development, /Backend 先读取 `component\.md` 的文件关系、架构图、代码结构和完整文件结构/);
-  assert.match(development, /其他模式先读取 `component\.md` 的概述、设计架构索引和完整文件结构/);
+  assert.match(development, /其他模式先读取 `component\.md` 的文件关系、概述和完整文件结构/);
   assert.match(development, /“任务行为 → 需求或设计依据 → 目标代码文件 → 验证方式”的实现映射/);
   assert.match(development, /没有写明不等于允许自行决定/);
   assert.match(development, /确认一个问题后继续检查，直到未确认项为零/);
@@ -1032,6 +1032,11 @@ test("supports frontend and backend component design modes", () => {
   assert.doesNotMatch(agents, /<组件> ddd <DDD设计任务>/);
   assert.match(component, /\*\*What\*\*：提供“完整组件设计模式”功能/);
   assert.match(component, /### Frontend 模式/);
+  for (const file of ["experience.md", "state.md", "ui/*.ui.yml", "<组件>.design-token.json", "configuration.md", "testing.md"]) {
+    assert.ok(component.includes(`\`${file}\``), `missing Frontend design file: ${file}`);
+  }
+  assert.match(component, /`docs\/system\/openapi\.json`；每个请求引用其中稳定的 `operationId`/);
+  assert.match(component, /临时 Mock 必须标记 `pending`/);
   assert.match(component, /### Backend 模式/);
   assert.match(component, /按可验证复杂度条件选择轻量 Backend 或完整 DDD/);
   assert.match(component, /完整读取\s+`docs\/workflows\/templates\/backend-design\.template\.md`/);
@@ -1108,7 +1113,8 @@ test("supports frontend and backend component design modes", () => {
   assert.match(backend, /source --> domain/);
   assert.doesNotMatch(backend, /## `state\.md`/);
   assert.doesNotMatch(backend, /## `sequence\.md`/);
-  assert.match(backend, /`openapi\.json`[\s\S]*由 `interface\.md` 驱动/);
+  assert.match(backend, /`docs\/system\/openapi\.json` 是跨组件同步 HTTP 契约唯一源/);
+  assert.match(backend, /`openapi\.json`[\s\S]*由需求与系统边界驱动并由 `<system>` 维护/);
   assert.match(backend, /`authorization\.fga`[\s\S]*由 `security\.md` 驱动/);
   assert.match(backend, /`schema\.dbml`[\s\S]*由 `data\.md` 驱动/);
   for (const file of [
@@ -1489,6 +1495,8 @@ test("lists C2 components by type with development endpoints", () => {
   assert.match(system, /每个“暴露端口 \+ 访问路径 \+ 协议”组合单独占一行/);
   assert.match(system, /即使端口相同但访问路径不同也必须拆行/);
   assert.match(system, /每行重复组件名称和完整说明，不留空、不合并单元格，五列表格内不使用 `<br>`/);
+  assert.match(system, /\| `openapi\.json` \| 跨组件同步 HTTP 契约 \| 存在同步 HTTP 调用 \|/);
+  assert.match(system, /`docs\/system\/openapi\.json` 是跨组件同步 HTTP 契约唯一源文件/);
   assert.match(system, /\| `api` \| `3001` \| `\/api\/v1` \| HTTPS\/JSON \|/);
   assert.match(system, /\| `api` \| `3001` \| `\/api\/v1\/doc` \| HTTPS \|/);
   assert.match(system, /\| `api` \| `3001` \| `\/api\/v1\/openapi\.json` \| HTTPS \|/);
@@ -1530,13 +1538,13 @@ test("lists C2 components by type with development endpoints", () => {
 test("defines single-purpose component documents and horizontal-first code diagrams", () => {
   const agents = readFileSync(path.join(WORKFLOW_ROOT, "templates/AGENTS.template.md"), "utf8");
   const component = readFileSync(path.join(WORKFLOW_ROOT, "stages/component.md"), "utf8");
-  assert.match(component, /\| `component\.md` \| 组件入口文档 \| 始终 \| 非 Backend 维护概述、索引和文件树；Backend 维护文件关系、架构图、代码结构和文件树 \|/);
-  assert.match(component, /\| `architecture\.md` \|[^|\r\n]+ \| 非 Backend 模式 \|/);
-  assert.match(component, /\| `structure\.md` \|[^|\r\n]+ \| 非 Backend 且存在长期维护的代码结构 \|/);
+  assert.match(component, /\| `component\.md` \| 组件入口文档 \| 始终 \| 非 Backend 维护文件关系、概述和文件树；Backend 维护文件关系、架构图、代码结构和文件树 \|/);
+  assert.match(component, /\| `architecture\.md` \|[^|\r\n]+ \| 非 Frontend、非 Backend 模式 \|/);
+  assert.match(component, /\| `structure\.md` \|[^|\r\n]+ \| 非 Frontend、非 Backend 且存在长期维护的代码结构 \|/);
   assert.match(component, /\| `domain\.md` \| 领域设计 \| 完整 DDD 模式 \|/);
-  assert.match(component, /# <组件>\r?\n\r?\n## 概述[\s\S]*## 设计架构[\s\S]*\| 文件 \| 作用 \|[\s\S]*## 目录结构/);
-  assert.match(component, /“设计架构”表格逐个列出当前组件设计目录内实际存在的全部文件及其唯一作用/);
-  assert.match(component, /`component\.md` 除概述、设计架构索引和完整应用文件结构外，不保存其他设计内容/);
+  assert.match(component, /# <组件>\r?\n\r?\n## 文件关系[\s\S]*flowchart LR[\s\S]*## 概述[\s\S]*## 目录结构/);
+  assert.match(component, /“文件关系”图只展示当前实际存在的文件和依赖方向/);
+  assert.match(component, /`component\.md` 除文件关系、概述和完整应用文件结构外，不保存其他设计内容/);
   assert.match(component, /目录结构递归列出组件目录内所有应受版本控制的目录和文件/);
   assert.match(component, /不列出依赖目录、构建产物、缓存、日志、临时文件、密钥或其他运行时生成内容/);
   assert.match(component, /一个事实只由一个文件维护/);
@@ -1557,7 +1565,7 @@ test("defines single-purpose component documents and horizontal-first code diagr
   assert.match(component, /总览使用一个 `flowchart LR`，只展示模块、业务能力及主要依赖，不展示字段或函数/);
   assert.match(component, /每个详细章节只描述一个业务能力并使用一个 `flowchart LR`/);
   assert.match(component, /详细章节只展示理解设计所需的关键公开函数、参数和返回类型/);
-  assert.match(component, /HTTP 请求、响应、错误和 Schema 由 `openapi\.json` 维护/);
+  assert.match(component, /HTTP 请求、响应、错误和 Schema 由 `docs\/system\/openapi\.json` 维护/);
   assert.match(component, /subgraph interface_layer\["接口层"\]\r?\n\s+direction TB/);
   assert.match(component, /subgraph application_layer\["应用层"\]\r?\n\s+direction TB/);
   assert.match(component, /subgraph core_layer\["核心模型层"\]\r?\n\s+direction TB/);

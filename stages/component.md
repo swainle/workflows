@@ -70,32 +70,22 @@
 
 ### Frontend 模式
 
-当任务使用 `<组件> frontend <任务>` 时，分别完成以下单一关注点设计：
+当任务使用 `<组件> frontend <任务>` 时，按以下依赖顺序完成设计；只创建实际适用的文件：
 
-1. `information-architecture.md`：内容层级、导航关系、用户角色和入口。
-2. `routing-permissions.md`：引用系统安全基线，设计当前前端的路由、参数、页面权限、
-   操作权限和无权访问处理。
-3. `layout.md`：Page Shell、页面区域、响应式、滚动和溢出。
-4. `design-system.md`：组件库、视觉语义、复用规则及 Design Token 使用。
-5. `data-fetching.md`：请求、缓存、失效、取消、去重、重试、乐观更新和错误映射。
-6. `state-management.md`：本地、表单、路由、服务端缓存、跨页面和身份权限状态。
-7. `forms.md`：字段、校验、提交、防重复提交、服务端错误和焦点管理。
-8. `page-states.md`：loading、empty、error、forbidden、not-found、offline、
-   submitting、success、stale 和 partial-data。
-9. `feedback.md`：字段错误、Toast、Alert、Modal、Progress、Skeleton 和确认反馈。
-10. `accessibility.md`：语义、键盘、焦点、Label、错误关联、对比度和动效减弱。
-11. `performance.md`：首屏、关键交互、Bundle、渲染、请求、图片、字体和性能预算。
-12. `errors.md`：错误分类、恢复策略和 Error Boundary。
-13. `observability.md`：引用系统可观测性基线，设计当前前端实际产生的错误事件、
-    日志、性能信号和 Trace 关联。
-14. `testing.md`：逻辑、组件、页面、契约、权限、可访问性和端到端测试策略。
-15. `configuration.md`：公开配置、构建时配置、默认值和启动校验。
-16. `runtime.md`：构建产物、运行方式、健康要求和托管约束。
+1. `experience.md`：模块、页面、路由、页面权限表现、布局、表单、通用可访问性和页面规则。
+2. `state.md`：状态资源、状态机、请求、缓存、失效、页面状态、错误、恢复和反馈。
+3. `ui/*.ui.yml`：单页结构、动作和对 Experience、State、Token 的稳定引用。
+4. `<组件>.design-token.json`：机器可读的颜色、间距、字体、圆角、阴影、动效和断点 Token。
+5. `configuration.md`：公开配置、构建与运行约束、环境差异、Mock 开关和启动校验。
+6. `testing.md`：测试基础设施、命令、用例和页面—动作—测试覆盖映射。
+7. 最后更新 `component.md`：文件关系、概述和完整应用文件树。
 
-前端权限只控制界面表现，后端是最终安全边界。每个请求引用提供方在 C2 登记的稳定
-OpenAPI `operationId`，消费方不复制提供方契约。能由 URL、表单或服务端缓存表达的状态
-不重复放入全局 Store。页面交互契约放入 `ui/*.ui.yml`，设计变量放入
-`<组件>.design-token.json`。
+前端权限只控制界面表现，后端是最终安全边界。HTTP 契约唯一维护在
+`docs/system/openapi.json`；每个请求引用其中稳定的 `operationId`，消费方不复制契约。
+Mock 只替换开发或测试环境的网络边界，按同一 `operationId` 返回符合 Schema 与示例的响应；
+没有已确认契约时，临时 Mock 必须标记 `pending`，仅使用页面当前所需的最小字段，并在契约发布后迁移或删除。
+能由 URL、表单或服务端缓存表达的状态不重复放入全局 Store。`ui/*.ui.yml` 不重复路由、权限或
+通用可访问性规则，只引用 `experience.md:<稳定 ID>`、`state.md:<稳定 ID>` 和 Token 路径。
 
 ### Backend 模式
 
@@ -158,7 +148,7 @@ Command、Handler、Factory、DomainService 或 DomainEvent。
 
 - Frontend 和 Backend 模式逐项检查各自列出的全部设计关注点。
 - 每个适用关注点只有一个权威文件，契约和执行配置不在 Markdown 中重复。
-- 非 Backend 的 `component.md` 设计架构索引列出设计目录内每个实际文件及其唯一作用；Backend 由文件关系图的节点记录文件职责。
+- `component.md` 的文件关系图展示实际文件与依赖方向；不维护重复的设计文件索引。
 - `component.md` 中的组件图、代码结构、各关注点文件和契约使用相同稳定名称及依赖方向。
 - 安全与可观测性文件引用系统基线，只包含当前组件的落实、信号、需求或例外。
 - 没有按 URL、数据库表或技术类型错误划分业务模块。
@@ -176,32 +166,20 @@ Command、Handler、Factory、DomainService 或 DomainEvent。
 
 | 文件 | 作用 | 创建条件 | 可修改内容 |
 |---|---|---|---|
-| `component.md` | 组件入口文档 | 始终 | 非 Backend 维护概述、索引和文件树；Backend 维护文件关系、架构图、代码结构和文件树 |
-| `architecture.md` | 非 Backend 组件内部结构和依赖关系图 | 非 Backend 模式 | 当前组件的组件架构图 |
-| `structure.md` | 非 Backend 关键代码单元和依赖关系 | 非 Backend 且存在长期维护的代码结构 | 当前组件的主要代码结构 |
+| `component.md` | 组件入口文档 | 始终 | 非 Backend 维护文件关系、概述和文件树；Backend 维护文件关系、架构图、代码结构和文件树 |
+| `architecture.md` | 非 Frontend、非 Backend 组件内部结构和依赖关系图 | 非 Frontend、非 Backend 模式 | 当前组件的组件架构图 |
+| `structure.md` | 非 Frontend、非 Backend 关键代码单元和依赖关系 | 非 Frontend、非 Backend 且存在长期维护的代码结构 | 当前组件的主要代码结构 |
 
 ### Frontend 文件
 
 | 文件 | 作用 | 创建条件 | 可修改内容 |
 |---|---|---|---|
-| `information-architecture.md` | 信息架构 | 存在页面或内容层级 | 内容层级、导航关系、角色和入口 |
-| `routing-permissions.md` | 路由与页面权限 | 存在路由 | 路由参数、访问规则、页面和操作权限 |
-| `layout.md` | 页面布局 | 存在界面 | Page Shell、区域、响应式、滚动和溢出 |
-| `design-system.md` | 设计系统规则 | 存在界面 | 组件库、视觉语义、复用和 Token 使用 |
-| `<组件>.design-token.json` | 语义 Design Token | 需要组件级 Token | 颜色、间距、字体、圆角和动效变量 |
-| `data-fetching.md` | 数据请求 | 存在远程数据 | 请求、缓存、取消、重试和乐观更新 |
-| `state-management.md` | 状态管理 | 存在客户端状态 | 本地、表单、路由、服务端缓存和跨页面状态 |
-| `forms.md` | 表单设计 | 存在表单 | 字段、校验、提交、错误和焦点管理 |
-| `page-states.md` | 完整页面状态 | 存在页面 | Loading、Empty、Error、Forbidden、Offline 等状态 |
-| `feedback.md` | 用户反馈 | 存在用户操作 | Toast、Alert、Modal、Progress 和确认反馈 |
-| `accessibility.md` | 可访问性 | 存在界面 | 语义、键盘、焦点、Label、对比度和动效 |
-| `performance.md` | 前端性能 | 存在性能要求 | 首屏、交互、Bundle、渲染、请求和性能预算 |
-| `errors.md` | 前端错误处理 | 存在失败场景 | 错误分类、恢复和 Error Boundary |
-| `observability.md` | 前端可观测性 | 存在运行要求 | 错误监控、日志、指标、Trace、脱敏和告警 |
-| `testing.md` | 前端测试策略 | 始终 | 逻辑、组件、页面、契约、权限、A11y 和 E2E |
-| `configuration.md` | 前端配置 | 存在配置 | 公开配置、构建时配置和校验 |
-| `runtime.md` | 前端运行要求 | 存在构建或托管要求 | 构建产物、运行方式和健康要求 |
-| `ui/*.ui.yml` | 页面交互契约 | 存在稳定页面 | 单个页面的结构、动作、状态和可访问性 |
+| `experience.md` | 页面体验设计 | 存在页面或界面 | 模块、页面、路由、权限表现、布局、表单、A11y 和页面规则 |
+| `state.md` | 数据与状态设计 | 存在远程数据、客户端状态或失败场景 | 状态资源、状态机、请求、缓存、页面状态、错误、恢复和反馈 |
+| `ui/*.ui.yml` | 页面交互契约 | 存在稳定页面 | 单页结构、动作和对 Experience、State、Token 的引用 |
+| `<组件>.design-token.json` | 语义 Design Token | 需要组件级 Token | 颜色、间距、字体、圆角、阴影、动效和断点变量 |
+| `configuration.md` | 前端配置与运行约束 | 存在构建、环境或托管要求 | 公开配置、环境差异、Mock 开关、构建、运行和启动校验 |
+| `testing.md` | 前端测试策略 | 始终 | 基础设施、命令、用例和覆盖映射 |
 
 ### Backend 文件
 
@@ -214,17 +192,16 @@ Command、Handler、Factory、DomainService 或 DomainEvent。
 | `engineering.md` | 编码与测试 | 始终 | 实现映射、执行管线、工程约束和测试规划 |
 | `jobs.md` | 后台与异步任务 | 存在后台任务或独立 Worker | 任务元信息、功能点、运行时序、投递和幂等 |
 | `operations.md` | 运行与交付 | 存在配置、密钥、可观测、进程或部署要求 | 配置、密钥、运行信号、运行单元和交付快照 |
-| `openapi.json` | 同步 HTTP API 契约 | 当前组件提供同步接口 | 路径、操作、Schema、错误和示例 |
 | `asyncapi.json` | 异步事件契约 | 当前组件提供事件 | Channel、Message、生产者和消费者 |
 | `schema.dbml` | 持久化数据结构和关系 | 当前组件拥有持久化数据模型 | 表、字段、索引和关系 |
 | `authorization.fga` | 授权关系模型 | 当前组件存在非公开操作 | 类型、关系和权限 |
 
-只创建项目实际需要的文件。一个事实只由一个文件维护，其他文件通过稳定名称引用，不复制字段、关系或规则。契约由提供它的组件维护，消费方只能引用。Backend 需要引用前置文件的信息时，在所属二级或三级标题后、正文前使用独立的 `> Ref: <文件名>:<二级标题>:<三级标题或编号>`；多个引用各占一行。只有 `interface.md`“操作定义”和 `security.md`“权限控制”的“关联需求”列可以直接列出当前条目实现的需求编号；除此之外不创建引用列、引用表或递归展开上游引用。
+只创建项目实际需要的文件。一个事实只由一个文件维护，其他文件通过稳定名称引用，不复制字段、关系或规则。同步 HTTP 契约只由 `docs/system/openapi.json` 维护；异步和其他组件私有机器契约仍由提供方组件维护，消费方只能引用。Frontend 和 Backend 均使用 `> Ref: <文件路径>:<稳定 ID>[:<子项>]`；多个引用各占一行。只有 `interface.md`“操作定义”和 `security.md`“权限控制”的“关联需求”列可以直接列出当前条目实现的需求编号；除此之外不创建引用列、引用表或递归展开上游引用。
 
 ## AI-COMPONENT-007
 
 - **Who**：处理 `<组件>` 指令的组件设计 Agent。
-- **When**：组件设计需要维护概述、设计索引或完整受版本控制文件树时。
+- **When**：组件设计需要维护文件关系、概述或完整受版本控制文件树时。
 - **Where**：当前组件设计目录与允许读取的前置规范。
 - **What**：提供“`component.md` 文件格式”功能；具体规则、格式和约束如下。
 - **Why**：确保组件设计按真实边界完整落地且不复制上游事实。
@@ -234,17 +211,16 @@ Command、Handler、Factory、DomainService 或 DomainEvent。
 ````md
 # <组件>
 
+## 文件关系
+
+```mermaid
+flowchart LR
+    <前置设计文件> --> <后续设计文件>
+```
+
 ## 概述
 
 <用一至三段说明组件是什么、负责什么、不负责什么以及主要使用者。>
-
-## 设计架构
-
-| 文件 | 作用 |
-|---|---|
-| `component.md` | 组件概述、设计文件索引和完整文件结构 |
-| `architecture.md` | <当前组件的实际作用> |
-| `<实际设计文件>` | <该文件维护的唯一设计关注点> |
 
 ## 目录结构
 
@@ -262,10 +238,9 @@ Command、Handler、Factory、DomainService 或 DomainEvent。
 ```
 ````
 
-- “设计架构”表格逐个列出当前组件设计目录内实际存在的全部文件及其唯一作用；
-  文件新增、删除或重命名时同步更新，不列出尚未创建的可选文件。
-- “设计架构”只作为索引，不复制各文件的规则、Schema、流程或设计正文。
-- `component.md` 除概述、设计架构索引和完整应用文件结构外，不保存其他设计内容。
+- “文件关系”图只展示当前实际存在的文件和依赖方向；文件新增、删除或重命名时同步更新，
+  不列出尚未创建的可选文件。
+- `component.md` 除文件关系、概述和完整应用文件结构外，不保存其他设计内容。
 - 目录结构递归列出组件目录内所有应受版本控制的目录和文件，并在文件后简述职责。
 - 不列出依赖目录、构建产物、缓存、日志、临时文件、密钥或其他运行时生成内容。
 - 目录中的职责与组件架构模块保持一致；具体代码单元及依赖放入 `structure.md`。
@@ -494,7 +469,7 @@ flowchart LR
 - 分层名称和数量按组件实际结构确定，不为套用模板创建空层；前端可以使用页面、功能、状态和适配器，后端可以使用接口、应用、领域、端口和适配器，任务处理器可以使用消费者、任务、规则和外部适配器。
 - C4 节点按实际情况标注 `ApplicationService`、`AggregateRoot`、`Entity`、`ValueObject`、`DomainService`、`Repository`、`DomainEvent`、`Page`、`Component`、`Hook`、`Store`、`Handler` 或 `Adapter`，不存在的角色不创建。
 - 详细章节只展示理解设计所需的关键公开函数、参数和返回类型，不展示私有函数、简单访问器、全部字段或重复的 CRUD 签名。
-- HTTP 请求、响应、错误和 Schema 由 `openapi.json` 维护；异步消息结构由 `asyncapi.json` 维护；C4 只引用稳定的操作名和类型名。
+- HTTP 请求、响应、错误和 Schema 由 `docs/system/openapi.json` 维护；异步消息结构由 `asyncapi.json` 维护；C4 只引用稳定的操作名和类型名。
 - 同一代码单元在总览和各详细章节中使用相同名称；公共依赖只在相关章节出现，不为展示完整性复制无关节点和连线。
 - C3、C4、`component.md` 和契约中的名称及依赖方向保持一致。
 - 跨组件业务流程和调用顺序只放入系统 `process.md`；组件设计目录不创建 `process.md`。
@@ -535,7 +510,7 @@ Backend 专用 Markdown、机器可读模型及其固定结构统一由
 - `engineering.md` 在一级标题职责说明后用 Mermaid 维护依赖方向；实现映射不记录文件路径，目录约定、文件命名和编码规范继续使用各自三级标题并统一归入“工程约束”。Fixture 与测试支持保留独立二级标题，不维护测试执行命令。
 - `data.md` 将 Repository、查询模型及其他访问对象统一放入“数据访问”表；类型只使用仓储、查询模型、缓存、对象存储、搜索索引或事件存储，对象填写稳定接口或访问对象，操作只列关键稳定方法名。DAO、Mapper、ORM 和具体存储技术放入 `engineering.md`。
 - `operations.md` 用表格统一维护配置、密钥和运行单元；“运行信号”只保留日志与审计、指标与追踪、健康检查。“交付要求”以 14 位本地时间三级标题保存交付快照，并在单个 Shell 代码块中用注释说明有序操作；实际部署资源仍由 `<组件 deploy>` 维护。
-- 数据库字段和约束、HTTP Schema、异步消息结构分别由 `schema.dbml`、`openapi.json` 和 `asyncapi.json` 维护，不写入 `domain.md`。
+- 数据库字段和约束、HTTP Schema、异步消息结构分别由 `schema.dbml`、`docs/system/openapi.json` 和 `asyncapi.json` 维护，不写入 `domain.md`。
 - 轻量 Backend 不创建 `domain.md`，只在 `component.md` 对应上下文的代码结构中记录设计强度和判断事实，并用实际对象名称表达业务词汇和边界；
   不虚构聚合、实体、值对象、领域服务或领域事件。
 
@@ -547,15 +522,15 @@ Backend 专用 Markdown、机器可读模型及其固定结构统一由
 - **What**：提供“契约规则”功能；具体规则、格式和约束如下。
 - **Why**：确保组件设计按真实边界完整落地且不复制上游事实。
 
-- OpenAPI 使用稳定 `operationId`，Schema、示例和实际接口保持一致。
+- `docs/system/openapi.json` 使用稳定 `operationId`，Schema、示例和实际接口保持一致；Backend 实现它，Frontend 消费它并用其示例或 Schema 驱动 Mock。
 - 没有异步事件不创建 AsyncAPI。
 - 没有非公开操作不创建 OpenFGA。
 - 没有数据模型变化不创建 DBML。
 - 对外提供的 Swagger UI、OpenAPI 和 AsyncAPI 必须通过 HTTP(S) API 暴露，并以
   完整 URL 登记在 `docs/system/system.md` 对应组件的开发接口信息中；登记缺失或不一致时切换
   `<system>` 更新。
-- `openapi.json` 和 `asyncapi.json` 是提供方维护的契约源文件；其他组件通过 C2
-  登记的 URL 读取，不直接依赖提供方的仓库文件路径。
+- `docs/system/openapi.json` 是系统阶段维护的同步 HTTP 契约源文件；其他组件通过其稳定
+  `operationId` 引用，不复制或直接依赖提供方的仓库文件路径。`asyncapi.json` 仍由提供方维护。
 - 契约说明适用的错误、权限、事务、并发、幂等、兼容和迁移。
 - JSON 使用标准解析器验证；其他契约使用项目已有工具验证。
 
@@ -570,20 +545,18 @@ Backend 专用 Markdown、机器可读模型及其固定结构统一由
 > - 根据实际情况修改
 
 ```yaml
-id: booking-create
+id: P-002
 title: 创建预约
 platform: web
-route: /bookings/new
 
-requirements:
-  - REQ-001-FR-001
-  - REQ-001-AC-001
-
-permissions:
-  - REQ-001-PERM-001
+experience: experience.md:P-002
+state:
+  - state.md:STATE-002
+  - state.md:DATA-001
+tokens: web.design-token.json
 
 layout:
-  type: page
+  ref: experience.md:LAYOUT-001
   regions:
     - id: booking-form
       component: Form
@@ -592,30 +565,19 @@ actions:
   submit:
     trigger: booking-form.submit
     operationId: createBooking
-    permission: REQ-001-PERM-001
-    success: booking-detail
-    failure: show-submit-error
+    success: P-003
+    failure: state.md:STATE-002:error
 
 states:
-  loading:
-    description: 正在加载
-  empty:
-    description: 没有数据
-  error:
-    description: 请求失败
-  forbidden:
-    description: 没有权限
-
-accessibility:
-  keyboard: true
-  screenReader: true
+  loading: state.md:STATE-001:loading
+  submitting: state.md:STATE-002:submitting
+  error: state.md:STATE-002:error
+  success: state.md:STATE-002:success
 ```
 
-- 页面至少关联一个 FR 和 AC。
-- 非公开操作关联 PERM。
-- 每个 action 关联 API `operationId`、本地行为或外部跳转。
-- 检查 loading、empty、error、forbidden、offline、submitting 和 success 中的适用状态。
-- `.ui.yml` 是交互契约，不复制特定框架源码。
+- `id` 使用 `experience.md` 中稳定的页面 ID；页面需求、路由、权限和通用可访问性只由 `experience.md` 维护。
+- `state` 和 `states` 只引用 `state.md` 中稳定的状态与数据 ID；每个 action 关联系统 OpenAPI `operationId`、本地行为或外部跳转。
+- `.ui.yml` 是交互契约，不复制特定框架源码、页面规则、错误策略或 Token 值。
 - `.ui.yml` 引用当前组件 Token，不保存可复用的颜色、间距、字体和圆角常量。
 
 ## AI-COMPONENT-012
@@ -632,7 +594,7 @@ accessibility:
    `docs/workflows/templates/backend-design.template.md`，Frontend 模式执行本文件对应规则。
 4. 自动识别需要确认的组件边界、行为、契约和平台限制。
 5. 按根 `AGENTS.md` 的对话确认规则完成确认。
-6. 只增量更新当前组件的长期规范及其提供的契约。
+6. 只增量更新当前组件的长期规范；需要新增或修改同步 HTTP 契约时切换 `<system>`。
 
 ## AI-COMPONENT-013
 
@@ -645,10 +607,10 @@ accessibility:
 - 实际修改全部位于组件清单声明的当前组件设计目录。
 - 没有修改源码、其他组件、需求、系统规范或部署文件。
 - Backend 的 `component.md` 包含文件关系、架构图、按上下文组织的代码结构和完整文件树；文件关系中的 `jobs.md` 直接指向 `component.md`；
-  非 Backend 的 `component.md` 继续只维护概述、索引和文件树。索引覆盖设计目录内全部实际文件且作用唯一。
+  非 Backend 的 `component.md` 维护文件关系、概述和文件树，文件关系覆盖设计目录内全部实际文件及其依赖方向。
 - `component.md` 的完整文件结构包含实际需要的测试层级、测试文件、fixture、支持代码和配置；没有通配符、空测试目录或重复的测试方案正文。
 - 已执行组件文件树自动校验且没有遗漏实际受版本控制文件；要求设计与当前文件完全一致时使用了 `--strict`。
-- 非 Backend 的 `architecture.md` 只有一级标题和一个 `C4Component` Mermaid 图；Backend 的同类图位于 `component.md`。
+- 非 Frontend、非 Backend 的 `architecture.md` 只有一级标题和一个 `C4Component` Mermaid 图；Backend 的同类图位于 `component.md`。
 - 需要长期维护代码结构时，`structure.md` 使用一个代码总览和按业务能力划分的详细 `flowchart LR`；总览不展示函数，详细章节只展示关键公开函数，所有图均为主分层从左到右、分层内部从上到下。
 - Backend 完整 DDD 模式下，`domain.md` 的每个限界上下文记录领域模型、统一语言、业务规则和业务一致性，
   按需记录领域事件、状态图和时序图；不创建独立的 `state.md` 或 `sequence.md`，不复制系统流程、C4、DBML 或契约内容。

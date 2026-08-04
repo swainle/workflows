@@ -10,7 +10,7 @@
 
 - 始终创建 `component.md`、`interface.md` 和 `engineering.md`。
 - `domain.md` 仅在完整 DDD 模式创建；`security.md`、`data.md`、`jobs.md` 和 `operations.md` 仅在对应关注点真实存在时创建。
-- `openapi.json`、`asyncapi.json`、`authorization.fga` 和 `schema.dbml` 是按需创建的机器可读事实源，不合并进 Markdown。
+- `docs/system/openapi.json` 是跨组件同步 HTTP 契约唯一源；Backend 实现它但不在组件目录创建副本。`asyncapi.json`、`authorization.fga` 和 `schema.dbml` 是按需创建的组件机器可读事实源，不合并进 Markdown。
 - 每个 Markdown 文件都在一级标题下用一句简短正文说明该文件的职责，再开始后续章节或图表。
 - 不适用的可选文件和章节直接删除，不创建空文件，不填写“无”“不适用”或占位正文。
 - 一个事实只由一个文件维护；其他文件使用稳定设计标识或机器文件引用，不复制字段、规则、流程和关系。
@@ -500,14 +500,14 @@ sequenceDiagram
 ## AI-BACKEND-009
 
 - **Who**：处理 `<组件> backend <任务>` 的组件设计 Agent。
-- **When**：Backend 需要创建或更新 HTTP、异步消息、授权关系或数据结构契约时。
-- **Where**：`<组件设计目录>/openapi.json`、`asyncapi.json`、`authorization.fga` 与 `schema.dbml`。
+- **When**：Backend 需要识别 HTTP、异步消息、授权关系或数据结构契约时。
+- **Where**：`docs/system/openapi.json`、`<组件设计目录>/asyncapi.json`、`authorization.fga` 与 `schema.dbml`。
 - **What**：定义机器可验证的协议 Schema、消息 Channel、授权关系和持久化结构。
 - **Why**：避免 Markdown 与实现各自维护字段、关系和协议，确保契约只有一个事实源。
 
 ### `openapi.json`
 
-- 由 `interface.md` 驱动；维护路径、稳定 `operationId`、请求响应 Schema、错误和示例。
+- 由需求与系统边界驱动并由 `<system>` 维护；`interface.md` 只映射稳定 `operationId`、错误和实现边界，Backend 只实现和验证。
 - 只有当前组件提供同步 HTTP 接口时创建，并通过 HTTP(S) 暴露 Swagger UI 和契约。
 
 ### `asyncapi.json`
