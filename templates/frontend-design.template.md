@@ -1,372 +1,184 @@
-# Frontend 设计模板
+# Frontend 文档模板
 
-## AI-FRONTEND-001
+用于 `<doc 组件> tmp frontend`。先创建或读取 README 技术入口，再按以下顺序维护：
 
-- **Who**：处理 `<组件> frontend <任务>` 的组件设计 Agent。
-- **When**：Frontend 模式已启用，且已读取需求、系统规范与当前组件前置设计时。
-- **Where**：当前组件设计目录与允许读取的前置规范。
-- **What**：定义 Frontend 设计文件、事实所有权、依赖顺序和完成规则。
-- **Why**：使页面体验、状态、交互、Token、配置和测试有唯一事实源。
-
-仅创建实际适用的文件，按以下顺序设计：
-
-```mermaid
-flowchart LR
-    ux["ux.md<br/>页面体验"] --> state["state.md<br/>数据与状态"]
-    state --> ui["ui/*.ui.yml<br/>页面交互"]
-    ui --> tokens["<组件>.design-token.json<br/>设计 Token"]
-    tokens --> configuration["configuration.md<br/>配置与运行"]
-    configuration --> testing["testing.md<br/>测试策略"]
-    testing --> component["component.md<br/>文件关系与文件树"]
+```text
+README.md 技术入口 + 显式 req
+  → ux.md
+  → <组件>.design-token.css
+  → draft 初稿
+  → state.md（存在复杂状态时）
+  → draft 状态回填
+  → configuration.md
+  → testing.md
+  → README.md 索引与文件树校对
 ```
 
-1. `ux.md`：模块、页面、路由、页面权限表现、布局、表单、通用可访问性和页面规则。
-2. `state.md`：状态资源、状态机、请求、缓存、失效、页面状态、错误、恢复和反馈。
-3. `ui/*.ui.yml`：单页结构、动作和对 Experience、State、Token 的稳定引用。
-4. `<组件>.design-token.json`：机器可读的颜色、间距、字体、圆角、阴影、动效和断点 Token。
-5. `configuration.md`：公开配置、构建与运行约束、环境差异、Mock 开关和启动校验。
-6. `testing.md`：测试基础设施、命令、用例和页面—动作—测试覆盖映射。
-7. 最后更新 `component.md`：文件关系、概述和完整应用文件树。
+## 专家团
 
-不适用的文件直接省略，不创建空文件。`component.md` 不复制前述设计内容，只维护文件关系、概述和完整应用文件树。
+- UX 与无障碍专家：负责用户、页面、导航、交互语义、响应式和可访问性边界。
+- UI 与 Web Components 专家：负责 Design Token、组件边界、Shadow DOM 和完整 Draft 渲染。
+- Frontend 架构与测试专家：负责复杂状态、配置、性能和测试策略。
 
-## AI-FRONTEND-002
+专家只读分析并返回决策、风险、建议和阻塞；主 Agent 统一修改与验证。
 
-- **Who**：处理 `<组件> frontend <任务>` 的组件设计 Agent。
-- **When**：需要确定 Frontend 设计文件的创建条件和可修改内容时。
-- **Where**：当前组件设计目录。
-- **What**：定义 Frontend 文件清单。
-- **Why**：避免页面、状态和测试规则落入错误文件或重复维护。
+## README 技术入口
 
-| 文件 | 作用 | 创建条件 | 可修改内容 |
-|---|---|---|---|
-| `ux.md` | 页面体验设计 | 存在页面或界面 | 模块、页面、路由、权限表现、布局、表单、A11y 和页面规则 |
-| `state.md` | 数据与状态设计 | 存在远程数据、客户端状态或失败场景 | 状态资源、状态机、请求、缓存、页面状态、错误、恢复和反馈 |
-| `ui/*.ui.yml` | 页面交互契约 | 存在稳定页面 | 单页结构、动作和对 Experience、State、Token 的引用 |
-| `<组件>.design-token.json` | 语义 Design Token | 需要组件级 Token | 颜色、间距、字体、圆角、阴影、动效和断点变量 |
-| `configuration.md` | 前端配置与运行约束 | 存在构建、环境或托管要求 | 公开配置、环境差异、Mock 开关、构建、运行和启动校验 |
-| `testing.md` | 前端测试策略 | 始终 | 基础设施、命令、用例和覆盖映射 |
-
-## AI-FRONTEND-003
-
-- **Who**：处理 `<组件> frontend <任务>` 的组件设计 Agent。
-- **When**：Frontend 组件消费同步 HTTP 契约或需要开发、测试 Mock 时。
-- **Where**：`docs/system/openapi.json` 与当前组件的 `state.md`、`configuration.md`、`testing.md`。
-- **What**：定义同步 HTTP 契约消费和 Mock 规则。
-- **Why**：确保前端、Backend 和 Mock 使用同一请求、响应与错误事实。
-
-前端权限只控制界面表现，后端是最终安全边界。HTTP 契约唯一维护在 `docs/system/openapi.json`；每个请求引用其中稳定的 `operationId`，消费方不复制契约。
-
-Mock 只替换开发或测试环境的网络边界，按同一 `operationId` 返回符合 Schema 与示例的响应；没有已确认契约时，临时 Mock 必须标记 `pending`，仅使用页面当前所需的最小字段，并在契约发布后迁移或删除。
-
-能由 URL、表单或服务端缓存表达的状态不重复放入全局 Store。
-
-## AI-FRONTEND-004
-
-- **Who**：处理 `<组件> frontend <任务>` 的组件设计 Agent。
-- **When**：Frontend 组件需要定义页面、状态、操作、权限或反馈交互契约时。
-- **Where**：当前组件设计目录的 `ui/*.ui.yml`。
-- **What**：定义 UI YAML 格式和引用规则。
-- **Why**：使页面交互可验证，同时不复制体验、状态和 Token 事实。
-
-> - 根据实际情况修改
-
-```yaml
-id: M-001:P-002
-title: 创建预约
-platform: web
-route: /bookings/new
-ux: ux:模块:M-001:P-002
-
-requirements:
-  - REQ-001-FR-001
-  - REQ-001-AC-001
-
-permissions:
-  - booking.create
-
-layout:
-  type: page
-  regions:
-    - id: booking-form
-      component: Form
-
-actions:
-  submit:
-    trigger: booking-form.submit
-    operationId: createBooking
-    success: /bookings/:id
-    failure: state.md:STATE-002:error
-
-states:
-  loading: state.md:STATE-001:loading
-  submitting: state.md:STATE-002:submitting
-  error: state.md:STATE-002:error
-  success: state.md:STATE-002:success
-
-accessibility:
-  labelStrategy: explicit
-  keyboardNavigation: required
-  focusAfterSubmitError: first-invalid-field
-
-tokens:
-  theme: web.design-token.json
-```
-
-- `id` 使用模块内页面标识 `M-001:P-001`，`ux` 使用跨文件引用 `ux:模块:M-001:P-001`；`route`、`permissions` 是该页面的可验证投影，必须与 `ux.md` 页面表一致，不得独立修改。
-- `requirements` 只列该页面直接实现的需求编号；`state` 和 `states` 只引用 `state.md` 中稳定的状态与数据 ID；每个 action 关联系统 OpenAPI `operationId`、本地行为或外部跳转。
-- `accessibility` 只补充当前页面的实现策略；通用可访问性规则只由 `ux:页面规则:GLOBAL` 维护。
-- `.ui.yml` 是交互契约，不复制页面规则、错误策略或 Token 值。
-- `.ui.yml` 引用当前组件 Token，不保存可复用的颜色、间距、字体和圆角常量。
-
-## AI-FRONTEND-005
-
-- **Who**：处理 `<组件> frontend <任务>` 的组件设计 Agent。
-- **When**：Frontend 组件需要创建或更新 `ux.md` 时。
-- **Where**：当前组件设计目录的 `ux.md`。
-- **What**：定义 Experience 的固定章节、稳定标识与事实边界。
-- **Why**：使模块、页面入口、布局、表单、可访问性和错误界面表现保持简洁且可引用。
-
-`ux.md` 使用以下固定结构；不存在页面、布局或表单时删除对应的二级或三级章节，不创建空章节：
-
-> - 根据实际情况修改
+README 第一个创建或确认，为后续设计提供唯一技术基线：
 
 ````md
-# Experience
+# <组件名称>
 
-<组件页面体验职责描述>
+应用目录：`apps/<实际路径>/`
+开发模板：`frontend`
 
-## 模块
+## 职责
 
-### M-001
+<组件负责和不负责的内容>
 
-<模块描述>
+## 技术基线
 
-| 编号 | 页面名称 | 入口 | 前置页面 | 主要目的 | 是否登录 | 页面权限 | 无权处理 |
-|---|---|---|---|---|---|---|---|
-| P-001 | 预约列表 | `/bookings` | 无 | 查看预约 | 否 | `booking.read` | Forbidden |
-| P-002 | 创建预约 | `/bookings/new` | M-001:P-001 | 创建预约 | 是 | `booking.create` | 返回列表页 |
-
-## 布局
-
-### LAYOUT-001
-
-> Ref: M-001
-
-- 适用页面：M-001:P-001、M-001:P-002
-- 结构：<页面区域、导航、内容区与响应式行为>
-- Token：`<组件>.design-token.json:<Token 路径>`
-
-## 表单
-
-### FORM-001
-
-| 字段 | 类型 | 必填 | 校验 | 错误展示 |
-|---|---|---:|---|---|
-| `customerId` | 选择器 | 是 | 必须存在 | 字段下方 |
-| `startAt` | 日期时间 | 是 | 不得早于当前时间 | 字段下方 |
-
-## 页面规则
-
-### GLOBAL
-
-- 所有输入控件必须有可计算 Label。
-- 校验错误通过 `aria-describedby` 关联。
-- Modal 打开后焦点进入标题或第一个可操作控件。
-- 关闭 Modal 后焦点返回触发元素。
-- 动效遵守 `prefers-reduced-motion`。
-
-### 错误规则
-
-| 错误类别 | 来源 | 展示方式 | 恢复方式 |
-|---|---|---|---|
-| 网络错误 | `state.md:STATE-001:error` | 页面 Alert | 重试 |
-| 权限错误 | `403` | Forbidden 页面 | 返回首页 |
-| 字段错误 | `400` | 字段错误 | 修改后重新提交 |
-````
-
-- 模块、页面、布局和表单标识分别使用 `M-001`、`P-001`、`LAYOUT-001`、`FORM-001` 格式；页面编号在每个模块内从 `P-001` 开始，新增项不重排已有编号。
-- `ux.md` 内引用页面一律使用 `M-001:P-001`；其他文件引用模块或页面一律使用 `ux:模块:M-001` 或 `ux:模块:M-001:P-001`。
-- “模块”中的页面表是页面名称、入口、前置页面、登录要求、权限表现和无权处理的唯一事实源；`ui/*.ui.yml` 通过 `M-001:P-001` 标识页面，不复制这些信息。
-- “布局”只维护页面区域和响应式行为；颜色、尺寸、间距、圆角和动效值只引用 Token 路径，不写具体常量。
-- “表单”的“字段”使用 OpenAPI Schema 中已确认的字段名；“校验”和“错误展示”只说明界面校验与呈现，不复制 Schema 类型、长度、正则或业务不变量。
-- “页面规则”只维护 UI 行为、可访问性和错误展示恢复；请求状态机、缓存、重试策略和反馈状态由 `state.md` 维护，业务规则和权限定义只引用需求或系统规范。
-
-## AI-FRONTEND-006
-
-- **Who**：处理 `<组件> frontend <任务>` 的组件设计 Agent。
-- **When**：Frontend 组件需要创建或更新 `state.md`、Token、配置、测试或组件入口文档时。
-- **Where**：当前组件设计目录的 Frontend 设计文件。
-- **What**：定义 State、Token、Configuration、Testing 与 Component 的固定结构和引用边界。
-- **Why**：使页面状态、机器可读规范、运行配置、测试和文件索引可以顺序验证。
-
-除 `ux.md` 和 `ui/*.ui.yml` 外，其余 Frontend 文件使用以下结构：
-
-> - 根据实际情况修改
-
-````md
-`state.md`
-
-# State
-
-<状态与数据职责描述>
-
-## 状态
-
-### STATE-001
-
-> Ref: ux:模块:M-001
-
-```mermaid
-stateDiagram-v2
-    [*] --> idle
-    idle --> loading: 进入页面
-    loading --> ready: 请求成功
-    loading --> error: 请求失败
-    error --> loading: 重试
-    ready --> submitting: 提交表单
-    submitting --> success: 创建成功
-    submitting --> error: 创建失败
-```
-
-| 编号 | 状态类型 | 来源 | 保存位置 | 生命周期 |
+| 类别 | 选择 | 版本 | 官方文档 | 范例代码 |
 |---|---|---|---|---|
-| 001 | 预约列表 | `listBookings` | 服务端缓存 | 页面及缓存周期 |
-| 002 | 创建预约表单 | 用户输入 | 页面本地状态 | 当前页面 |
-| 003 | 当前用户权限 | 身份服务 | 会话状态 | 当前会话 |
+| 语言 | `<语言>` | `<精确版本>` | `<官方文档 URL>` | `<官方示例 URL 或仓库路径>` |
+| 框架 | `<框架>` | `<精确版本>` | `<官方文档 URL>` | `<官方示例 URL 或仓库路径>` |
+| 样式 | `<方案>` | `<精确版本>` | `<官方文档 URL>` | `<官方示例 URL 或仓库路径>` |
+| 测试 | `<工具>` | `<精确版本>` | `<官方文档 URL>` | `<官方示例 URL 或仓库路径>` |
 
-## 数据请求
+## 文档索引
 
-### DATA-001
-
-> Ref: ux:模块:M-001:P-001
-
-| 编号 | operationId | 触发动作 | 缓存策略 | 失效策略 |
-|---|---|---|---|---|
-| 001 | `listBookings` | 进入 | 按筛选条件缓存 | 创建成功后失效 |
-| 002 | `createBooking` | 提交 | 不缓存 | 成功后刷新列表 |
-
-## 页面状态
-
-> Ref: ux:模块:M-001
-
-| 编号 | 状态 | 用户反馈 | 可执行操作 | 页面 |
-|---|---|---|---|---|
-| 001 | loading | Skeleton | 无 | ux:模块:M-001:P-001 |
-| 002 | empty | 空状态说明 | 创建预约 | ux:模块:M-001:P-001 |
-| 003 | error | 错误提示 | 重试 | ux:模块:M-001:P-001 |
-| 004 | submitting | 禁止重复提交 | 取消 | ux:模块:M-001:P-002 |
-| 005 | success | 成功提示 | 返回详情 | ux:模块:M-001:P-002 |
-````
-
-````json
-`<组件>.design-token.json`
-
-{
-  "$schema": "https://design-tokens.org/schema.json",
-  "color": {
-    "surface": {
-      "default": { "$value": "#FFFFFF", "$type": "color" },
-      "danger": { "$value": "#B42318", "$type": "color" }
-    }
-  },
-  "spacing": {
-    "page": { "$value": "24px", "$type": "dimension" },
-    "formGap": { "$value": "16px", "$type": "dimension" }
-  },
-  "radius": {
-    "control": { "$value": "8px", "$type": "dimension" }
-  }
-}
-````
-
-````md
-`configuration.md`
-
-# Configuration
-
-<文件职责>
-
-## 配置项
-
-| 配置项 | 类型 | 必填 | 默认值 | 来源 | 是否公开 |
-|---|---|---:|---|---|---:|
-| `PUBLIC_API_BASE_URL` | URL | 是 | 无 | 构建环境 | 是 |
-| `PUBLIC_APP_NAME` | string | 否 | `Web` | 构建环境 | 是 |
-
-## 环境差异
-
-| 环境 | API 地址 | 调试日志 | Source Map |
-|---|---|---:|---:|
-| development | 开发 API | 开启 | 开启 |
-| test | 测试 API | 关闭 | 开启 |
-| production | 生产 API | 关闭 | 按部署策略 |
-
-## 启动校验
-
-- `PUBLIC_API_BASE_URL` 必须是合法 HTTP(S) URL。
-- 缺少必填配置时构建失败。
-- 前端不得读取服务端密钥。
-````
-
-````md
-`testing.md`
-
-# Testing
-
-<文件职责>
-
-## 基础设施配置
-
-## 页面测试
-
-### BOOKING-DOM-001
-
-> Design: ux:表单:FORM-001
-> Src: apps/web/test/booking-create.dom.test.ts
-
-Desc: 创建预约字段校验
-Given: 用户打开创建预约页面。
-When: 用户提交空表单。
-Then: 必填字段显示错误并将焦点移至第一个错误字段。
-
-### BOOKING-E2E-001
-
-> Design: ui/booking-create.ui.yml:actions:submit
-> Src: apps/web/test/booking-create.e2e.test.ts
-
-Desc: 创建预约成功
-Given: 用户拥有 `booking.create` 权限。
-When: 用户填写表单并提交。
-Then: 请求使用 `createBooking`，成功后进入详情页。
-````
-
-````md
-`component.md`
-
-# Component
-
-<文件职责>
+| 文件 | 职责 |
+|---|---|
 
 ## 文件关系
 
-```mermaid
-flowchart LR
-    U["ux.md"] --> S["state.md"]
-    S --> I["ui/*.ui.yml"]
-    I --> D["<组件>.design-token.json"]
-    D --> G["configuration.md"]
-    G --> T["testing.md"]
-    T --> C["component.md"]
+<必要时使用 Mermaid flowchart>
+
+## 应用文件树
+
+```text
+<完整实际文件树>
 ```
-
-## 概述
-
-## 完整文件结构
 ````
 
-- `state.md` 的状态、数据请求和页面状态编号分别使用 `STATE-001`、`DATA-001` 和三位编号；每个 `operationId` 必须存在于 `docs/system/openapi.json`，请求、缓存、失效和反馈不写回 `ux.md`。
-- Token JSON 使用项目确认的 DTCG 兼容格式；`ux.md` 与 `.ui.yml` 只能引用 Token 路径，Token 值不复制到 Markdown 或 YAML。
-- `configuration.md` 只维护公开配置与前端运行约束；服务端密钥、部署资源和实际环境值不写入该文件。
-- `testing.md` 的测试编号稳定；每个场景使用 `Design` 和 `Src` 引用，并使用 `Desc`、`Given`、`When`、`Then` 描述可验证行为。
-- Frontend 的 `component.md` 只包含文件关系、概述和完整文件结构；不创建文件索引，不复制其他设计内容。
+- 只列当前组件实际采用的技术；版本来自项目清单、锁文件或已确认决策，不猜测或使用版本范围。
+- 官方文档直接链接所用版本页面；范例优先使用官方同版本示例，其次使用仓库内已验证示例。
+- README 不复制教程或大段范例代码；技术选择只在 README 维护，其他文件引用并说明如何落实。
+
+## 文件职责
+
+| 文件 | 唯一维护内容 |
+|---|---|
+| `README.md` | 职责、应用目录、开发模板、技术基线、文档索引、文件关系和应用文件树 |
+| `ux.md` | 用户、模块、页面、入口、导航、布局、表单、交互和可访问性规则 |
+| `<组件>.design-token.css` | 颜色、字体、间距、尺寸、圆角、阴影和动效 CSS Custom Properties |
+| `draft/**` | 使用原生 Web Components 完整渲染当前组件的所有系统页面与设计状态 |
+| `state.md` | 复杂数据请求、共享状态、缓存、转换、并发和错误恢复 |
+| `configuration.md` | 配置项、环境差异和启动校验 |
+| `testing.md` | 页面、状态、响应式、可访问性、视觉、性能和契约验证要求 |
+
+没有复杂状态时不创建 `state.md`。README、UX、Token、Draft、配置和测试仍按实际需要维护，
+不再生成旧式 UI YAML 或手工维护第二份 Token 格式。
+
+## `ux.md`
+
+- 模块使用 `M-001`，模块内页面使用 `P-001`；跨文件页面引用为 `ux:模块:M-001:P-001`。
+- 布局和表单使用 `LAYOUT-001`、`FORM-001`。页面表是名称、入口、前置页面、登录要求、权限表现和无权处理的唯一事实源。
+- 定义用户可观察的页面、导航和交互，不指定框架组件、请求缓存或生产源码结构。
+- 引用使用独立行 `> Ref: <稳定标识>`，不复制需求或契约内容。
+
+## Design Token
+
+`<组件>.design-token.css` 是风格规范唯一事实源，直接供 Draft 使用：
+
+```css
+:root {
+  --color-primary: #2563eb;
+  --font-body: system-ui, sans-serif;
+  --space-2: 0.5rem;
+  --radius-md: 0.5rem;
+  --duration-fast: 120ms;
+}
+```
+
+- Token 使用稳定、语义化 CSS Custom Properties，不在页面或 Shadow DOM 内重复硬编码同一风格事实。
+- CSS Custom Properties 通过继承进入 Shadow DOM；组件内部只组合 Token。
+- 只有需要与非 Web 平台或设计工具交换时，才增加由 CSS 派生的机器格式，不建立第二份手工事实源。
+
+## Draft
+
+Draft 是零框架、无构建步骤的可运行原型，完整渲染 `ux.md` 中当前组件的所有页面：
+
+```text
+draft/
+├─ index.html
+├─ app.js
+├─ components/
+│  ├─ app-shell.js
+│  └─ draft-state.js
+├─ pages/
+│  └─ M-001-P-001-<page>.js
+└─ assets/
+   └─ draft.css
+```
+
+- `index.html` 提供完整应用外壳、页面导航、视口和状态切换入口。
+- 页面、布局、可复用区域及独立状态边界使用原生 Custom Elements；名称必须包含连字符。
+- Custom Element 使用 `attachShadow({ mode: "open" })`，便于评审、自动化检查和调试。
+- 只拆分页面、布局、复用区域和独立状态边界，不把一次性小元素组件化。
+- 可以使用多个普通 `defer` 脚本，确保直接打开即可预览；不引入框架、包、构建工具或生产依赖。
+- 不调用真实 API、不写生产业务逻辑、不复制到应用源码，也不被生产应用导入。
+- 使用语义化 HTML，覆盖桌面与移动视口、键盘、焦点、对比度和动效降级。
+
+Hover、focus、active、disabled、展开、选择和简单表单校验直接在 Draft 实现。API loading、empty、error、
+unauthorized、缓存、过期、乐观更新、并发请求及跨页面共享状态先使用标签：
+
+```html
+<draft-state
+  ref="pending:state:预约列表"
+  states="loading empty success error unauthorized">
+  <p>复杂状态留待 state.md 定义</p>
+</draft-state>
+```
+
+## `state.md` 与回填
+
+存在 `pending:state:*` 时必须创建 `state.md`，分配稳定 `DATA-001` 并定义：
+
+```md
+### DATA-001 <状态名称>
+
+- 来源：<OpenAPI operationId 或本地状态来源>
+- 初始状态：<状态>
+- 状态：<状态列表>
+- 转换：<事件 → 状态>
+- 缓存：<存在时填写>
+- 并发：<存在时填写>
+- 恢复：<重试、回滚或回退>
+- Draft：`draft-state[ref="state:DATA-001"]`
+```
+
+状态完成后必须把 Draft 标签更新为稳定引用并实现状态切换：
+
+```html
+<draft-state ref="state:DATA-001" states="loading empty success error unauthorized"></draft-state>
+```
+
+`pending:state:*` 不得进入完成产物。Draft 展示状态，`state.md` 唯一定义状态含义和转换。
+
+## 契约、配置与测试
+
+- HTTP 请求引用显式需求组件中 OpenAPI 的稳定 `operationId`；契约缺失时停止，不在 Frontend 文档补造。
+- 临时 Mock 必须标记 `pending`，由 OpenAPI Schema 或示例生成，并说明移除条件。
+- `configuration.md` 只维护配置项、环境差异和启动校验，不重复 README 技术选择。
+- `testing.md` 使用 Given/When/Then 描述页面和状态结果，并覆盖 Draft 页面、响应式、键盘、焦点、
+  语义、对比度、视觉差异、性能预算和契约映射中实际适用的部分。
+
+## 完成检查
+
+- README 在其他设计前建立，应用目录、`frontend` 模板、实际版本、官方文档和范例代码完整可用。
+- UX、Token、Draft、State、配置和测试引用方向一致，没有 `*.ui.yml`、重复事实或孤立文件。
+- Draft 使用 Web Components 和开放 Shadow DOM，能完整导航并渲染所有已定义页面和状态。
+- 没有 `pending:state:*`；复杂状态均在 `state.md` 定义并回填稳定引用。
+- Draft 无框架、无构建依赖、无真实 API 和生产业务逻辑；无障碍与响应式检查已完成。
+- README 最终索引和完整应用文件树已校对。
