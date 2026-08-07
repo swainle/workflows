@@ -153,15 +153,55 @@ function runSelfTests() {
 
   test("issue template keeps FR trace graphs and uses Feature as AC source", () => {
     const issue = prompt("templates/issue.template.md");
-    assert.match(issue, /docs\/<组件>\/REQ-<编号>-<kebab-case主题>\//);
-    assert.match(issue, /REQ-001-FR-001/);
-    assert.match(issue, /features\/REQ-001-AC-001\.feature/);
-    assert.doesNotMatch(issue, /│  .*REQ-001-AC-001\.md/);
-    assert.match(issue, /每个 FR 后必须保留 Mermaid 追溯图/);
-    assert.match(issue, /一个 AC 对应一个 `\.feature`，其中包含一个或多个 TC/);
+    assert.match(issue, /docs\/<组件>\/[\s\S]*├─ requirement\.md[\s\S]*├─ fr\/[\s\S]*FR-001\.md/);
+    assert.match(issue, /`requirement\.md`：只保存角色索引和全部 FR 的索引/);
+    assert.match(issue, /# 需求索引[\s\S]*## 角色索引[\s\S]*## 功能需求索引/);
+    for (const directory of ["br/", "flow/", "nfr/", "perm/"]) assert.ok(issue.includes(directory), `missing requirement directory: ${directory}`);
+    assert.doesNotMatch(issue, /items\//);
+    assert.match(issue, /\| `FR-001` \| \[patient-create-appointment\]\(\.\/fr\/FR-001\.md\)/);
+    assert.match(issue, /# FR-001 <名称>/);
+    assert.match(issue, /- 成功结果：<可观察的成功结果>/);
+    assert.match(issue, /features\/AC-001\.feature/);
+    assert.doesNotMatch(issue, /REQ-\d/);
+    assert.match(issue, /每个 FR 保留 Mermaid 追溯图/);
+    assert.match(issue, /classDef focus fill:#2563eb,color:#fff,stroke:#1d4ed8,stroke-width:2px/);
+    assert.match(issue, /click AC001 "\.\.\/features\/AC-001\.feature"/);
+    assert.match(issue, /click PERM001 "\.\.\/perm\/PERM-001\.md"/);
+    assert.match(issue, /click NFR001 "\.\.\/nfr\/NFR-001\.md"/);
+    assert.match(issue, /click FLOW001 "\.\.\/flow\/FLOW-001\.md"/);
+    assert.match(issue, /## `FLOW` 业务流程[\s\S]*sequenceDiagram[\s\S]*stateDiagram-v2[\s\S]*## `NFR`/);
+    assert.match(issue, /多角色交互、顺序、分支或回路使用 `sequenceDiagram`/);
+    assert.match(issue, /多个状态和受限转换时追加 `stateDiagram-v2`/);
+    assert.match(issue, /AC-001-TC-001/);
+    assert.match(issue, /click TC001 "\.\.\/features\/AC-001\.feature"/);
+    assert.doesNotMatch(issue, /AC-001\.md/);
+    assert.match(issue, /一个 AC 对应一个 `\.feature`，包含一个或多个 TC/);
     assert.match(issue, /Scenario: <成功场景>[\s\S]*Scenario: <失败或边界场景>/);
-    assert.match(issue, /Issue URL 默认只在 `requirement\.md` 声明/);
-    assert.match(issue, /不写“不适用”或“无”/);
+    assert.match(issue, /@AC-001-TC-001/);
+    assert.match(issue, /在每个 AC 内从 `001` 独立连续/);
+    assert.match(issue, /Issue 编号只标识需求来源/);
+    assert.match(issue, /没有时写“无”/);
+    assert.match(issue, /BR 只保留一级标题和一个伪代码规则块/);
+    for (const syntax of [
+      "PRIORITY 100",
+      "REQUIRES ALL PERMISSIONS",
+      "REQUIRES ANY PERMISSION",
+      "REQUIRES PERMISSION <权限>",
+      "INPUT",
+      "ELSE IF",
+      "AND / OR / NOT",
+      "ALLOW",
+      "REJECT",
+      "SET",
+      "RETURN",
+    ]) assert.ok(issue.includes(syntax), `missing BR syntax: ${syntax}`);
+    assert.match(issue, /条件按优先级从高到低排列/);
+    assert.match(issue, /内容缩进两个空格/);
+    assert.match(issue, /注释使用 `# `/);
+    assert.match(issue, /禁止编程语言语法/);
+    assert.match(issue, /\| 权限标识 \| 角色 \| 资源 \| 动作 \| 范围 \| 允许条件 \| 审计 \|/);
+    assert.match(issue, /PERM 表是权限标识的唯一登记处/);
+    assert.match(prompt("stages/dev.md"), /实现 BR 的 `REQUIRES PERMISSION` 前，确认权限已在 PERM 表登记/);
     assert.match(issue, /## 专家团/);
   });
 
@@ -178,7 +218,7 @@ function runSelfTests() {
     assert.match(arch, /不创建独立 system 阶段/);
     assert.match(arch, /C4Context/);
     assert.match(arch, /C4Container/);
-    assert.match(arch, /> Ref: REQ-001-FLOW-001/);
+    assert.match(arch, /> Ref: FLOW-001/);
     assert.match(arch, /仅当至少两个业务组件参与/);
     assert.match(arch, /普通 `Web → API → Database` CRUD、单组件查询或写入不创建 BP/);
     assert.match(arch, /BP 不得引入 FR\/FLOW 未定义的新业务能力/);

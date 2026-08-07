@@ -11,11 +11,22 @@ docs/
 ├─ workflows/
 ├─ require/
 │  ├─ README.md
+│  ├─ requirement.md
+│  ├─ fr/
+│  │  └─ FR-001.md
+│  ├─ br/
+│  │  └─ BR-001.md
+│  ├─ flow/
+│  │  └─ FLOW-001.md
+│  ├─ nfr/
+│  │  └─ NFR-001.md
+│  ├─ perm/
+│  │  └─ PERM-001.md
+│  ├─ features/
+│  │  └─ AC-001.feature
 │  ├─ system.md
 │  ├─ process.md
-│  ├─ openapi.json
-│  ├─ REQ-001-init-system/
-│  └─ REQ-002-add-tel/
+│  └─ openapi.json
 ├─ web/
 │  └─ README.md
 └─ api/
@@ -59,9 +70,8 @@ docs/
 ```
 
 - `require` 是普通组件名，不是保留字。
-- `<doc require> tmp arch issue 1` 同时加载全局设计和 Issue 模板；维护组件根文件及
-  `docs/require/REQ-001-*/`。
-- `req require` 读取 `docs/require/` 的直属文件；后接 `issue 2` 时再读取唯一的 `REQ-002-*` 目录。
+- `<doc require> tmp arch issue 1` 同时加载全局设计和 Issue 模板；Issue 编号只标识来源，需求写入组件共享目录。
+- `req require` 递归读取 `docs/require/` 的全部文件；后接 `issue 2` 时再读取该 Issue 作为当前任务输入。
 - `tmp arch|frontend|backend` 加载对应设计模板。
 - `opt <文件>` 只创建或更新阶段内的一个文件。
 - `<test>` 和 `<deploy>` 是全局命令；带组件名时分别处理组件测试和组件部署。
@@ -90,7 +100,7 @@ node docs/workflows/install.mjs --branch develop
 | 路径 | 作用 |
 |---|---|
 | `templates/AGENTS.template.md` | 指令解析、组件发现、版本门禁和阶段路由 |
-| `templates/issue.template.md` | Issue 需求目录与内容规则 |
+| `templates/issue.template.md` | Issue 输入与共享需求文件规则 |
 | `templates/*-design.template.md` | Arch、Frontend、Backend 文档模板 |
 | `stages/*.md` | doc、dev、组件测试、全局测试和部署权限 |
 | `install.mjs` | 安装或更新宿主 `AGENTS.md` 托管区块 |

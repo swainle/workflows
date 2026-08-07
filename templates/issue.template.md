@@ -1,7 +1,6 @@
 # Issue 需求模板
 
-用于 `<doc 组件> issue <编号>`。编号不足三位左补零；目录为
-`docs/<组件>/REQ-<编号>-<kebab-case主题>/`。同一编号只能有一个目录，已有目录原地更新。
+用于 `<doc 组件> issue <编号>`。Issue 编号只标识需求来源，不进入目录名或文档编号。
 
 ## 专家团
 
@@ -14,27 +13,33 @@
 ## 目录
 
 ```text
-REQ-001-<slug>/
+docs/<组件>/
+├─ README.md
 ├─ requirement.md
-├─ items/
-│  ├─ REQ-001-BR-001.md
-│  ├─ REQ-001-FLOW-001.md
-│  └─ REQ-001-PERM-001.md
+├─ fr/
+│  └─ FR-001.md
+├─ br/
+│  └─ BR-001.md
+├─ flow/
+│  └─ FLOW-001.md
+├─ nfr/
+│  └─ NFR-001.md
+├─ perm/
+│  └─ PERM-001.md
 └─ features/
-   └─ REQ-001-AC-001.feature
+   └─ AC-001.feature
 ```
 
-- `requirement.md`：Issue 来源、目标、范围、角色、FR 和 NFR。
-- `items/`：只保存需要独立引用的 BR、FLOW 和 PERM；AC 不创建 Markdown。
-- `features/`：AC 的唯一事实源；一个 AC 对应一个 `.feature`，其中包含一个或多个 TC。
+- `requirement.md`：只保存角色索引和全部 FR 的索引。
+- `fr/`：每个 FR 一个 Markdown，完整行为只在该文件定义。
+- `br/`、`flow/`、`nfr/`、`perm/`：分别保存需要独立引用的 BR、FLOW、NFR 和 PERM。
+- `features/`：AC 的唯一事实源；一个 AC 对应一个 `.feature`，包含一个或多个 TC。
 - 只创建实际需要的文件和目录，不创建空模板。
 
-稳定编号为 `REQ-001-FR-001`、`NFR`、`BR`、`FLOW`、`PERM`、`AC`、`TC`；同类编号
-在当前 Issue 内连续，更新时保留已有编号。Issue URL 默认只在 `requirement.md` 声明；子项来源不同时才单独声明。
+编号为 `FR-001`、`BR-001`、`FLOW-001`、`NFR-001`、`PERM-001` 和 `AC-001`，均在当前组件内同类连续且唯一。
+TC 使用 `AC-001-TC-001`，在所属 AC 内从 `001` 独立编号。已有编号不因 Issue 或其他条目的增删而重排。
 
 ## 引用方向
-
-只维护以下方向，不在被引用文件中反向列举：
 
 ```text
 FR → BR / PERM / NFR
@@ -43,68 +48,155 @@ AC Feature → FR
 TC Scenario → AC Feature
 ```
 
-每个 FR 后必须保留 Mermaid 追溯图，可显示该 FR 的约束、FLOW、AC 和 TC。图只是已有编号关系的
-投影视图，不定义新关系；图中编号必须能在正式条目或 Feature 中找到。
+每个 FR 保留 Mermaid 追溯图。图只是已有关系的投影，不定义新关系；节点必须链接到真实文件。
 
 ## `requirement.md`
 
-````md
-# REQ-001 <需求名称>
+```md
+# 需求索引
 
-- 来源：<Issue URL>
-- 目标：<业务目标>
-
-## 范围
-
-### 包含
-
-- <范围>
-
-### 不包含
-
-- <明确排除项>
-
-## 角色
+## 角色索引
 
 | 角色 | 职责 |
 |---|---|
-| <角色> | <职责> |
+| 患者 | 创建和管理自己的预约 |
 
-## 功能需求
+## 功能需求索引
 
-### <角色>
+| FR | 功能标识 | 名称 | 主体 | 业务对象 | 动作 | 状态 | 来源 |
+|---|---|---|---|---|---|---|---|
+| `FR-001` | [patient-create-appointment](./fr/FR-001.md) | 创建预约 | 患者 | 预约 | create | active | <Issue URL> |
+```
 
-<a id="req-001-fr-001"></a>
-#### REQ-001-FR-001 <名称>
+- 功能标识使用唯一的 `kebab-case`，表达稳定业务能力；文件路径使用 `fr/FR-<三位编号>.md`。
+- 动作优先使用 `create / read / update / delete`，非 CRUD 能力使用明确业务动词。
+- 状态只使用 `active / replaced / removed`。索引不复制 FR 正文、追溯关系或验收内容。
+- 新 Issue 仅增加 FLOW、AC、BR、NFR 或 PERM 时复用旧 FR；只有五个 FR 业务字段的可观察含义改变时才新建 FR 并替代旧项。
+
+## `fr/FR-001.md`
+
+````md
+# FR-001 <名称>
 
 - 主体：<主要角色>
-- 协作角色：<存在时填写>
-- 影响角色：<存在时填写>
 - 前置条件：<业务条件>
-- 输入：<业务输入>
-- 行为：<系统行为>
-- 结果：<成功结果>
+- 输入：<业务输入，没有时写“无”>
+- 成功结果：<可观察的成功结果>
 - 失败结果：<失败行为>
-- 约束：
-  - REQ-001-BR-001
-  - REQ-001-PERM-001
-  - REQ-001-NFR-001
-- 验收：REQ-001-AC-001
 
 ```mermaid
 flowchart LR
-    BR001["REQ-001-BR-001<br/>业务规则"] -->|"约束"| FR001["REQ-001-FR-001<br/>功能需求"]
-    PERM001["REQ-001-PERM-001<br/>权限"] -->|"约束"| FR001
-    NFR001["REQ-001-NFR-001<br/>质量要求"] -->|"约束"| FR001
-    FR001 -->|"流程"| FLOW001["REQ-001-FLOW-001<br/>业务流程"]
-    FR001 -->|"验收"| AC001["REQ-001-AC-001<br/>验收标准"]
-    AC001 -->|"验证"| TC001["REQ-001-TC-001<br/>测试场景"]
+    PERM001["PERM-001<br/>权限规则"]
+    NFR001["NFR-001<br/>质量要求"]
+    FR001["FR-001<br/>功能需求"]
+    FLOW001["FLOW-001<br/>业务流程"]
+    AC001["AC-001<br/>验收标准"]
+    TC001["AC-001-TC-001<br/>成功场景"]
+    TC002["AC-001-TC-002<br/>失败或边界场景"]
+
+    PERM001 -->|"访问控制"| FR001
+    NFR001 -->|"质量要求"| FR001
+    FR001 -->|"展开"| FLOW001
+    FR001 -->|"验收"| AC001
+    AC001 -->|"验证"| TC001
+    AC001 -->|"验证"| TC002
+
+    classDef focus fill:#2563eb,color:#fff,stroke:#1d4ed8,stroke-width:2px
+    class FR001 focus
+
+    click PERM001 "../perm/PERM-001.md" "查看 PERM-001"
+    click NFR001 "../nfr/NFR-001.md" "查看 NFR-001"
+    click FLOW001 "../flow/FLOW-001.md" "查看 FLOW-001"
+    click AC001 "../features/AC-001.feature" "查看 AC-001"
+    click TC001 "../features/AC-001.feature" "查看 AC-001-TC-001"
+    click TC002 "../features/AC-001.feature" "查看 AC-001-TC-002"
+```
+````
+
+每个 FR 固定保留主体、前置条件、输入、成功结果和失败结果五个字段。追溯图只放实际相关节点。
+
+## `BR` 业务规则
+
+````md
+# BR-001 <规则名称>
+
+```text
+PRIORITY 100
+
+REQUIRES ALL PERMISSIONS
+  patient:appointment:create
+  patient:schedule:read
+
+INPUT
+  当前时间
+  预约时间
+  排班状态
+
+IF 排班状态 != 可用 OR 预约时间 <= 当前时间 THEN
+  REJECT "排班或预约时间不可用"
+ELSE IF 排班状态 = 可用 AND NOT 预约时间 <= 当前时间 THEN
+  SET 预约状态 = 待确认
+  ALLOW
+  RETURN 预约状态
+ELSE
+  REJECT "无法创建预约"
+END
+```
+````
+
+BR 只保留一级标题和一个伪代码规则块。伪代码语法：
+
+- `PRIORITY <整数>` 只在规则可能冲突时使用，数值越大越先判定。
+- 单权限写 `REQUIRES PERMISSION <权限>`；多权限全部必需写 `REQUIRES ALL PERMISSIONS`，任一满足写 `REQUIRES ANY PERMISSION`。
+- `INPUT` 后每行缩进两个空格声明一个必要业务事实。
+- 分支只使用 `IF / ELSE IF / ELSE / END`，条件按优先级从高到低排列，组合只使用 `AND / OR / NOT`。
+- 结果只使用 `ALLOW`、`REJECT "<原因>"`、`SET <业务事实> = <值>` 和 `RETURN <结果>`。
+- 内容缩进两个空格，文本值使用双引号，注释使用 `# ` 且不得代替规则。
+- 权限必须已在 PERM 表登记。只使用业务名词，禁止编程语言语法、函数、类、数据库字段、API、JWT 或框架详情。
+
+## `FLOW` 业务流程
+
+````md
+# FLOW-001 <流程名称>
+
+- 参与者：<角色>
+- 开始条件：<触发条件>
+- 成功结束：<成功状态>
+- 失败结束：<失败状态>
+- 需求：
+  - [FR-001](../fr/FR-001.md)
+
+```mermaid
+sequenceDiagram
+    autonumber
+    actor User as <用户>
+    participant System as <系统>
+
+    User->>System: <发起业务操作>
+    alt 成功条件
+        System-->>User: <成功结果>
+    else 失败条件
+        System-->>User: <失败结果>
+    end
 ```
 
-## 非功能需求
+```mermaid
+stateDiagram-v2
+    [*] --> <初始状态>
+    <初始状态> --> <成功状态>: <成功事件>
+    <初始状态> --> <失败状态>: <失败事件>
+    <成功状态> --> [*]
+    <失败状态> --> [*]
+```
+````
 
-<a id="req-001-nfr-001"></a>
-### REQ-001-NFR-001 <名称>
+文字足以说明时省略图。多角色交互、顺序、分支或回路使用 `sequenceDiagram`；
+业务对象存在多个状态和受限转换时追加 `stateDiagram-v2`。两种图都只表达业务事实，不写 API、数据库或组件内部调用。
+
+## `NFR` 非功能需求
+
+```md
+# NFR-001 <名称>
 
 - 类别：<性能|安全|可用性|兼容性等>
 - 适用范围：<范围>
@@ -113,82 +205,37 @@ flowchart LR
 - 测试条件：<环境和数据条件>
 - 测量方法：<方法>
 - 失败标准：<失败判定>
-````
-
-协作角色、影响角色、输入、失败结果等可选字段没有内容时直接省略，不写“不适用”或“无”。
-需求只描述业务结果和可验证约束，不指定数据库表、源码结构、JWT、中间件、Token 存储、框架、ORM、
-哈希库或其他实现方案。
-
-## `BR` 业务规则
-
-```md
-# REQ-001-BR-001 <规则名称>
-
-- 适用条件：<何时生效>
-- 规则：<必须满足的业务约束>
-- 冲突处理：<冲突时的业务结果>
-- 例外：<存在时填写>
 ```
-
-只有确实存在规则间优先顺序时才增加“优先级”。不反向列出使用该规则的 FR。
-
-## `FLOW` 业务流程
-
-````md
-# REQ-001-FLOW-001 <流程名称>
-
-- 参与者：<角色>
-- 开始条件：<触发条件>
-- 成功结束：<成功状态>
-- 失败结束：<失败状态>
-- 需求：
-  - REQ-001-FR-001
-  - REQ-001-FR-002
-
-```mermaid
-flowchart TD
-    A["开始"] --> B{"业务判断"}
-    B -->|"成功"| C["成功结束"]
-    B -->|"失败"| D["失败结束"]
-```
-````
-
-FLOW 的步骤或分支足以从文字理解时省略图；需要表达顺序、分支或回路时保留 Mermaid。
 
 ## `PERM` 权限规则
 
 ```md
-# REQ-001-PERM-001 <权限名称>
+# PERM-001 <权限名称>
 
-- 主体：<角色>
-- 资源：<业务资源>
-- 操作：
-  - <允许操作>
-- 允许条件：<业务条件>
-- 禁止条件：<越权条件>
-- 租户边界：<存在时填写>
-- 审计要求：<需要记录的业务操作>
+| 权限标识 | 角色 | 资源 | 动作 | 范围 | 允许条件 | 审计 |
+|---|---|---|---|---|---|---|
+| `patient:appointment:create` | 患者 | 预约 | 创建 | 本人 | 患者已登录 | 记录患者、排班和时间 |
 ```
 
-PERM 只定义业务授权结果，不指定 JWT 字段、中间件、API 路由或授权引擎，也不反向列出 FR。
+PERM 表是权限标识的唯一登记处。标识使用小写 `<role>:<resource>:<action>`，不指定 JWT、中间件、API 路由或授权引擎。
 
 ## `AC` 与 `TC`
 
-AC 直接写入 `features/REQ-001-AC-001.feature`，不创建 `items/REQ-001-AC-001.md`：
+AC 直接写入 `features/AC-001.feature`，不创建 AC Markdown：
 
 ```gherkin
-@REQ-001-AC-001
-@REQ-001-FR-001
+@AC-001
+@FR-001
 Feature: <验收目标>
 
-  @REQ-001-TC-001
+  @AC-001-TC-001
   Scenario: <成功场景>
     Given <初始业务状态>
     When <用户操作>
     Then <一个主要可观察结果>
     And <其他可观察结果>
 
-  @REQ-001-TC-002
+  @AC-001-TC-002
   Scenario: <失败或边界场景>
     Given <初始业务状态>
     When <用户操作>
@@ -197,15 +244,16 @@ Feature: <验收目标>
 ```
 
 - 一个 `.feature` 只定义一个 AC，可以包含多个 `Scenario` 或 `Scenario Outline`。
-- 每个 TC 只属于一个 AC；成功、失败、权限和独立业务边界使用不同 TC。
+- TC 按 `AC-<AC>-TC-<TC>` 编号，在每个 AC 内从 `001` 独立连续；已有 TC 不重排。
 - `Examples` 行只是同一 TC 的数据变体，不创建新 TC 编号。
-- Given/When/Then 使用业务语言并拆分多个结果，不写数据库表、字段、框架或内部实现断言。
+- Given/When/Then 使用业务语言，不写数据库、框架或内部实现断言。
 
 ## 完成检查
 
-- 目录编号与 Issue 一致，来源、目标、包含和不包含范围明确。
-- FR 可验证，NFR 可度量；BR、PERM 和 FLOW 只在需要独立引用时创建。
-- 每个 FR 有 Mermaid 追溯图，图中所有编号存在且关系与正式条目一致。
-- AC 只存在于同编号 Feature；一个 Feature 可包含多个唯一 TC，没有 AC Markdown。
-- 引用遵循单向规则，没有重复来源、反向关联或“不适用”占位字段。
+- `requirement.md` 只有角色索引和 FR 索引，每个 FR 链接都指向唯一 `fr/FR-*.md`。
+- FR 可验证，NFR 可度量；BR、FLOW、NFR 和 PERM 只在需要时创建。
+- 每个 FR 的 Mermaid 节点均存在且链接正确。
+- BR 只有一级标题和伪代码规则；必要权限均已在 PERM 表登记。
+- AC 只存在于同编号 Feature，TC 在所属 AC 内唯一，没有 AC Markdown。
+- Issue 编号只出现在来源中，不出现在目录、FR 或其他文档编号中。
 - 没有把设计、接口、数据库或实现选择写成需求事实。

@@ -121,7 +121,7 @@ BP：跨组件参与者、消息顺序和失败边界
 
 ### BP-001 <流程名称>
 
-> Ref: REQ-001-FLOW-001
+> Ref: FLOW-001
 
 ```mermaid
 sequenceDiagram
