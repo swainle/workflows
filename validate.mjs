@@ -153,12 +153,20 @@ function runSelfTests() {
 
   test("issue template keeps FR trace graphs and uses Feature as AC source", () => {
     const issue = prompt("templates/issue.template.md");
-    assert.match(issue, /docs\/<组件>\/[\s\S]*├─ requirement\.md[\s\S]*├─ fr\/[\s\S]*FR-001\.md/);
-    assert.match(issue, /`requirement\.md`：只保存角色索引和全部 FR 的索引/);
-    assert.match(issue, /# 需求索引[\s\S]*## 角色索引[\s\S]*## 功能需求索引/);
+    assert.match(issue, /docs\/<组件>\/[\s\S]*├─ README\.md[\s\S]*├─ fr\/[\s\S]*FR-001\.md/);
+    assert.doesNotMatch(issue, /requirement\.md/);
+    assert.match(issue, /`README\.md`：组件入口，保存组件职责、角色索引和全部 FR 的索引/);
+    assert.match(issue, /# <组件名称>[\s\S]*## 角色索引[\s\S]*## 功能需求索引/);
     for (const directory of ["br/", "flow/", "nfr/", "perm/"]) assert.ok(issue.includes(directory), `missing requirement directory: ${directory}`);
     assert.doesNotMatch(issue, /items\//);
     assert.match(issue, /\| `FR-001` \| \[patient-create-appointment\]\(\.\/fr\/FR-001\.md\)/);
+    assert.match(issue, /\[#1\]\(https:\/\/github\.com\/swainle\/d5\/issues\/1\)/);
+    assert.match(issue, /\[#1\][^\n]+<br>\[#7\]\(https:\/\/github\.com\/swainle\/d5\/issues\/7\)/);
+    assert.match(issue, /当前已读取 Issue 的真实编号和 URL/);
+    assert.match(issue, /不得猜测 URL 或输出 `\[\?\]\(\?\)`/);
+    assert.match(issue, /按 Issue 编号升序去重/);
+    assert.match(issue, /同一单元格中用 `<br>` 分隔/);
+    assert.match(issue, /`CONFLICT` 未解决时不写入/);
     assert.match(issue, /# FR-001 <名称>/);
     assert.match(issue, /- 成功结果：<可观察的成功结果>/);
     assert.match(issue, /features\/AC-001\.feature/);
@@ -181,14 +189,16 @@ function runSelfTests() {
     assert.match(issue, /在每个 AC 内从 `001` 独立连续/);
     assert.match(issue, /Issue 编号只标识需求来源/);
     assert.match(issue, /## 分析流程/);
-    assert.match(issue, /按角色、业务对象、动作和功能标识从索引查找候选 FR/);
-    assert.match(issue, /不得未检索就新建 FR/);
-    assert.match(issue, /候选 `fr\/FR-\*\.md` 及其 Mermaid 直接关联的 BR、FLOW、NFR、PERM、AC 和 TC/);
+    assert.match(issue, /读取索引中 `active \/ replaced \/ removed` 的全部 `fr\/FR-\*\.md`/);
+    assert.match(issue, /不得用候选筛选代替全量读取/);
+    assert.match(issue, /按“角色 × 业务对象 × 动作”建立全量 CRUD 视图/);
+    assert.match(issue, /缺少某个 CRUD 动作不自动构成需求/);
+    assert.match(issue, /受 Issue 影响 FR 的 Mermaid 直接关联 BR、FLOW、NFR、PERM、AC 和 TC/);
     for (const classification of ["REUSE", "EXTEND", "UPDATE", "REPLACE", "ADD", "REMOVE", "CONFLICT"]) {
       assert.ok(issue.includes(`- \`${classification}\`：`), `missing Issue classification: ${classification}`);
     }
     assert.match(issue, /`CONFLICT` 或专家分歧会改变行为、契约、安全、数据或兼容性时，在写入前询问用户/);
-    assert.match(issue, /最后同步 `requirement\.md` 索引和 FR Mermaid 投影/);
+    assert.match(issue, /最后同步 `README\.md` 索引和 FR Mermaid 投影/);
     assert.match(issue, /没有时写“无”/);
     assert.match(issue, /BR 只保留一级标题和一个伪代码规则块/);
     for (const syntax of [

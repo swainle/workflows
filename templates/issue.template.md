@@ -12,11 +12,12 @@
 
 ## 分析流程
 
-1. 读取指定 Issue、当前组件 `README.md` 和 `requirement.md`。
-2. 按角色、业务对象、动作和功能标识从索引查找候选 FR；不得未检索就新建 FR。
-3. 读取候选 `fr/FR-*.md` 及其 Mermaid 直接关联的 BR、FLOW、NFR、PERM、AC 和 TC；只在候选不足时扩大到同业务对象的其他需求。
-4. 专家团分别对比 Issue 与已有事实；主 Agent 合并结论、去重并解决专家间的分歧。
-5. 每项能力在写入前必须得到唯一分类：
+1. 读取指定 Issue 和当前组件 `README.md`。
+2. 读取索引中 `active / replaced / removed` 的全部 `fr/FR-*.md`，并校验索引与文件一一对应；不得用候选筛选代替全量读取。
+3. 按“角色 × 业务对象 × 动作”建立全量 CRUD 视图，识别重复、冲突、被替代能力和可能缺口。缺少某个 CRUD 动作不自动构成需求，由专家根据业务必要性判定。
+4. 再读取受 Issue 影响 FR 的 Mermaid 直接关联 BR、FLOW、NFR、PERM、AC 和 TC；不无差别加载全部关联文件。
+5. 专家团分别对比 Issue、全量 CRUD 视图与已有事实；主 Agent 合并结论、去重并解决专家间的分歧。
+6. 每项能力在写入前必须得到唯一分类：
    - `REUSE`：已有 FR 完整覆盖，直接复用。
    - `EXTEND`：FR 行为不变，只新增或调整 BR、FLOW、NFR、PERM、AC 或 TC。
    - `UPDATE`：只澄清文字，不改变 FR 的可观察含义，原地修改。
@@ -24,15 +25,14 @@
    - `ADD`：已有需求没有对应能力，新建 FR。
    - `REMOVE`：明确移除能力，将已有 FR 标记为 `removed`。
    - `CONFLICT`：Issue 与已有事实冲突且无法从现有信息决定。
-6. `CONFLICT` 或专家分歧会改变行为、契约、安全、数据或兼容性时，在写入前询问用户；其他情况由主 Agent 选择最小一致方案。
-7. 按分类增量更新事实源，最后同步 `requirement.md` 索引和 FR Mermaid 投影。
+7. `CONFLICT` 或专家分歧会改变行为、契约、安全、数据或兼容性时，在写入前询问用户；其他情况由主 Agent 选择最小一致方案。
+8. 按分类增量更新事实源，最后同步 `README.md` 索引和 FR Mermaid 投影。
 
 ## 目录
 
 ```text
 docs/<组件>/
 ├─ README.md
-├─ requirement.md
 ├─ fr/
 │  └─ FR-001.md
 ├─ br/
@@ -47,7 +47,7 @@ docs/<组件>/
    └─ AC-001.feature
 ```
 
-- `requirement.md`：只保存角色索引和全部 FR 的索引。
+- `README.md`：组件入口，保存组件职责、角色索引和全部 FR 的索引。
 - `fr/`：每个 FR 一个 Markdown，完整行为只在该文件定义。
 - `br/`、`flow/`、`nfr/`、`perm/`：分别保存需要独立引用的 BR、FLOW、NFR 和 PERM。
 - `features/`：AC 的唯一事实源；一个 AC 对应一个 `.feature`，包含一个或多个 TC。
@@ -67,10 +67,12 @@ TC Scenario → AC Feature
 
 每个 FR 保留 Mermaid 追溯图。图只是已有关系的投影，不定义新关系；节点必须链接到真实文件。
 
-## `requirement.md`
+## `README.md`
 
 ```md
-# 需求索引
+# <组件名称>
+
+<组件职责>
 
 ## 角色索引
 
@@ -82,12 +84,15 @@ TC Scenario → AC Feature
 
 | FR | 功能标识 | 名称 | 主体 | 业务对象 | 动作 | 状态 | 来源 |
 |---|---|---|---|---|---|---|---|
-| `FR-001` | [patient-create-appointment](./fr/FR-001.md) | 创建预约 | 患者 | 预约 | create | active | <Issue URL> |
+| `FR-001` | [patient-create-appointment](./fr/FR-001.md) | 创建预约 | 患者 | 预约 | create | active | [#1](https://github.com/swainle/d5/issues/1)<br>[#7](https://github.com/swainle/d5/issues/7) |
 ```
 
 - 功能标识使用唯一的 `kebab-case`，表达稳定业务能力；文件路径使用 `fr/FR-<三位编号>.md`。
 - 动作优先使用 `create / read / update / delete`，非 CRUD 能力使用明确业务动词。
 - 状态只使用 `active / replaced / removed`。索引不复制 FR 正文、追溯关系或验收内容。
+- 来源必须使用当前已读取 Issue 的真实编号和 URL，写为 `[#<编号>](<Issue URL>)`，不得猜测 URL 或输出 `[?](?)`。
+- 同一 FR 有多个相关 Issue 时保留已有链接、按 Issue 编号升序去重，并在同一单元格中用 `<br>` 分隔。
+- Issue 对 FR 得出 `REUSE / EXTEND / UPDATE / REPLACE / ADD / REMOVE` 结论后，将该 Issue 加入受影响 FR 的来源；`CONFLICT` 未解决时不写入。
 - 新 Issue 仅增加 FLOW、AC、BR、NFR 或 PERM 时复用旧 FR；只有五个 FR 业务字段的可观察含义改变时才新建 FR 并替代旧项。
 
 ## `fr/FR-001.md`
@@ -267,7 +272,7 @@ Feature: <验收目标>
 
 ## 完成检查
 
-- `requirement.md` 只有角色索引和 FR 索引，每个 FR 链接都指向唯一 `fr/FR-*.md`。
+- `README.md` 包含组件职责、角色索引和 FR 索引，每个 FR 链接都指向唯一 `fr/FR-*.md`，所有 Issue 来源链接真实、去重且完整。
 - FR 可验证，NFR 可度量；BR、FLOW、NFR 和 PERM 只在需要时创建。
 - 每个 FR 的 Mermaid 节点均存在且链接正确。
 - BR 只有一级标题和伪代码规则；必要权限均已在 PERM 表登记。

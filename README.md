@@ -11,7 +11,6 @@ docs/
 ├─ workflows/
 ├─ require/
 │  ├─ README.md
-│  ├─ requirement.md
 │  ├─ fr/
 │  │  └─ FR-001.md
 │  ├─ br/
