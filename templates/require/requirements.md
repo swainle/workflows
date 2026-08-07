@@ -80,18 +80,23 @@ TC Scenario → AC Feature
 
 ## 功能需求索引
 
-| 模块编号 | 模块名称 | FR | 功能标识 | 名称 | 主体 | 业务对象 | 动作 | 状态 | 来源 |
-|---|---|---|---|---|---|---|---|---|---|
-| `M-001` | 账户与认证 | `FR-001` | [patient-register](./fr/FR-001.md) | 患者注册 | 患者 | 账户 | create | active | [#1](https://github.com/swainle/d5/issues/1)<br>[#7](https://github.com/swainle/d5/issues/7) |
+### M-001 账户与认证
+
+| FR | 功能标识 | 名称 | 主体 | 业务对象 | 动作 | 状态 | 来源 |
+|---|---|---|---|---|---|---|---|
+| `FR-001` | **user-register** | 用户注册 | 用户 | 账户 | create | active | [#1](https://github.com/swainle/d5/issues/1) |
+| `FR-002` | **user-login** | 用户登录 | 用户 | 会话 | create | active | [#1](https://github.com/swainle/d5/issues/1) |
+| `FR-016` | **user-logout** | 用户登出 | 用户 | 会话 | delete | active | [#1](https://github.com/swainle/d5/issues/1) |
 ```
 
 - 模块是稳定的业务能力分组，不是页面、代码目录、Frontend、Backend、API 或数据库。模块编号使用 `M-<三位编号>`，名称使用稳定业务名词。
+- 每个模块使用 `### M-<三位编号> <模块名称>` 三级标题和一张独立 FR 表；模块按编号升序，表内 FR 按编号升序。
 - 每个 FR 只属于一个主模块；跨模块协作由 FLOW 表达。只有业务目标、规则或生命周期明确独立时才新建模块。
-- 功能标识使用唯一的 `kebab-case`，表达稳定业务能力；文件路径使用 `fr/FR-<三位编号>.md`。
+- 功能标识使用唯一的粗体 `**kebab-case**`，表达稳定业务能力；FR 编号一一对应 `fr/FR-<三位编号>.md`。
 - 动作优先使用 `create / read / update / delete`，非 CRUD 能力使用明确业务动词。
 - 状态只使用 `active / replaced / removed`。索引不复制 FR 正文、追溯关系或验收内容。
 - 指定 Issue 时，来源必须使用已读取 Issue 的真实编号和 URL，写为 `[#<编号>](<Issue URL>)`，不得猜测 URL 或输出 `[?](?)`。
-- 同一 FR 有多个相关 Issue 时保留已有链接、按 Issue 编号升序去重，并在同一单元格中用 `<br>` 分隔。
+- 同一 FR 有多个相关 Issue 时保留已有链接、按 Issue 编号升序去重，并在同一单元格中用 `<br>` 分隔，例如 `[#1](<URL-1>)<br>[#7](<URL-7>)`。
 - 指定 Issue 且对 FR 得出 `REUSE / EXTEND / UPDATE / REPLACE / ADD / REMOVE` 结论后，将该 Issue 加入受影响 FR 的来源；`CONFLICT` 未解决时不写入。
 - 新 Issue 仅增加 FLOW、AC、BR、NFR 或 PERM 时复用旧 FR；只有五个 FR 业务字段的可观察含义改变时才新建 FR 并替代旧项。
 
@@ -272,7 +277,7 @@ Feature: <验收目标>
 
 ## 完成检查
 
-- `README.md` 包含组件职责、角色索引和 FR 索引，每个 FR 链接都指向唯一 `fr/FR-*.md`，所有 Issue 来源链接真实、去重且完整。
+- `README.md` 包含组件职责、角色索引和按模块分组的 FR 索引，每个 FR 编号都对应唯一 `fr/FR-*.md`，所有 Issue 来源链接真实、去重且完整。
 - FR 可验证，NFR 可度量；BR、FLOW、NFR 和 PERM 只在需要时创建。
 - 每个 FR 的 Mermaid 节点均存在且链接正确。
 - BR 只有一级标题和伪代码规则；必要权限均已在 PERM 表登记。
