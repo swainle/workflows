@@ -180,6 +180,15 @@ function runSelfTests() {
     assert.match(issue, /@AC-001-TC-001/);
     assert.match(issue, /在每个 AC 内从 `001` 独立连续/);
     assert.match(issue, /Issue 编号只标识需求来源/);
+    assert.match(issue, /## 分析流程/);
+    assert.match(issue, /按角色、业务对象、动作和功能标识从索引查找候选 FR/);
+    assert.match(issue, /不得未检索就新建 FR/);
+    assert.match(issue, /候选 `fr\/FR-\*\.md` 及其 Mermaid 直接关联的 BR、FLOW、NFR、PERM、AC 和 TC/);
+    for (const classification of ["REUSE", "EXTEND", "UPDATE", "REPLACE", "ADD", "REMOVE", "CONFLICT"]) {
+      assert.ok(issue.includes(`- \`${classification}\`：`), `missing Issue classification: ${classification}`);
+    }
+    assert.match(issue, /`CONFLICT` 或专家分歧会改变行为、契约、安全、数据或兼容性时，在写入前询问用户/);
+    assert.match(issue, /最后同步 `requirement\.md` 索引和 FR Mermaid 投影/);
     assert.match(issue, /没有时写“无”/);
     assert.match(issue, /BR 只保留一级标题和一个伪代码规则块/);
     for (const syntax of [
