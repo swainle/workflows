@@ -1,22 +1,20 @@
-# Issue 需求模板
+# Require 需求规则
 
-用于 `<doc 组件> issue <编号>`。Issue 编号只标识需求来源，不进入目录名或文档编号。
+仅由 `templates/require.template.md` 加载。Issue 是可选需求输入；其编号只标识来源，不进入目录名或文档编号。
 
-## 专家团
+## 需求评审重点
 
 - 产品与领域专家：确认目标、范围、角色、FR、BR 和业务语言。
 - 权限与风险专家：确认 PERM、NFR、安全、隐私、边界和例外。
 - 验收专家：确认 FLOW、AC、TC、Mermaid 追溯图和可执行场景。
 
-专家只读分析并返回决策、风险、建议和阻塞；主 Agent 统一修改与验证。
-
 ## 分析流程
 
-1. 读取指定 Issue 和当前组件 `README.md`。
+1. 读取当前组件 `README.md`；指定 `issue <编号>` 时再读取该 Issue，否则以用户任务为需求输入。
 2. 读取索引中 `active / replaced / removed` 的全部 `fr/FR-*.md`，并校验索引与文件一一对应；不得用候选筛选代替全量读取。
 3. 按“模块 × 角色 × 业务对象 × 动作”建立全量 CRUD 视图，识别重复、冲突、被替代能力和可能缺口。缺少某个 CRUD 动作不自动构成需求，由专家根据业务必要性判定。
-4. 再读取受 Issue 影响 FR 的 Mermaid 直接关联 BR、FLOW、NFR、PERM、AC 和 TC；不无差别加载全部关联文件。
-5. 专家团分别对比 Issue、全量 CRUD 视图与已有事实；主 Agent 合并结论、去重并解决专家间的分歧。
+4. 再读取受当前需求输入影响 FR 的 Mermaid 直接关联 BR、FLOW、NFR、PERM、AC 和 TC；不无差别加载全部关联文件。
+5. 专家团分别对比当前需求输入、全量 CRUD 视图与已有事实；主 Agent 合并结论、去重并解决专家间的分歧。
 6. 每项能力在写入前必须得到唯一分类：
    - `REUSE`：已有 FR 完整覆盖，直接复用。
    - `EXTEND`：FR 行为不变，只新增或调整 BR、FLOW、NFR、PERM、AC 或 TC。
@@ -24,7 +22,7 @@
    - `REPLACE`：五个 FR 业务字段的可观察含义改变，新建 FR 并将旧项标记为 `replaced`。
    - `ADD`：已有需求没有对应能力，新建 FR。
    - `REMOVE`：明确移除能力，将已有 FR 标记为 `removed`。
-   - `CONFLICT`：Issue 与已有事实冲突且无法从现有信息决定。
+   - `CONFLICT`：当前需求输入与已有事实冲突且无法从现有信息决定。
 7. `CONFLICT` 或专家分歧会改变行为、契约、安全、数据或兼容性时，在写入前询问用户；其他情况由主 Agent 选择最小一致方案。
 8. 按分类增量更新事实源，最后同步 `README.md` 索引和 FR Mermaid 投影。
 
@@ -92,9 +90,9 @@ TC Scenario → AC Feature
 - 功能标识使用唯一的 `kebab-case`，表达稳定业务能力；文件路径使用 `fr/FR-<三位编号>.md`。
 - 动作优先使用 `create / read / update / delete`，非 CRUD 能力使用明确业务动词。
 - 状态只使用 `active / replaced / removed`。索引不复制 FR 正文、追溯关系或验收内容。
-- 来源必须使用当前已读取 Issue 的真实编号和 URL，写为 `[#<编号>](<Issue URL>)`，不得猜测 URL 或输出 `[?](?)`。
+- 指定 Issue 时，来源必须使用已读取 Issue 的真实编号和 URL，写为 `[#<编号>](<Issue URL>)`，不得猜测 URL 或输出 `[?](?)`。
 - 同一 FR 有多个相关 Issue 时保留已有链接、按 Issue 编号升序去重，并在同一单元格中用 `<br>` 分隔。
-- Issue 对 FR 得出 `REUSE / EXTEND / UPDATE / REPLACE / ADD / REMOVE` 结论后，将该 Issue 加入受影响 FR 的来源；`CONFLICT` 未解决时不写入。
+- 指定 Issue 且对 FR 得出 `REUSE / EXTEND / UPDATE / REPLACE / ADD / REMOVE` 结论后，将该 Issue 加入受影响 FR 的来源；`CONFLICT` 未解决时不写入。
 - 新 Issue 仅增加 FLOW、AC、BR、NFR 或 PERM 时复用旧 FR；只有五个 FR 业务字段的可观察含义改变时才新建 FR 并替代旧项。
 
 ## `fr/FR-001.md`
@@ -280,5 +278,5 @@ Feature: <验收目标>
 - BR 只有一级标题和伪代码规则；必要权限均已在 PERM 表登记。
 - AC 只存在于同编号 Feature，TC 在所属 AC 内唯一，没有 AC Markdown。
 - Issue 编号只出现在来源中，不出现在目录、FR 或其他文档编号中。
-- 每项 Issue 能力已在读取相关需求并经专家团评审后归入唯一变更分类。
+- 每项输入能力已在读取相关需求并经专家团评审后归入唯一变更分类。
 - 没有把设计、接口、数据库或实现选择写成需求事实。

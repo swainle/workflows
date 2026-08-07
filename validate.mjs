@@ -16,8 +16,9 @@ import {
 
 export const PROMPT_FILES = [
   "templates/AGENTS.template.md",
-  "templates/issue.template.md",
-  "templates/arch-design.template.md",
+  "templates/require.template.md",
+  "templates/require/requirements.md",
+  "templates/require/architecture.md",
   "templates/frontend-design.template.md",
   "templates/backend-design.template.md",
   "stages/doc.md",
@@ -129,7 +130,7 @@ function runSelfTests() {
       "<deploy update>",
     ]) assert.ok(agents.includes(command), `missing ${command}`);
 
-    assert.match(agents, /tmp arch\|frontend\|backend/);
+    assert.match(agents, /tmp require\|frontend\|backend/);
     assert.match(agents, /req 需求组件 \[issue 编号\]/);
     assert.match(agents, /\[opt 文件\]/);
     assert.match(agents, /docs\/<组件>\/README\.md/);
@@ -145,14 +146,22 @@ function runSelfTests() {
       assert.doesNotMatch(content, /<system>/, name);
       assert.doesNotMatch(content, /<组件 (?:dev|test|deploy)>/, name);
       assert.doesNotMatch(content, /docs\/(?:requirements|component)\//, name);
+      assert.doesNotMatch(content, /tmp arch/, name);
     }
-    for (const removed of ["stages/system.md", "stages/requirement.md", "stages/component.md", "stages/component-dev.md"]) {
+    for (const removed of [
+      "stages/system.md",
+      "stages/requirement.md",
+      "stages/component.md",
+      "stages/component-dev.md",
+      "templates/issue.template.md",
+      "templates/arch-design.template.md",
+    ]) {
       assert.equal(existsSync(path.join(WORKFLOW_ROOT, removed)), false, `${removed} still exists`);
     }
   });
 
   test("issue template keeps FR trace graphs and uses Feature as AC source", () => {
-    const issue = prompt("templates/issue.template.md");
+    const issue = prompt("templates/require/requirements.md");
     assert.match(issue, /docs\/<组件>\/[\s\S]*├─ README\.md[\s\S]*├─ fr\/[\s\S]*FR-001\.md/);
     assert.doesNotMatch(issue, /requirement\.md/);
     assert.match(issue, /`README\.md`：组件入口，保存组件职责、角色索引和全部 FR 的索引/);
@@ -166,7 +175,7 @@ function runSelfTests() {
     assert.match(issue, /跨模块协作由 FLOW 表达/);
     assert.match(issue, /\[#1\]\(https:\/\/github\.com\/swainle\/d5\/issues\/1\)/);
     assert.match(issue, /\[#1\][^\n]+<br>\[#7\]\(https:\/\/github\.com\/swainle\/d5\/issues\/7\)/);
-    assert.match(issue, /当前已读取 Issue 的真实编号和 URL/);
+    assert.match(issue, /已读取 Issue 的真实编号和 URL/);
     assert.match(issue, /不得猜测 URL 或输出 `\[\?\]\(\?\)`/);
     assert.match(issue, /按 Issue 编号升序去重/);
     assert.match(issue, /同一单元格中用 `<br>` 分隔/);
@@ -191,13 +200,13 @@ function runSelfTests() {
     assert.match(issue, /Scenario: <成功场景>[\s\S]*Scenario: <失败或边界场景>/);
     assert.match(issue, /@AC-001-TC-001/);
     assert.match(issue, /在每个 AC 内从 `001` 独立连续/);
-    assert.match(issue, /Issue 编号只标识需求来源/);
+    assert.match(issue, /Issue 是可选需求输入/);
     assert.match(issue, /## 分析流程/);
     assert.match(issue, /读取索引中 `active \/ replaced \/ removed` 的全部 `fr\/FR-\*\.md`/);
     assert.match(issue, /不得用候选筛选代替全量读取/);
     assert.match(issue, /按“模块 × 角色 × 业务对象 × 动作”建立全量 CRUD 视图/);
     assert.match(issue, /缺少某个 CRUD 动作不自动构成需求/);
-    assert.match(issue, /受 Issue 影响 FR 的 Mermaid 直接关联 BR、FLOW、NFR、PERM、AC 和 TC/);
+    assert.match(issue, /受当前需求输入影响 FR 的 Mermaid 直接关联 BR、FLOW、NFR、PERM、AC 和 TC/);
     for (const classification of ["REUSE", "EXTEND", "UPDATE", "REPLACE", "ADD", "REMOVE", "CONFLICT"]) {
       assert.ok(issue.includes(`- \`${classification}\`：`), `missing Issue classification: ${classification}`);
     }
@@ -225,16 +234,23 @@ function runSelfTests() {
     assert.match(issue, /\| 权限标识 \| 角色 \| 资源 \| 动作 \| 范围 \| 允许条件 \| 审计 \|/);
     assert.match(issue, /PERM 表是权限标识的唯一登记处/);
     assert.match(prompt("stages/dev.md"), /实现 BR 的 `REQUIRES PERMISSION` 前，确认权限已在 PERM 表登记/);
-    assert.match(issue, /## 专家团/);
+    assert.match(issue, /## 需求评审重点/);
   });
 
-  test("arch, frontend and backend are optional doc templates", () => {
+  test("require, frontend and backend are optional doc templates", () => {
     const agents = prompt("templates/AGENTS.template.md");
-    assert.match(agents, /<doc 组件> tmp arch/);
-    assert.match(agents, /<doc 组件> tmp arch issue 编号/);
+    assert.match(agents, /<doc 组件> tmp require \[issue 编号\]/);
     assert.match(agents, /<doc 组件> tmp frontend/);
     assert.match(agents, /<doc 组件> tmp backend/);
-    const arch = prompt("templates/arch-design.template.md");
+    const requireTemplate = prompt("templates/require.template.md");
+    assert.match(requireTemplate, /<doc 组件> tmp require \[issue <编号>\]/);
+    assert.match(requireTemplate, /templates\/require\/requirements\.md/);
+    assert.match(requireTemplate, /templates\/require\/architecture\.md/);
+    assert.match(requireTemplate, /产品与领域专家/);
+    assert.match(requireTemplate, /架构与安全专家/);
+    assert.match(requireTemplate, /验收与质量专家/);
+    assert.match(requireTemplate, /总是运行专家团/);
+    const arch = prompt("templates/require/architecture.md");
     for (const file of ["context.md", "system.md", "process.md", "security.md", "observability.md", "gitflow.md", "openapi.json"]) {
       assert.ok(arch.includes(`\`${file}\``), `missing Arch file: ${file}`);
     }
@@ -248,7 +264,7 @@ function runSelfTests() {
     assert.match(arch, /Token 刷新、会话吊销和认证握手属于 `security\.md`/);
     assert.match(arch, /不在本文件维护组件清单、应用路径、设计路径、凭据值/);
     assert.match(arch, /不指定 npm 包、SDK 初始化、Dashboard 配置或 Collector/);
-    assert.match(arch, /## 专家团/);
+    assert.match(arch, /## 架构评审重点/);
     const frontend = prompt("templates/frontend-design.template.md");
     assert.match(frontend, /README 第一个创建或确认/);
     assert.match(frontend, /开发模板：`frontend`/);

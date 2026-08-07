@@ -48,7 +48,7 @@ node docs/workflows/install.mjs --workflows-updated
 只解析消息开头第一对真实尖括号。指令头如下：
 
 ```text
-<doc 组件> [tmp arch|frontend|backend] [req 需求组件 [issue 编号]] [issue 编号] [opt 文件] 任务
+<doc 组件> [tmp require|frontend|backend] [req 需求组件 [issue 编号]] [issue 编号] [opt 文件] 任务
 <dev 组件> [opt 文件] 任务
 <test 组件> [opt 文件] 任务
 <deploy 组件> [opt 文件] 任务
@@ -59,15 +59,15 @@ node docs/workflows/install.mjs --workflows-updated
 
 参数按上面的顺序出现，每种最多一次：
 
-- `tmp arch|frontend|backend`：加载相应设计模板；`arch` 维护组件根目录的全局设计。
+- `tmp require|frontend|backend`：加载相应模板；`require` 统一维护需求、追溯和全局设计。
 - `req <需求组件>`：递归读取该组件的全部文件。
 - `req <需求组件> issue <编号>`：在上述文件之外读取对应 Issue，用于限定当前任务；Issue 编号不对应文档目录。
-- `<doc 组件> issue <编号>`：加载 Issue 需求模板，根据对应 Issue 更新当前组件的共享需求文件；
-  组件名没有保留值，例如 `require` 只是普通名称。
+- `<doc 组件> tmp require [issue <编号>]`：总是加载 Require 专家团、需求分析和架构规则；
+  `issue` 可选，用于读取并限定特定需求。组件名没有保留值，`require` 只是普通名称。
 - `opt <文件>`：将写入范围收窄为一个阶段内相对路径；禁止删除、移动和顺手修改关联文件。
 - 对尚不存在的组件使用 `opt` 时，目标只能是 `README.md`；其他目标需要先建立组件入口。
-- `issue` 紧跟 `req <组件>` 时限定被引用组件；没有 `req` 时作用于当前组件并加载 Issue 模板。
-  它可以与 `tmp arch` 同时使用，例如 `<doc require> tmp arch issue 1` 同时维护全局设计和共享需求。
+- `issue` 紧跟 `req <组件>` 时限定被引用组件；没有 `req` 时只能与 `tmp require` 同时使用。
+  其他位置的 `issue` 或未列出的 `tmp` 值都是未知语法。
   一条指令只允许出现一个 `issue`。
 
 组件名只能包含字母、数字、点、下划线和连字符。保留全局指令优先于组件名；格式错误、
@@ -80,9 +80,7 @@ node docs/workflows/install.mjs --workflows-updated
 | 指令 | 必读文件 |
 |---|---|
 | `<doc 组件>` | `docs/workflows/stages/doc.md` |
-| `<doc 组件> issue 编号` | `stages/doc.md`、`templates/issue.template.md` |
-| `<doc 组件> tmp arch` | `stages/doc.md`、`templates/arch-design.template.md` |
-| `<doc 组件> tmp arch issue 编号` | `stages/doc.md`、`templates/arch-design.template.md`、`templates/issue.template.md` |
+| `<doc 组件> tmp require [issue 编号]` | `stages/doc.md`、`templates/require.template.md`、`templates/require/requirements.md`、`templates/require/architecture.md` |
 | `<doc 组件> tmp frontend` | `stages/doc.md`、`templates/frontend-design.template.md` |
 | `<doc 组件> tmp backend` | `stages/doc.md`、`templates/backend-design.template.md` |
 | `<dev 组件>` | `docs/workflows/stages/dev.md` |
@@ -94,7 +92,7 @@ node docs/workflows/install.mjs --workflows-updated
 
 ## 专家团协作
 
-Issue、Arch、Frontend 和 Backend 模板各自定义专家团。加载模板后：
+Require、Frontend 和 Backend 模板各自定义专家团。加载模板后：
 
 1. 主 Agent 负责范围、权限、最终决策、文件修改和验证。
 2. 环境支持子 Agent 时，最多并行启动三个模板专家；专家只读取当前阶段允许的必要事实，不修改文件。
@@ -104,7 +102,7 @@ Issue、Arch、Frontend 和 Backend 模板各自定义专家团。加载模板�
 6. `opt` 仍只允许主 Agent 修改唯一目标文件；专家团不扩大读取、写入或阶段范围。
 
 `<dev 组件>` 和 `<test 组件>` 从 README 唯一的 Frontend 或 Backend 开发模板声明选择对应专家团；
-缺失、重复或值未知时停止。Arch 和 Issue 是纯文档模板，不用于开发或组件测试。
+缺失、重复或值未知时停止。Require 是纯文档模板，不用于开发或组件测试。
 
 ## 权限与确认
 

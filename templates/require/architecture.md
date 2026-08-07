@@ -1,15 +1,13 @@
-# Arch 文档模板
+# Require 架构规则
 
-用于 `<doc 组件> tmp arch`，维护组件根目录中跨业务组件共享的全局设计。不创建独立 system 阶段，
-也不登记组件应用目录。与 `issue <编号>` 同时使用时，该 Issue 是本次架构设计的需求输入。
+仅由 `templates/require.template.md` 加载，维护组件根目录中跨业务组件共享的全局设计。不创建独立 system 阶段，
+也不登记组件应用目录。指定 Issue 时，将已确认的 Issue 需求作为本次架构设计输入。
 
-## 专家团
+## 架构评审重点
 
 - 系统与 API 架构师：负责上下文、组件边界、跨组件流程和同步契约。
 - 安全架构师：负责信任边界、认证、授权、数据保护、风险和例外。
 - 可靠性与交付架构师：负责可观测性、SLO、告警、Git 协作和发布边界。
-
-专家只读分析并返回决策、风险、建议和阻塞；主 Agent 统一修改与验证。
 
 ## 文件与事实所有权
 
@@ -22,7 +20,7 @@
 | `observability.md` | 全局信号、遥测链路、SLI/SLO、告警与数据治理 |
 | `gitflow.md` | 分支、提交、评审、发布与热修复规则 |
 | `openapi.json` | 跨组件同步 HTTP 操作、Schema、错误、安全要求和提供方 |
-| `README.md` | Arch 组件职责、文件关系和文档索引 |
+| `README.md` | Require 组件职责、文件关系和文档索引 |
 
 六个 Markdown 文件保留；没有适用内容时用一句话说明，不创建空表、空图或占位章节。
 `openapi.json` 仅在系统存在跨组件同步 HTTP 契约时创建。
@@ -30,7 +28,7 @@
 ## 依赖顺序
 
 ```text
-Issue → context.md → system.md ─┬→ process.md
+需求输入 → context.md → system.md ─┬→ process.md
                                 ├→ security.md
                                 ├→ observability.md
                                 ├→ gitflow.md
@@ -256,7 +254,7 @@ sequenceDiagram
 
 ## 完成检查
 
-- 当前 Issue、上下文、系统组件和真实运行关系一致；不存在中央应用目录登记表。
+- 当前需求输入、上下文、系统组件和真实运行关系一致；不存在中央应用目录登记表。
 - FLOW 与 BP 分工明确，BP 只保留有实际复杂度的跨组件编排，没有普通 CRUD 或新增需求行为。
 - 安全、可观测性和 Git 文件只维护全局基线，没有混入组件实现、部署值或单次状态。
 - OpenAPI 可解析，提供方对应真实文档组件，操作、错误和 Schema 引用完整。

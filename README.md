@@ -44,7 +44,7 @@ docs/
 ## 指令
 
 ```text
-<doc 组件> [tmp arch|frontend|backend] [req 需求组件 [issue 编号]] [issue 编号] [opt 文件] 任务
+<doc 组件> [tmp require|frontend|backend] [req 需求组件 [issue 编号]] [issue 编号] [opt 文件] 任务
 <dev 组件> [opt 文件] 任务
 <test 组件> [opt 文件] 任务
 <deploy 组件> [opt 文件] 任务
@@ -56,8 +56,8 @@ docs/
 示例：
 
 ```text
-<doc require> tmp arch issue 1 初始化系统需求和全局设计
-<doc require> tmp arch opt security.md 调整安全基线
+<doc require> tmp require issue 1 初始化系统需求和全局设计
+<doc require> tmp require opt security.md 调整安全基线
 <doc api> tmp backend req require issue 1 设计初始化接口
 <doc api> tmp backend req require issue 2 opt domain.md 调整手机号规则
 <doc web> tmp frontend req require issue 2 设计手机号页面
@@ -69,9 +69,9 @@ docs/
 ```
 
 - `require` 是普通组件名，不是保留字。
-- `<doc require> tmp arch issue 1` 同时加载全局设计和 Issue 模板；Issue 编号只标识来源，需求写入组件共享目录。
+- `<doc require> tmp require issue 1` 总是运行需求、架构和验收专家流程；Issue 编号只标识来源和限定本次范围。
 - `req require` 递归读取 `docs/require/` 的全部文件；后接 `issue 2` 时再读取该 Issue 作为当前任务输入。
-- `tmp arch|frontend|backend` 加载对应设计模板。
+- `tmp require|frontend|backend` 加载对应模板。
 - `opt <文件>` 只创建或更新阶段内的一个文件。
 - `<test>` 和 `<deploy>` 是全局命令；带组件名时分别处理组件测试和组件部署。
 
@@ -99,8 +99,8 @@ node docs/workflows/install.mjs --branch develop
 | 路径 | 作用 |
 |---|---|
 | `templates/AGENTS.template.md` | 指令解析、组件发现、版本门禁和阶段路由 |
-| `templates/issue.template.md` | Issue 输入与共享需求文件规则 |
-| `templates/*-design.template.md` | Arch、Frontend、Backend 文档模板 |
+| `templates/require.template.md`、`templates/require/*` | 统一需求、Issue 分析与全局架构模板 |
+| `templates/*-design.template.md` | Frontend、Backend 文档模板 |
 | `stages/*.md` | doc、dev、组件测试、全局测试和部署权限 |
 | `install.mjs` | 安装或更新宿主 `AGENTS.md` 托管区块 |
 | `validate.mjs` | 校验提示词、路由、README 映射和安装器行为 |

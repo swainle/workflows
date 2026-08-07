@@ -31,10 +31,9 @@
 
 ## 参数
 
-- `issue <编号>`：没有 `req` 时完整执行 `templates/issue.template.md`，根据对应 Issue
-  更新当前组件的共享需求文件；组件不存在时同时创建最小 README。
-- `tmp arch|frontend|backend`：完整执行对应模板；模板只增强本阶段，不扩大权限。
-- `tmp arch issue <编号>`：同时维护当前组件的全局设计和共享需求，两份模板都必须加载。
+- `tmp require [issue <编号>]`：完整执行 `templates/require.template.md` 及其两个内部规则文件，
+  总是运行专家团、全量 FR 分析和架构评审；Issue 只在显式指定时读取。
+- `tmp frontend|backend`：完整执行对应模板；模板只增强本阶段，不扩大权限。
 - `req <组件>`：递归读取该组件的全部文件；后接 `issue <编号>` 时再读取该 Issue 作为当前任务输入。
 - `opt <文件>`：只创建或修改该文件，目标始终相对当前组件目录。
   使用 `opt` 时当前组件 README 必须已经存在，除非唯一目标就是 `README.md`。
@@ -50,7 +49,7 @@
 ## 执行
 
 1. 解析当前组件；按需创建目录和 README，或验证现有 README。
-2. 只加载显式 `req` 指定的根文件与 Issue，以及当前任务选择的 Arch、Frontend、Backend 或 Issue 模板。
+2. 只加载显式 `req` 指定的文件与 Issue，以及当前任务选择的 Require、Frontend 或 Backend 模板。
 3. 检查现有事实、引用和用户修改，确认会改变结果的歧义。
 4. 增量修改当前组件；`opt` 时仅修改目标文件。
 5. 检查链接、契约语法、应用目录和目录树；运行 `node docs/workflows/validate.mjs`。
