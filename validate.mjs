@@ -159,7 +159,11 @@ function runSelfTests() {
     assert.match(issue, /# <组件名称>[\s\S]*## 角色索引[\s\S]*## 功能需求索引/);
     for (const directory of ["br/", "flow/", "nfr/", "perm/"]) assert.ok(issue.includes(directory), `missing requirement directory: ${directory}`);
     assert.doesNotMatch(issue, /items\//);
-    assert.match(issue, /\| `FR-001` \| \[patient-create-appointment\]\(\.\/fr\/FR-001\.md\)/);
+    assert.match(issue, /\| 模块编号 \| 模块名称 \| FR \| 功能标识 \|/);
+    assert.match(issue, /\| `M-001` \| 账户与认证 \| `FR-001` \| \[patient-register\]\(\.\/fr\/FR-001\.md\)/);
+    assert.match(issue, /模块编号使用 `M-<三位编号>`/);
+    assert.match(issue, /每个 FR 只属于一个主模块/);
+    assert.match(issue, /跨模块协作由 FLOW 表达/);
     assert.match(issue, /\[#1\]\(https:\/\/github\.com\/swainle\/d5\/issues\/1\)/);
     assert.match(issue, /\[#1\][^\n]+<br>\[#7\]\(https:\/\/github\.com\/swainle\/d5\/issues\/7\)/);
     assert.match(issue, /当前已读取 Issue 的真实编号和 URL/);
@@ -191,7 +195,7 @@ function runSelfTests() {
     assert.match(issue, /## 分析流程/);
     assert.match(issue, /读取索引中 `active \/ replaced \/ removed` 的全部 `fr\/FR-\*\.md`/);
     assert.match(issue, /不得用候选筛选代替全量读取/);
-    assert.match(issue, /按“角色 × 业务对象 × 动作”建立全量 CRUD 视图/);
+    assert.match(issue, /按“模块 × 角色 × 业务对象 × 动作”建立全量 CRUD 视图/);
     assert.match(issue, /缺少某个 CRUD 动作不自动构成需求/);
     assert.match(issue, /受 Issue 影响 FR 的 Mermaid 直接关联 BR、FLOW、NFR、PERM、AC 和 TC/);
     for (const classification of ["REUSE", "EXTEND", "UPDATE", "REPLACE", "ADD", "REMOVE", "CONFLICT"]) {

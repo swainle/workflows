@@ -14,7 +14,7 @@
 
 1. 读取指定 Issue 和当前组件 `README.md`。
 2. 读取索引中 `active / replaced / removed` 的全部 `fr/FR-*.md`，并校验索引与文件一一对应；不得用候选筛选代替全量读取。
-3. 按“角色 × 业务对象 × 动作”建立全量 CRUD 视图，识别重复、冲突、被替代能力和可能缺口。缺少某个 CRUD 动作不自动构成需求，由专家根据业务必要性判定。
+3. 按“模块 × 角色 × 业务对象 × 动作”建立全量 CRUD 视图，识别重复、冲突、被替代能力和可能缺口。缺少某个 CRUD 动作不自动构成需求，由专家根据业务必要性判定。
 4. 再读取受 Issue 影响 FR 的 Mermaid 直接关联 BR、FLOW、NFR、PERM、AC 和 TC；不无差别加载全部关联文件。
 5. 专家团分别对比 Issue、全量 CRUD 视图与已有事实；主 Agent 合并结论、去重并解决专家间的分歧。
 6. 每项能力在写入前必须得到唯一分类：
@@ -53,7 +53,7 @@ docs/<组件>/
 - `features/`：AC 的唯一事实源；一个 AC 对应一个 `.feature`，包含一个或多个 TC。
 - 只创建实际需要的文件和目录，不创建空模板。
 
-编号为 `FR-001`、`BR-001`、`FLOW-001`、`NFR-001`、`PERM-001` 和 `AC-001`，均在当前组件内同类连续且唯一。
+编号为 `M-001`、`FR-001`、`BR-001`、`FLOW-001`、`NFR-001`、`PERM-001` 和 `AC-001`，均在当前组件内同类连续且唯一。
 TC 使用 `AC-001-TC-001`，在所属 AC 内从 `001` 独立编号。已有编号不因 Issue 或其他条目的增删而重排。
 
 ## 引用方向
@@ -82,11 +82,13 @@ TC Scenario → AC Feature
 
 ## 功能需求索引
 
-| FR | 功能标识 | 名称 | 主体 | 业务对象 | 动作 | 状态 | 来源 |
-|---|---|---|---|---|---|---|---|
-| `FR-001` | [patient-create-appointment](./fr/FR-001.md) | 创建预约 | 患者 | 预约 | create | active | [#1](https://github.com/swainle/d5/issues/1)<br>[#7](https://github.com/swainle/d5/issues/7) |
+| 模块编号 | 模块名称 | FR | 功能标识 | 名称 | 主体 | 业务对象 | 动作 | 状态 | 来源 |
+|---|---|---|---|---|---|---|---|---|---|
+| `M-001` | 账户与认证 | `FR-001` | [patient-register](./fr/FR-001.md) | 患者注册 | 患者 | 账户 | create | active | [#1](https://github.com/swainle/d5/issues/1)<br>[#7](https://github.com/swainle/d5/issues/7) |
 ```
 
+- 模块是稳定的业务能力分组，不是页面、代码目录、Frontend、Backend、API 或数据库。模块编号使用 `M-<三位编号>`，名称使用稳定业务名词。
+- 每个 FR 只属于一个主模块；跨模块协作由 FLOW 表达。只有业务目标、规则或生命周期明确独立时才新建模块。
 - 功能标识使用唯一的 `kebab-case`，表达稳定业务能力；文件路径使用 `fr/FR-<三位编号>.md`。
 - 动作优先使用 `create / read / update / delete`，非 CRUD 能力使用明确业务动词。
 - 状态只使用 `active / replaced / removed`。索引不复制 FR 正文、追溯关系或验收内容。
