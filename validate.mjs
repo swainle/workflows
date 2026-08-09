@@ -278,7 +278,18 @@ function runSelfTests() {
     assert.match(arch, /## 架构评审重点/);
     const frontend = prompt("templates/frontend-design.template.md");
     assert.match(frontend, /README 第一个创建或确认/);
+    assert.match(frontend, /> Ref: `docs\/<req组件>\/README\.md`/);
+    assert.match(frontend, /REQUIRE --> UX\["ux\.md"\]/);
+    assert.match(frontend, /> Ref: docs\/<req组件>\/require\/M-001\/FR-001\.md/);
     assert.match(frontend, /开发模板：`frontend`/);
+    assert.match(frontend, /\| 类别 \| 选择 \| 版本 \| 官方文档 \|/);
+    assert.doesNotMatch(frontend, /\| 类别 \| 选择 \| 版本 \| 官方文档 \| 范例代码 \|/);
+    assert.match(frontend, /TOKENS\["design\.tokens\.json"\] --> DRAFT/);
+    assert.doesNotMatch(frontend, /UX.*-->.*TOKENS|TOKENS.*-->.*UX/);
+    assert.match(frontend, /CONFIG\["configuration\.md"\] --> TESTING/);
+    assert.match(frontend, /Draft、Mapping、State、Configuration → Testing/);
+    assert.match(frontend, /## 技术实现[\s\S]*### Token 刷新[\s\S]*### 页面权限/);
+    assert.doesNotMatch(frontend, /## 应用文件树/);
     assert.match(frontend, /`design\.tokens\.json` 是风格规范唯一事实源/);
     assert.match(frontend, /DTCG Design Tokens Format Module 2025\.10/);
     assert.match(frontend, /\$type/);
