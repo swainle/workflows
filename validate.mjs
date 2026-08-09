@@ -280,7 +280,6 @@ function runSelfTests() {
     assert.match(frontend, /README 第一个创建或确认/);
     assert.match(frontend, /> Ref: `docs\/<req组件>\/README\.md`/);
     assert.match(frontend, /REQUIRE --> UX\["ux\.md"\]/);
-    assert.match(frontend, /> Ref: `docs\/<req组件>\/M-001\/FR-001\.md`/);
     assert.match(frontend, /开发模板：`frontend`/);
     assert.match(frontend, /\| 类别 \| 选择 \| 版本 \| 官方文档 \|/);
     assert.doesNotMatch(frontend, /\| 类别 \| 选择 \| 版本 \| 官方文档 \| 范例代码 \|/);
@@ -303,8 +302,17 @@ function runSelfTests() {
     assert.match(frontend, /ux:M-002:P-001/);
     assert.doesNotMatch(frontend, /ux:模块:/);
     assert.match(frontend, /\| 顺序 \| 内容类型 \| 内容引用 \| 显示条件 \|/);
-    assert.match(frontend, /## M-001 <模块名称>/);
-    assert.match(frontend, /登录请求：`state:M-001:P-001:S-001`/);
+    assert.match(frontend, /\| 页面 \| 路由 \| 说明 \|/);
+    assert.match(frontend, /\| `M-001:P-001` \| `\/login` \| 登录页 \|/);
+    assert.match(frontend, /## M-001 身份与认证/);
+    assert.match(frontend, /### P-001 登录页/);
+    assert.match(frontend, /docs\/<req组件>\/M-001\/FR-002\.md/);
+    assert.match(frontend, /ux:M-004:P-001/);
+    assert.match(frontend, /\| 002 \| — \| 跳转注册链接 \| 始终 \|/);
+    assert.match(frontend, /\| 003 \| `DIALOG-001` \| <对话框名称> \| <触发条件> \|/);
+    assert.match(frontend, /#### S-001 登录请求/);
+    assert.match(frontend, /\| 标签 \| 状态 \| 说明 \|/);
+    assert.match(frontend, /`state:M-001:P-001:S-001` \| 状态引用/);
     assert.match(frontend, /state:M-001:P-001:S-001:pending/);
     assert.doesNotMatch(frontend, /DATA-001|state:M-001:P-001:D-001|state:M-001:P-001:登录请求:pending/);
     assert.match(frontend, /不回填或实现 Draft 标签/);
