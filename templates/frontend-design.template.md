@@ -5,10 +5,10 @@
 ```text
 README.md 技术入口 + 显式 req
   → ux.md
-  → <组件>.design-token.css
-  → draft 初稿
-  → state.md（存在复杂状态时）
-  → draft 状态回填
+  → design.tokens.json
+  → draft 初稿（包含 layout、page、component 和复杂状态占位标签）
+  → state.md（存在复杂状态时，只定义状态，不回填 Draft）
+  → mapping.md
   → configuration.md
   → testing.md
   → README.md 索引与文件树校对
@@ -45,6 +45,14 @@ README 第一个创建或确认，为后续设计提供唯一技术基线：
 | 样式 | `<方案>` | `<精确版本>` | `<官方文档 URL>` | `<官方示例 URL 或仓库路径>` |
 | 测试 | `<工具>` | `<精确版本>` | `<官方文档 URL>` | `<官方示例 URL 或仓库路径>` |
 
+## 技术实现
+
+| 关注点 | 实现方式 | 适用范围 | 约束 | 示例代码 |
+|---|---|---|---|---|
+| 路由 | `<框架能力>` | `<页面范围>` | `<约束>` | `<最小代码片段或仓库路径>` |
+| 组件 | `<组件模型>` | `<组件范围>` | `<约束>` | `<最小代码片段或官方示例 URL>` |
+| 数据访问 | `<请求方案>` | `<接口范围>` | `<约束>` | `<最小代码片段或仓库路径>` |
+
 ## 文档索引
 
 | 文件 | 职责 |
@@ -63,21 +71,22 @@ README 第一个创建或确认，为后续设计提供唯一技术基线：
 
 - 只列当前组件实际采用的技术；版本来自项目清单、锁文件或已确认决策，不猜测或使用版本范围。
 - 官方文档直接链接所用版本页面；范例优先使用官方同版本示例，其次使用仓库内已验证示例。
-- README 不复制教程或大段范例代码；技术选择只在 README 维护，其他文件引用并说明如何落实。
+- README 是文件关系、框架、技术实现细节、官方文档和示例代码的唯一事实源；示例只保留能说明采用方式的最小片段或链接，不复制教程。
 
 ## 文件职责
 
 | 文件 | 唯一维护内容 |
 |---|---|
-| `README.md` | 职责、应用目录、开发模板、技术基线、文档索引、文件关系和应用文件树 |
+| `README.md` | 职责、应用目录、开发模板、技术基线、技术实现、官方文档、示例代码、文件关系和应用文件树 |
 | `ux.md` | 用户、模块、页面、入口、导航、布局、表单、交互和可访问性规则 |
-| `<组件>.design-token.css` | 颜色、字体、间距、尺寸、圆角、阴影和动效 CSS Custom Properties |
-| `draft/**` | 使用原生 Web Components 完整渲染当前组件的所有系统页面与设计状态 |
-| `state.md` | 复杂数据请求、共享状态、缓存、转换、并发和错误恢复 |
+| `design.tokens.json` | DTCG 2025.10 格式的颜色、字体、间距、尺寸、圆角、阴影和动效 Token |
+| `draft/**` | 使用原生 Web Components 完整渲染当前组件的布局、页面、复用组件和复杂状态交互占位 |
+| `state.md` | 供开发阶段实现的复杂数据请求、共享状态、缓存、转换、并发和错误恢复 |
+| `mapping.md` | Draft 布局、页面和组件到生产框架组件及目标路径的唯一映射 |
 | `configuration.md` | 配置项、环境差异和启动校验 |
 | `testing.md` | 页面、状态、响应式、可访问性、视觉、性能和契约验证要求 |
 
-没有复杂状态时不创建 `state.md`。README、UX、Token、Draft、配置和测试仍按实际需要维护，
+没有复杂状态时不创建 `state.md`。README、UX、Token、Draft、映射、配置和测试仍按实际需要维护，
 不再生成旧式 UI YAML 或手工维护第二份 Token 格式。
 
 ## `ux.md`
@@ -89,21 +98,40 @@ README 第一个创建或确认，为后续设计提供唯一技术基线：
 
 ## Design Token
 
-`<组件>.design-token.css` 是风格规范唯一事实源，直接供 Draft 使用：
+`design.tokens.json` 是风格规范唯一事实源，遵循 DTCG Design Tokens Format Module 2025.10，使用 `$type`、`$value`
+和分组类型继承：
 
-```css
-:root {
-  --color-primary: #2563eb;
-  --font-body: system-ui, sans-serif;
-  --space-2: 0.5rem;
-  --radius-md: 0.5rem;
-  --duration-fast: 120ms;
+```json
+{
+  "color": {
+    "$type": "color",
+    "primary": {
+      "$value": {
+        "colorSpace": "srgb",
+        "components": [0.145, 0.388, 0.922],
+        "alpha": 1,
+        "hex": "#2563eb"
+      }
+    }
+  },
+  "space": {
+    "$type": "dimension",
+    "small": {
+      "$value": { "value": 8, "unit": "px" }
+    }
+  },
+  "duration": {
+    "$type": "duration",
+    "fast": {
+      "$value": { "value": 120, "unit": "ms" }
+    }
+  }
 }
 ```
 
-- Token 使用稳定、语义化 CSS Custom Properties，不在页面或 Shadow DOM 内重复硬编码同一风格事实。
-- CSS Custom Properties 通过继承进入 Shadow DOM；组件内部只组合 Token。
-- 只有需要与非 Web 平台或设计工具交换时，才增加由 CSS 派生的机器格式，不建立第二份手工事实源。
+- Token 名称稳定且语义化；对象含 `$value` 时是 Token，不含 `$value` 时是分组，类型必须显式声明或从最近分组继承。
+- Draft 读取或机械转换该 JSON，不在页面、Layout 或 Shadow DOM 内重复硬编码同一风格事实。
+- 生产平台需要 CSS Custom Properties 或框架主题时，由开发阶段从 JSON 转换，不手工维护第二份 Token。
 
 ## Draft
 
@@ -113,6 +141,8 @@ Draft 是零框架、无构建步骤的可运行原型，完整渲染 `ux.md` �
 draft/
 ├─ index.html
 ├─ app.js
+├─ layouts/
+│  └─ LAYOUT-001-<layout>.js
 ├─ components/
 │  ├─ app-shell.js
 │  └─ draft-state.js
@@ -123,7 +153,7 @@ draft/
 ```
 
 - `index.html` 提供完整应用外壳、页面导航、视口和状态切换入口。
-- 页面、布局、可复用区域及独立状态边界使用原生 Custom Elements；名称必须包含连字符。
+- 页面、布局、可复用区域及独立状态边界使用原生 Custom Elements；名称必须包含连字符。共享页面骨架放在 `layouts/`，不复制到各页面。
 - Custom Element 使用 `attachShadow({ mode: "open" })`，便于评审、自动化检查和调试。
 - 只拆分页面、布局、复用区域和独立状态边界，不把一次性小元素组件化。
 - 可以使用多个普通 `defer` 脚本，确保直接打开即可预览；不引入框架、包、构建工具或生产依赖。
@@ -141,9 +171,9 @@ unauthorized、缓存、过期、乐观更新、并发请求及跨页面共享�
 </draft-state>
 ```
 
-## `state.md` 与回填
+## `state.md`
 
-存在 `pending:state:*` 时必须创建 `state.md`，分配稳定 `DATA-001` 并定义：
+Draft 初稿必须为复杂状态及其交互保留 `pending:state:*` 标签。存在该标签时创建 `state.md`，分配稳定 `DATA-001` 并定义：
 
 ```md
 ### DATA-001 <状态名称>
@@ -155,16 +185,24 @@ unauthorized、缓存、过期、乐观更新、并发请求及跨页面共享�
 - 缓存：<存在时填写>
 - 并发：<存在时填写>
 - 恢复：<重试、回滚或回退>
-- Draft：`draft-state[ref="state:DATA-001"]`
+- Draft：`draft-state[ref="pending:state:预约列表"]`
 ```
 
-状态完成后必须把 Draft 标签更新为稳定引用并实现状态切换：
+`state.md` 填写状态含义、转换和恢复要求，但不回填或实现 Draft 标签；`pending:state:*` 是交给 `<dev 组件>` 的明确实现边界，
+允许保留在完成的 Draft 中。Draft 只展示占位界面和预期交互入口，生产状态逻辑由开发阶段按 `state.md` 实现。
 
-```html
-<draft-state ref="state:DATA-001" states="loading empty success error unauthorized"></draft-state>
+## `mapping.md`
+
+```md
+| Draft | UX/State 引用 | 框架组件 | 目标路径 | 职责 | 输入/输出 | 实现状态 |
+|---|---|---|---|---|---|---|
+| `draft/layouts/LAYOUT-001-app.js` | `ux:布局:LAYOUT-001` | `AppLayout` | `src/layouts/AppLayout.<扩展名>` | 应用外壳 | `<输入/输出>` | planned |
+| `draft/pages/M-001-P-001-home.js` | `ux:模块:M-001:P-001` | `HomePage` | `src/pages/HomePage.<扩展名>` | 首页 | `<输入/输出>` | planned |
 ```
 
-`pending:state:*` 不得进入完成产物。Draft 展示状态，`state.md` 唯一定义状态含义和转换。
+- 每个 Draft layout、page 和可复用 component 必须且只能映射一个生产框架组件；纯展示辅助文件不映射。
+- 框架组件名和目标路径遵循 README 已确认的框架及项目结构，不在映射文件重新选择技术。
+- `mapping.md` 只定义实现去向和边界，不复制 Draft 代码；`<dev 组件>` 按映射实现并更新实现状态。
 
 ## 契约、配置与测试
 
@@ -177,8 +215,10 @@ unauthorized、缓存、过期、乐观更新、并发请求及跨页面共享�
 ## 完成检查
 
 - README 在其他设计前建立，应用目录、`frontend` 模板、实际版本、官方文档和范例代码完整可用。
-- UX、Token、Draft、State、配置和测试引用方向一致，没有 `*.ui.yml`、重复事实或孤立文件。
-- Draft 使用 Web Components 和开放 Shadow DOM，能完整导航并渲染所有已定义页面和状态。
-- 没有 `pending:state:*`；复杂状态均在 `state.md` 定义并回填稳定引用。
+- UX、Token、Draft、State、Mapping、配置和测试引用方向一致，没有 `*.ui.yml`、重复事实或孤立文件。
+- `design.tokens.json` 符合 DTCG 2025.10 的 `$type`、`$value` 和类型值结构，没有第二份手工 Token。
+- Draft 使用 Web Components 和开放 Shadow DOM，能完整导航并渲染所有已定义 layout、page、component 和状态占位。
+- 每个 `pending:state:*` 都在 `state.md` 有唯一 DATA 定义；Draft 未实现复杂生产状态逻辑。
+- `mapping.md` 覆盖全部需生产实现的 Draft layout、page 和 component，框架组件及目标路径明确。
 - Draft 无框架、无构建依赖、无真实 API 和生产业务逻辑；无障碍与响应式检查已完成。
 - README 最终索引和完整应用文件树已校对。
