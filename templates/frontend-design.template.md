@@ -61,39 +61,29 @@ flowchart LR
   UX --> DRAFT["draft/**"]
   TOKENS["design.tokens.json"] --> DRAFT
   DRAFT --> MAPPING["mapping.md"]
+  DRAFT --> STATE["state.md"]
   DRAFT --> TESTING["testing.md"]
   MAPPING --> TESTING
-  STATE["state.md"] --> TESTING
+  STATE --> TESTING
   CONFIG["configuration.md"] --> TESTING
 ```
 
 ## 技术实现
 
-每个实际采用的实现主题使用一个三级标题和一个代码块，不使用汇总表格。
-
-### Token 刷新
-
-```<语言>
-<最小、可验证的实现代码>
-```
-
-### 页面权限
-
-```<语言>
-<最小、可验证的实现代码>
-```
+### <关键技术>
 ````
 
 - 只列当前组件实际采用的技术；版本来自项目清单、锁文件或已确认决策，不猜测或使用版本范围。
 - 官方文档直接链接所用版本页面。
 - README 的第一条引用必须指向显式 `req` 组件；README 是文件关系、框架、技术实现细节、官方文档和示例代码的唯一事实源。
-- `## 技术实现` 位于 README 文末；每个实际主题各用一个 `###` 和一个代码块，只保留能说明采用方式的最小实现，不复制教程。
+- `## 技术实现` 位于 README 文末；初始化时可仅保留空的 `### <关键技术>`，后续按实际情况填写。
+  每个已填写主题各用一个 `###` 和一个代码块，只保留能说明采用方式的最小实现，不复制教程。
 
 ## 文件职责
 
 | 文件 | 唯一维护内容 |
 |---|---|
-| `README.md` | Require 引用、职责、应用目录、开发模板、技术基线、官方文档、文件关系和按主题组织的技术实现代码 |
+| `README.md` | Require 引用、职责、应用目录、开发模板、技术基线、官方文档、文件关系和按主题组织的技术实现 |
 | `ux.md` | 用户、模块、页面、入口、导航、布局、表单、交互和可访问性规则 |
 | `design.tokens.json` | DTCG 2025.10 格式的颜色、字体、间距、尺寸、圆角、阴影和动效 Token |
 | `draft/**` | 使用原生 Web Components 完整渲染当前组件的布局、页面、复用组件和复杂状态交互占位 |
@@ -228,7 +218,7 @@ Draft 初稿必须为复杂状态及其交互保留 `pending:state:*` 标签。�
 - `configuration.md` 只维护配置项、环境差异和启动校验，不重复 README 技术选择。
 - `testing.md` 使用 Given/When/Then 描述页面和状态结果，并覆盖 Draft 页面、响应式、键盘、焦点、
   语义、对比度、视觉差异、性能预算和契约映射中实际适用的部分。
-- 箭头表示“被引用文件 → 使用者”：Require → README、UX；UX、Design Token → Draft；Draft → Mapping；Draft、Mapping、State、Configuration → Testing。
+- 箭头表示“被引用文件 → 使用者”：Require → README、UX；UX、Design Token → Draft；Draft → Mapping、State；Draft、Mapping、State、Configuration → Testing。
   `design.tokens.json` 不引用 `ux.md`，`configuration.md` 不引用其他设计文件。
 
 ## 完成检查
@@ -240,4 +230,4 @@ Draft 初稿必须为复杂状态及其交互保留 `pending:state:*` 标签。�
 - 每个 `pending:state:*` 都在 `state.md` 有唯一 DATA 定义；Draft 未实现复杂生产状态逻辑。
 - `mapping.md` 覆盖全部需生产实现的 Draft layout、page 和 component，框架组件及目标路径明确。
 - Draft 无框架、无构建依赖、无真实 API 和生产业务逻辑；无障碍与响应式检查已完成。
-- README 最终索引、文件关系和文末技术实现代码已校对。
+- README 最终索引、文件关系和文末技术实现结构已校对。

@@ -285,10 +285,13 @@ function runSelfTests() {
     assert.match(frontend, /\| 类别 \| 选择 \| 版本 \| 官方文档 \|/);
     assert.doesNotMatch(frontend, /\| 类别 \| 选择 \| 版本 \| 官方文档 \| 范例代码 \|/);
     assert.match(frontend, /TOKENS\["design\.tokens\.json"\] --> DRAFT/);
+    assert.match(frontend, /DRAFT --> STATE\["state\.md"\]/);
     assert.doesNotMatch(frontend, /UX.*-->.*TOKENS|TOKENS.*-->.*UX/);
     assert.match(frontend, /CONFIG\["configuration\.md"\] --> TESTING/);
     assert.match(frontend, /Draft、Mapping、State、Configuration → Testing/);
-    assert.match(frontend, /## 技术实现[\s\S]*### Token 刷新[\s\S]*### 页面权限/);
+    assert.match(frontend, /## 技术实现\s+### <关键技术>/);
+    assert.match(frontend, /初始化时可仅保留空的 `### <关键技术>`/);
+    assert.doesNotMatch(frontend, /### Token 刷新|### 页面权限/);
     assert.doesNotMatch(frontend, /## 应用文件树/);
     assert.match(frontend, /`design\.tokens\.json` 是风格规范唯一事实源/);
     assert.match(frontend, /DTCG Design Tokens Format Module 2025\.10/);
