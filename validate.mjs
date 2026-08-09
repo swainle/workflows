@@ -178,9 +178,10 @@ function runSelfTests() {
     assert.match(issue, /\| `FR-003` \| \*\*user-logout\*\* \| 用户 \| 用户登出 \|/);
     assert.match(issue, /模块编号使用 `M-<三位编号>`/);
     assert.match(issue, /每个模块使用 `### M-<三位编号> <模块名称>` 三级标题和一张独立 FR 表/);
-    assert.match(issue, /每张表内的 FR 从 `001` 开始独立连续编号/);
+    assert.match(issue, /首个 FR 使用 `001`，新增 FR 使用历史最大编号加一，不填补空缺/);
     assert.match(issue, /`M-001\/FR-001` 与 `M-002\/FR-001` 可以同时存在/);
     assert.match(issue, /跨模块引用必须使用 `M-001\/FR-001` 等限定标识/);
+    assert.match(issue, /已有编号不因 Issue 或条目的增删而重排或复用，删除后允许保留编号空缺/);
     assert.match(issue, /功能标识使用组件内唯一的粗体 `\*\*kebab-case\*\*`/);
     assert.match(issue, /每个 FR 只属于一个主模块/);
     assert.match(issue, /跨模块协作由 FLOW 表达/);
@@ -210,7 +211,8 @@ function runSelfTests() {
     assert.match(issue, /一个 AC 对应一个 `\.feature`，包含一个或多个 TC/);
     assert.match(issue, /Scenario: <成功场景>[\s\S]*Scenario: <失败或边界场景>/);
     assert.match(issue, /@M-001-AC-001-TC-001/);
-    assert.match(issue, /在每个 AC 内从 `001` 独立连续/);
+    assert.match(issue, /在每个 AC 内从 `001` 独立递增分配/);
+    assert.match(issue, /已有 TC 不重排、不复用，删除后允许空缺/);
     assert.match(issue, /Issue 是可选需求输入/);
     assert.match(issue, /## 分析流程/);
     assert.match(issue, /读取索引中 `active \/ replaced \/ removed` 的全部 `M-\*\/FR-\*\.md`/);
