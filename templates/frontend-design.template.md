@@ -11,7 +11,7 @@ README.md 技术入口 + 显式 req
   → mapping.md
   → configuration.md
   → testing.md
-  → README.md 索引与文件树校对
+  → README.md 索引与文件关系校对
 ```
 
 ## 专家团
@@ -97,11 +97,64 @@ flowchart LR
 
 ## `ux.md`
 
-- 模块使用 `M-001`，模块内页面使用 `P-001`；跨文件页面引用为 `ux:模块:M-001:P-001`。
-- 布局和表单使用 `LAYOUT-001`、`FORM-001`。页面表是名称、入口、前置页面、登录要求、权限表现和无权处理的唯一事实源。
+````md
+# UX 设计
+
+> Ref: `docs/<req组件>/README.md`
+
+## M-001 <模块名称>
+
+### P-001 <页面名称>
+
+> Ref: `docs/<req组件>/M-001/FR-001.md`
+
+#### 路由
+
+- `/login`
+
+| 目标页面 | 访问权限 | 无权限表现 |
+|---|---|---|
+| `ux:M-002:P-001` | `anon:auth:login` | 弹窗提示 |
+
+#### LAYOUT-001 <布局名称>
+
+- 居中卡片，无导航栏
+
+| 顺序 | 组件引用 | 组件名称 | 显示条件 |
+|---|---|---|---|
+| 001 | `FORM-001` | <组件名称> | 始终 |
+| 002 | `DIALOG-001` | <组件名称> | 登录失败后 |
+
+#### FORM-001 <表单名称>
+
+| 字段标识 | 标签 | 控件 | 必填 | 规则引用 | 错误提示 |
+|---|---|---|---|---|---|
+| `phone` | 手机号 | `tel` | 是 | `M-001/BR-001` | 请输入有效的手机号 |
+| `password` | 密码 | `password` | 是 | `M-001/BR-002` | 请输入有效的密码 |
+
+#### DIALOG-001 <对话框名称>
+
+| 顺序 | 内容类型 | 内容引用 | 显示条件 |
+|---|---|---|---|
+| 001 | 表单 | `FORM-002` | 始终 |
+
+#### FORM-002 <对话框表单名称>
+
+| 字段标识 | 标签 | 控件 | 必填 | 规则引用 | 错误提示 |
+|---|---|---|---|---|---|
+| `departmentName` | 科室名称 | `text` | 是 | `M-001/BR-003` | 请输入科室名称 |
+| `description` | 简介 | `textarea` | 否 | — | — |
+
+#### 状态引用
+
+- 登录请求：`state:M-001:P-001:D-001`
+- Draft 标签：`state:M-001:P-001:D-001:pending`
+````
+
+- 二级标题固定为 `## M-001 <模块名称>`，三级标题是模块内页面编号 `### P-001 <页面名称>`；页面引用统一为 `ux:M-001:P-001`。
+- 布局、表单和对话框分别使用 `LAYOUT-001`、`FORM-001`、`DIALOG-001`；对话框内容通过表格引用内部表单。
 - 定义用户可观察的页面、导航和交互，不指定框架组件、请求缓存或生产源码结构。
-- 每个模块、页面和关键交互在首次定义处使用独立行 `> Ref: docs/<req组件>/require/M-001/FR-001.md` 引用具体 FR，
-  不复制需求或契约内容。
+- 每个模块、页面和关键交互在首次定义处引用具体 FR，不复制需求或契约内容。
 
 ## Design Token
 
@@ -172,7 +225,7 @@ unauthorized、缓存、过期、乐观更新、并发请求及跨页面共享�
 
 ```html
 <draft-state
-  ref="pending:state:预约列表"
+  ref="state:M-001:P-001:D-001:pending"
   states="loading empty success error unauthorized">
   <p>复杂状态留待 state.md 定义</p>
 </draft-state>
@@ -180,11 +233,13 @@ unauthorized、缓存、过期、乐观更新、并发请求及跨页面共享�
 
 ## `state.md`
 
-Draft 初稿必须为复杂状态及其交互保留 `pending:state:*` 标签。存在该标签时创建 `state.md`，分配稳定 `DATA-001` 并定义：
+Draft 初稿必须为复杂状态及其交互保留 `state:M-001:P-001:D-001:pending` 标签。存在该标签时创建 `state.md`，
+分配稳定 `state:M-001:P-001:D-001` 并定义；`D-001` 在每个页面内独立编号：
 
 ```md
-### DATA-001 <状态名称>
+### state:M-001:P-001:D-001 <状态名称>
 
+- 标识：`state:M-001:P-001:D-001`
 - 来源：<OpenAPI operationId 或本地状态来源>
 - 初始状态：<状态>
 - 状态：<状态列表>
@@ -192,10 +247,10 @@ Draft 初稿必须为复杂状态及其交互保留 `pending:state:*` 标签。�
 - 缓存：<存在时填写>
 - 并发：<存在时填写>
 - 恢复：<重试、回滚或回退>
-- Draft：`draft-state[ref="pending:state:预约列表"]`
+- Draft：`draft-state[ref="state:M-001:P-001:D-001:pending"]`
 ```
 
-`state.md` 填写状态含义、转换和恢复要求，但不回填或实现 Draft 标签；`pending:state:*` 是交给 `<dev 组件>` 的明确实现边界，
+`state.md` 填写状态含义、转换和恢复要求，但不回填或实现 Draft 标签；以 `:pending` 结尾的状态标签是交给 `<dev 组件>` 的明确实现边界，
 允许保留在完成的 Draft 中。Draft 只展示占位界面和预期交互入口，生产状态逻辑由开发阶段按 `state.md` 实现。
 
 ## `mapping.md`
@@ -204,7 +259,7 @@ Draft 初稿必须为复杂状态及其交互保留 `pending:state:*` 标签。�
 | Draft | UX/State 引用 | 框架组件 | 目标路径 | 职责 | 输入/输出 | 实现状态 |
 |---|---|---|---|---|---|---|
 | `draft/layouts/LAYOUT-001-app.js` | `ux:布局:LAYOUT-001` | `AppLayout` | `src/layouts/AppLayout.<扩展名>` | 应用外壳 | `<输入/输出>` | planned |
-| `draft/pages/M-001-P-001-home.js` | `ux:模块:M-001:P-001` | `HomePage` | `src/pages/HomePage.<扩展名>` | 首页 | `<输入/输出>` | planned |
+| `draft/pages/M-001-P-001-home.js` | `ux:M-001:P-001` | `HomePage` | `src/pages/HomePage.<扩展名>` | 首页 | `<输入/输出>` | planned |
 ```
 
 - 每个 Draft layout、page 和可复用 component 必须且只能映射一个生产框架组件；纯展示辅助文件不映射。
@@ -227,7 +282,7 @@ Draft 初稿必须为复杂状态及其交互保留 `pending:state:*` 标签。�
 - UX、Token、Draft、State、Mapping、配置和测试引用方向一致，没有 `*.ui.yml`、重复事实或孤立文件。
 - `design.tokens.json` 符合 DTCG 2025.10 的 `$type`、`$value` 和类型值结构，没有第二份手工 Token。
 - Draft 使用 Web Components 和开放 Shadow DOM，能完整导航并渲染所有已定义 layout、page、component 和状态占位。
-- 每个 `pending:state:*` 都在 `state.md` 有唯一 DATA 定义；Draft 未实现复杂生产状态逻辑。
+- 每个 `state:M-001:P-001:D-001:pending` 都在 `state.md` 有唯一 `state:M-001:P-001:D-001` 定义；Draft 未实现复杂生产状态逻辑。
 - `mapping.md` 覆盖全部需生产实现的 Draft layout、page 和 component，框架组件及目标路径明确。
 - Draft 无框架、无构建依赖、无真实 API 和生产业务逻辑；无障碍与响应式检查已完成。
 - README 最终索引、文件关系和文末技术实现结构已校对。
