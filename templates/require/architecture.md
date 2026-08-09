@@ -5,7 +5,7 @@
 
 ## 架构评审重点
 
-- 系统与 API 架构师：负责上下文、组件边界、跨组件流程和同步契约。
+- 系统与 API 架构师：负责上下文、组件边界、组件关系和同步契约。
 - 安全架构师：负责信任边界、认证、授权、数据保护、风险和例外。
 - 可靠性与交付架构师：负责可观测性、SLO、告警、Git 协作和发布边界。
 
@@ -15,21 +15,19 @@
 |---|---|
 | `context.md` | 系统边界、用户、外部系统和主要关系 |
 | `system.md` | 运行组件、数据存储、基础设施、入口及通信关系 |
-| `process.md` | 有实际编排复杂度的跨组件消息顺序 |
 | `security.md` | 全局安全目标、信任边界、控制基线、风险与例外 |
 | `observability.md` | 全局信号、遥测链路、SLI/SLO、告警与数据治理 |
 | `gitflow.md` | 分支、提交、评审、发布与热修复规则 |
 | `openapi.json` | 跨组件同步 HTTP 操作、Schema、错误、安全要求和提供方 |
 | `README.md` | Require 组件职责、文件关系和文档索引 |
 
-六个 Markdown 文件保留；没有适用内容时用一句话说明，不创建空表、空图或占位章节。
+五个 Markdown 文件保留；没有适用内容时用一句话说明，不创建空表、空图或占位章节。
 `openapi.json` 仅在系统存在跨组件同步 HTTP 契约时创建。
 
 ## 依赖顺序
 
 ```text
-需求输入 → context.md → system.md ─┬→ process.md
-                                ├→ security.md
+需求输入 → context.md → system.md ─┬→ security.md
                                 ├→ observability.md
                                 ├→ gitflow.md
                                 └→ openapi.json
@@ -98,55 +96,6 @@ C4Container
 - 不在本文件维护组件清单、应用路径、设计路径、凭据值或组件内部模块。
 - 端口和入口只登记运行时事实；环境差异与部署值属于部署配置。
 
-## `process.md`
-
-FR 定义用户可观察行为，需求 FLOW 定义纯业务步骤，`process.md` 只定义实现该 FLOW 时多个业务组件
-之间的调用或消息顺序。优先引用 FLOW；没有 FLOW 时才直接引用一个或多个 FR。
-
-```text
-FR：做什么、成功和失败结果
-FLOW：业务角色、步骤和分支
-BP：跨组件参与者、消息顺序和失败边界
-组件设计：单组件内部事务、数据库和代码调用
-```
-
-固定结构：
-
-````md
-# 跨组件流程
-
-## <业务域或角色>
-
-### BP-001 <流程名称>
-
-> Ref: FLOW-001
-
-```mermaid
-sequenceDiagram
-    actor User as <用户>
-    participant Web as web
-    participant Booking as booking
-    participant Schedule as schedule
-
-    User->>Web: <业务操作>
-    Web->>Booking: <组件请求>
-    Booking->>Schedule: <跨组件请求或消息>
-    Schedule-->>Booking: <结果>
-    Booking-->>Web: <用户可观察结果>
-```
-````
-
-仅当至少两个业务组件参与，并存在调用顺序、异步消息、跨组件状态、一致性、失败补偿或安全边界时创建 BP。
-普通 `Web → API → Database` CRUD、单组件查询或写入不创建 BP。数据库、缓存和队列只有在其交互
-影响跨组件保证时才作为参与者，不展示例行持久化。
-
-- BP 不重复 FR 的前置条件、输入、失败文案或业务规则，不重新绘制需求 FLOW。
-- BP 不得引入 FR/FLOW 未定义的新业务能力；发现缺失时先更新需求。
-- Token 刷新、会话吊销和认证握手属于 `security.md` 或认证组件设计。
-- 单组件事务、ORM、表写入和内部调用属于 Backend 组件设计。
-- 后台任务只有明确生产者、消息、消费者、顺序和失败处理时才进入 `process.md`。
-- 没有符合条件的流程时保留标题并写“当前没有需要独立维护的跨组件编排”。
-
 ## `security.md`
 
 固定结构：
@@ -182,7 +131,8 @@ sequenceDiagram
 - 维护身份、授权、通信、数据保护、密钥、审计和事件响应的全局结果与最低基线。
 - 不指定组件使用的库、中间件、源码位置或数据库字段；这些属于组件 `security.md`。
 - 只记录密钥类别、用途和注入要求，不维护变量值或开发凭据；变量名和环境配置属于部署文件。
-- 认证跨组件时序可以在“信任边界”下使用 sequenceDiagram，不再写入 `process.md`。
+- Token 刷新、会话吊销和认证握手属于 `security.md` 或认证组件设计。
+- 认证跨组件时序只在“信任边界”下使用 sequenceDiagram。
 
 ## `observability.md`
 
@@ -255,7 +205,6 @@ sequenceDiagram
 ## 完成检查
 
 - 当前需求输入、上下文、系统组件和真实运行关系一致；不存在中央应用目录登记表。
-- FLOW 与 BP 分工明确，BP 只保留有实际复杂度的跨组件编排，没有普通 CRUD 或新增需求行为。
 - 安全、可观测性和 Git 文件只维护全局基线，没有混入组件实现、部署值或单次状态。
 - OpenAPI 可解析，提供方对应真实文档组件，操作、错误和 Schema 引用完整。
-- README 最后更新，索引六个全局 Markdown 和实际存在的契约文件。
+- README 最后更新，索引五个全局 Markdown 和实际存在的契约文件。

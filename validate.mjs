@@ -21,11 +21,12 @@ export const PROMPT_FILES = [
   "templates/require/architecture.md",
   "templates/frontend-design.template.md",
   "templates/backend-design.template.md",
+  "templates/docker-design.template.md",
   "stages/doc.md",
   "stages/dev.md",
   "stages/component-test.md",
   "stages/test.md",
-  "stages/deploy.md",
+  "stages/docker.md",
 ];
 
 const APP_MAPPING = /^应用目录：`([^`]+\/)`\s*$/gm;
@@ -124,13 +125,14 @@ function runSelfTests() {
       "<doc 组件>",
       "<dev 组件>",
       "<test 组件>",
-      "<deploy 组件>",
+      "<docker 组件>",
       "<test>",
-      "<deploy>",
-      "<deploy update>",
+      "<docker>",
+      "<docker update>",
     ]) assert.ok(agents.includes(command), `missing ${command}`);
 
-    assert.match(agents, /tmp require\|frontend\|backend/);
+    assert.match(agents, /tmp require\|frontend\|backend\|docker/);
+    assert.doesNotMatch(agents, /<deploy(?: |>)|stages\/deploy\.md/);
     assert.match(agents, /req 需求组件 \[issue 编号\]/);
     assert.match(agents, /\[opt 文件\]/);
     assert.match(agents, /docs\/<组件>\/README\.md/);
@@ -153,6 +155,7 @@ function runSelfTests() {
       "stages/requirement.md",
       "stages/component.md",
       "stages/component-dev.md",
+      "stages/deploy.md",
       "templates/issue.template.md",
       "templates/arch-design.template.md",
     ]) {
@@ -162,19 +165,23 @@ function runSelfTests() {
 
   test("issue template keeps FR trace graphs and uses Feature as AC source", () => {
     const issue = prompt("templates/require/requirements.md");
-    assert.match(issue, /docs\/<组件>\/[\s\S]*├─ README\.md[\s\S]*├─ fr\/[\s\S]*FR-001\.md/);
+    assert.match(issue, /docs\/<组件>\/[\s\S]*├─ README\.md[\s\S]*├─ M-001\/[\s\S]*FR-001\.md[\s\S]*BR-001\.md/);
     assert.doesNotMatch(issue, /requirement\.md/);
     assert.match(issue, /`README\.md`：组件入口，保存组件职责、角色索引和全部 FR 的索引/);
     assert.match(issue, /# <组件名称>[\s\S]*## 角色索引[\s\S]*## 功能需求索引/);
-    for (const directory of ["br/", "flow/", "nfr/", "perm/"]) assert.ok(issue.includes(directory), `missing requirement directory: ${directory}`);
+    assert.match(issue, /M-002\/[\s\S]*FR-001\.md/);
     assert.doesNotMatch(issue, /items\//);
-    assert.match(issue, /### M-001 账户与认证[\s\S]*\| FR \| 功能标识 \| 名称 \| 主体 \| 业务对象 \| 动作 \| 状态 \| 来源 \|/);
-    assert.match(issue, /\| `FR-001` \| \*\*user-register\*\* \| 用户注册 \|/);
-    assert.match(issue, /\| `FR-002` \| \*\*user-login\*\* \| 用户登录 \|/);
-    assert.match(issue, /\| `FR-016` \| \*\*user-logout\*\* \| 用户登出 \|/);
+    assert.match(issue, /### M-001 账户与认证[\s\S]*\| FR \| 功能标识 \| 主体 \| 名称 \| 动作 \| 状态 \| 来源 \|/);
+    assert.doesNotMatch(issue, /\| FR \| 功能标识 \| 主体 \| 名称 \| 业务对象 \|/);
+    assert.match(issue, /\| `FR-001` \| \*\*user-register\*\* \| 用户 \| 用户注册 \|/);
+    assert.match(issue, /\| `FR-002` \| \*\*user-login\*\* \| 用户 \| 用户登录 \|/);
+    assert.match(issue, /\| `FR-003` \| \*\*user-logout\*\* \| 用户 \| 用户登出 \|/);
     assert.match(issue, /模块编号使用 `M-<三位编号>`/);
     assert.match(issue, /每个模块使用 `### M-<三位编号> <模块名称>` 三级标题和一张独立 FR 表/);
-    assert.match(issue, /功能标识使用唯一的粗体 `\*\*kebab-case\*\*`/);
+    assert.match(issue, /每张表内的 FR 从 `001` 开始独立连续编号/);
+    assert.match(issue, /`M-001\/FR-001` 与 `M-002\/FR-001` 可以同时存在/);
+    assert.match(issue, /跨模块引用必须使用 `M-001\/FR-001` 等限定标识/);
+    assert.match(issue, /功能标识使用组件内唯一的粗体 `\*\*kebab-case\*\*`/);
     assert.match(issue, /每个 FR 只属于一个主模块/);
     assert.match(issue, /跨模块协作由 FLOW 表达/);
     assert.match(issue, /\[#1\]\(https:\/\/github\.com\/swainle\/d5\/issues\/1\)/);
@@ -186,27 +193,27 @@ function runSelfTests() {
     assert.match(issue, /`CONFLICT` 未解决时不写入/);
     assert.match(issue, /# FR-001 <名称>/);
     assert.match(issue, /- 成功结果：<可观察的成功结果>/);
-    assert.match(issue, /features\/AC-001\.feature/);
+    assert.match(issue, /模块目录的 `AC-001\.feature`/);
     assert.doesNotMatch(issue, /REQ-\d/);
     assert.match(issue, /每个 FR 保留 Mermaid 追溯图/);
     assert.match(issue, /classDef focus fill:#2563eb,color:#fff,stroke:#1d4ed8,stroke-width:2px/);
-    assert.match(issue, /click AC001 "\.\.\/features\/AC-001\.feature"/);
-    assert.match(issue, /click PERM001 "\.\.\/perm\/PERM-001\.md"/);
-    assert.match(issue, /click NFR001 "\.\.\/nfr\/NFR-001\.md"/);
-    assert.match(issue, /click FLOW001 "\.\.\/flow\/FLOW-001\.md"/);
-    assert.match(issue, /## `FLOW` 业务流程[\s\S]*sequenceDiagram[\s\S]*stateDiagram-v2[\s\S]*## `NFR`/);
+    assert.match(issue, /click AC001 "AC-001\.feature"/);
+    assert.match(issue, /click PERM001 "PERM-001\.md"/);
+    assert.match(issue, /click NFR001 "NFR-001\.md"/);
+    assert.match(issue, /click FLOW001 "FLOW-001\.md"/);
+    assert.match(issue, /M-001\/FLOW-001\.md[\s\S]*sequenceDiagram[\s\S]*stateDiagram-v2[\s\S]*M-001\/NFR-001\.md/);
     assert.match(issue, /多角色交互、顺序、分支或回路使用 `sequenceDiagram`/);
     assert.match(issue, /多个状态和受限转换时追加 `stateDiagram-v2`/);
     assert.match(issue, /AC-001-TC-001/);
-    assert.match(issue, /click TC001 "\.\.\/features\/AC-001\.feature"/);
+    assert.match(issue, /click TC001 "AC-001\.feature"/);
     assert.doesNotMatch(issue, /AC-001\.md/);
     assert.match(issue, /一个 AC 对应一个 `\.feature`，包含一个或多个 TC/);
     assert.match(issue, /Scenario: <成功场景>[\s\S]*Scenario: <失败或边界场景>/);
-    assert.match(issue, /@AC-001-TC-001/);
+    assert.match(issue, /@M-001-AC-001-TC-001/);
     assert.match(issue, /在每个 AC 内从 `001` 独立连续/);
     assert.match(issue, /Issue 是可选需求输入/);
     assert.match(issue, /## 分析流程/);
-    assert.match(issue, /读取索引中 `active \/ replaced \/ removed` 的全部 `fr\/FR-\*\.md`/);
+    assert.match(issue, /读取索引中 `active \/ replaced \/ removed` 的全部 `M-\*\/FR-\*\.md`/);
     assert.match(issue, /不得用候选筛选代替全量读取/);
     assert.match(issue, /按“模块 × 角色 × 业务对象 × 动作”建立全量 CRUD 视图/);
     assert.match(issue, /缺少某个 CRUD 动作不自动构成需求/);
@@ -241,11 +248,12 @@ function runSelfTests() {
     assert.match(issue, /## 需求评审重点/);
   });
 
-  test("require, frontend and backend are optional doc templates", () => {
+  test("require, frontend, backend and docker are optional doc templates", () => {
     const agents = prompt("templates/AGENTS.template.md");
     assert.match(agents, /<doc 组件> tmp require \[issue 编号\]/);
     assert.match(agents, /<doc 组件> tmp frontend/);
     assert.match(agents, /<doc 组件> tmp backend/);
+    assert.match(agents, /<doc 组件> tmp docker/);
     const requireTemplate = prompt("templates/require.template.md");
     assert.match(requireTemplate, /<doc 组件> tmp require \[issue <编号>\]/);
     assert.match(requireTemplate, /templates\/require\/requirements\.md/);
@@ -255,16 +263,13 @@ function runSelfTests() {
     assert.match(requireTemplate, /验收与质量专家/);
     assert.match(requireTemplate, /总是运行专家团/);
     const arch = prompt("templates/require/architecture.md");
-    for (const file of ["context.md", "system.md", "process.md", "security.md", "observability.md", "gitflow.md", "openapi.json"]) {
+    for (const file of ["context.md", "system.md", "security.md", "observability.md", "gitflow.md", "openapi.json"]) {
       assert.ok(arch.includes(`\`${file}\``), `missing Arch file: ${file}`);
     }
+    assert.doesNotMatch(arch, /process\.md|\bBP-?\b|跨组件流程/);
     assert.match(arch, /不创建独立 system 阶段/);
     assert.match(arch, /C4Context/);
     assert.match(arch, /C4Container/);
-    assert.match(arch, /> Ref: FLOW-001/);
-    assert.match(arch, /仅当至少两个业务组件参与/);
-    assert.match(arch, /普通 `Web → API → Database` CRUD、单组件查询或写入不创建 BP/);
-    assert.match(arch, /BP 不得引入 FR\/FLOW 未定义的新业务能力/);
     assert.match(arch, /Token 刷新、会话吊销和认证握手属于 `security\.md`/);
     assert.match(arch, /不在本文件维护组件清单、应用路径、设计路径、凭据值/);
     assert.match(arch, /不指定 npm 包、SDK 初始化、Dashboard 配置或 Collector/);
@@ -288,6 +293,20 @@ function runSelfTests() {
     assert.match(backend, /技术选择的唯一事实源是 README/);
     assert.match(backend, /领域模型不得因为 README 中的框架、ORM 或消息技术而改变业务边界/);
     assert.match(backend, /## 专家团/);
+    const docker = prompt("templates/docker-design.template.md");
+    assert.match(docker, /用于 `<doc 组件> tmp docker`/);
+    assert.match(docker, /Docker 目录：`docker\/<组件>\/`/);
+    assert.match(docker, /只维护 `docs\/<组件>\/README\.md`/);
+    assert.match(docker, /README 是该组件容器编排文档的唯一文件/);
+    assert.doesNotMatch(docker, /orchestration\.md/);
+    assert.match(docker, /## 服务与依赖[\s\S]*## 端口与网络[\s\S]*## 卷与数据[\s\S]*## 配置与密钥/);
+    assert.match(docker, /不使用 `latest`/);
+    const dockerStage = prompt("stages/docker.md");
+    assert.match(dockerStage, /`<docker 组件>`：维护仓库根目录 `docker\/<组件>\/\*\*`/);
+    assert.match(dockerStage, /`<docker 组件>` 只能写 `docker\/<组件>\/\*\*`/);
+    assert.match(dockerStage, /`<docker update>` 在 `docker\/update\/`/);
+    assert.match(dockerStage, /`docs\/<组件>\/README\.md` 中已确认的服务/);
+    assert.doesNotMatch(dockerStage, /映射应用目录|deploy\//);
   });
 
   test("parses pure-document and mapped component READMEs", () => {

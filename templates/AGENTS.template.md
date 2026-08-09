@@ -42,7 +42,7 @@ node docs/workflows/install.mjs --workflows-updated
 - `docs/` 下每个一级目录都是文档组件，`docs/workflows/` 除外。
 - 组件入口固定为 `docs/<组件>/README.md`，不接受其他入口文件名。
 - `<doc 组件>` 可以创建组件；其他组件指令要求目录和 README 已存在。
-- 没有应用目录的组件是纯文档组件。
+- 没有应用目录的组件不支持 `<dev 组件>` 和 `<test 组件>`，但仍可使用文档和 Docker 指令。
 - 非纯文档组件必须在 README 中包含唯一应用目录和开发模板，格式如下：
 
   ```md
@@ -57,18 +57,19 @@ node docs/workflows/install.mjs --workflows-updated
 只解析消息开头第一对真实尖括号。指令头如下：
 
 ```text
-<doc 组件> [tmp require|frontend|backend] [req 需求组件 [issue 编号]] [issue 编号] [opt 文件] 任务
+<doc 组件> [tmp require|frontend|backend|docker] [req 需求组件 [issue 编号]] [issue 编号] [opt 文件] 任务
 <dev 组件> [opt 文件] 任务
 <test 组件> [opt 文件] 任务
-<deploy 组件> [opt 文件] 任务
+<docker 组件> [opt 文件] 任务
 <test> [opt 文件] 全局验收任务
-<deploy> [opt 文件] 全局部署任务
-<deploy update> [opt 文件] 升级方案任务
+<docker> [opt 文件] 全局容器编排任务
+<docker update> [opt 文件] 升级方案任务
 ```
 
 参数按上面的顺序出现，每种最多一次：
 
-- `tmp require|frontend|backend`：加载相应模板；`require` 统一维护需求、追溯和全局设计。
+- `tmp require|frontend|backend|docker`：加载相应模板；`require` 统一维护需求、追溯和全局设计，
+  `docker` 维护组件容器编排文档。
 - `req <需求组件>`：递归读取该组件的全部文件。
 - `req <需求组件> issue <编号>`：在上述文件之外读取对应 Issue，用于限定当前任务；Issue 编号不对应文档目录。
 - `<doc 组件> tmp require [issue <编号>]`：总是加载 Require 专家团、需求分析和架构规则；
@@ -80,7 +81,7 @@ node docs/workflows/install.mjs --workflows-updated
   一条指令只允许出现一个 `issue`。
 
 组件名只能包含字母、数字、点、下划线和连字符。保留全局指令优先于组件名；格式错误、
-未知参数、引用组件不存在、Issue 无法读取或应用目录缺失时停止并说明原因。
+未知参数、引用组件不存在、Issue 无法读取或开发、组件测试所需的应用目录缺失时停止并说明原因。
 
 ## 阶段路由
 
@@ -92,16 +93,17 @@ node docs/workflows/install.mjs --workflows-updated
 | `<doc 组件> tmp require [issue 编号]` | `stages/doc.md`、`templates/require.template.md`、`templates/require/requirements.md`、`templates/require/architecture.md` |
 | `<doc 组件> tmp frontend` | `stages/doc.md`、`templates/frontend-design.template.md` |
 | `<doc 组件> tmp backend` | `stages/doc.md`、`templates/backend-design.template.md` |
+| `<doc 组件> tmp docker` | `stages/doc.md`、`templates/docker-design.template.md` |
 | `<dev 组件>` | `docs/workflows/stages/dev.md` |
 | `<test 组件>` | `docs/workflows/stages/component-test.md` |
 | `<test>` | `docs/workflows/stages/test.md` |
-| `<deploy 组件>`、`<deploy>`、`<deploy update>` | `docs/workflows/stages/deploy.md` |
+| `<docker 组件>`、`<docker>`、`<docker update>` | `docs/workflows/stages/docker.md` |
 
-用户明确给出多个阶段时，按 doc → dev → test → deploy 顺序分别执行，不合并权限。
+用户明确给出多个阶段时，按 doc → dev → test → docker 顺序分别执行，不合并权限。
 
 ## 专家团协作
 
-Require、Frontend 和 Backend 模板各自定义专家团。加载模板后：
+Require、Frontend、Backend 和 Docker 模板各自定义专家团。加载模板后：
 
 1. 主 Agent 负责范围、权限、最终决策、文件修改和验证。
 2. 环境支持子 Agent 时，最多并行启动三个模板专家；专家只读取当前阶段允许的必要事实，不修改文件。
@@ -111,7 +113,7 @@ Require、Frontend 和 Backend 模板各自定义专家团。加载模板后：
 6. `opt` 仍只允许主 Agent 修改唯一目标文件；专家团不扩大读取、写入或阶段范围。
 
 `<dev 组件>` 和 `<test 组件>` 从 README 唯一的 Frontend 或 Backend 开发模板声明选择对应专家团；
-缺失、重复或值未知时停止。Require 是纯文档模板，不用于开发或组件测试。
+缺失、重复或值未知时停止。Require 和 Docker 是文档模板，不用于开发或组件测试。
 
 ## 权限与确认
 
@@ -119,7 +121,7 @@ Require、Frontend 和 Backend 模板各自定义专家团。加载模板后：
 互不隐含，移动同时要求源删除和目标创建权限。
 
 需求、文档设计或开发任务若存在会改变行为、契约、安全、数据、兼容性或目录映射的歧义，
-一次询问一个最关键问题；确认后再写入。测试和部署只在预期不唯一、扩大范围或产生外部副作用时确认。
+一次询问一个最关键问题；确认后再写入。测试和 Docker 阶段只在预期不唯一、扩大范围或产生外部副作用时确认。
 
 ## 消息结尾
 
