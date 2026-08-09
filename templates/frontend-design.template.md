@@ -7,7 +7,7 @@ README.md 技术入口 + 显式 req
   → ux.md
   → design.tokens.json
   → draft 初稿（包含 layout、page、component 和复杂状态占位标签）
-  → state.md（存在复杂状态时，只定义状态，不回填 Draft）
+  → state.md（存在复杂状态时，定义与 Draft 相同的稳定状态引用）
   → mapping.md
   → configuration.md
   → testing.md
@@ -102,15 +102,25 @@ flowchart LR
 
 > Ref: `docs/<req组件>/README.md`
 
-| 页面 | 路由 | 说明 |
-|---|---|---|
-| `M-001:P-001` | `/login` | 登录页 |
+| 页面 | 路由 | 布局 | 说明 |
+|---|---|---|---|
+| `M-001:P-001` | `/login` | `ux:M-001:LAYOUT-001` | 登录页 |
 
 ## M-001 身份与认证
+
+### LAYOUT-001 居中卡片布局
+
+- 居中卡片，无导航栏
+
+| 区域 | 组件引用 | 共享内容 | 显示条件 |
+|---|---|---|---|
+| `main` | — | 居中卡片内容插槽 | 始终 |
 
 ### P-001 登录页
 
 > Ref: `docs/<req组件>/M-001/FR-002.md`
+
+- 布局：`ux:M-001:LAYOUT-001`
 
 | 目标页面 | 访问权限 | 无权限表现 |
 |---|---|---|
@@ -119,15 +129,13 @@ flowchart LR
 | `ux:M-003:P-001` | `doctor:schedule:read` | 重定向至登录页 |
 | `ux:M-004:P-001` | `admin:dashboard:read` | 重定向至登录页 |
 
-#### LAYOUT-001
+#### 页面内容
 
-- 居中卡片，无导航栏
-
-| 顺序 | 组件引用 | 组件名称 | 显示条件 |
+| 布局区域 | 组件引用 | 组件名称 | 显示条件 |
 |---|---|---|---|
-| 001 | `FORM-001` | 登录表单 | 始终 |
-| 002 | — | 跳转注册链接 | 始终 |
-| 003 | `DIALOG-001` | <对话框名称> | <触发条件> |
+| `main` | `FORM-001` | 登录表单 | 始终 |
+| `main` | — | 跳转注册链接 | 始终 |
+| `main` | `DIALOG-001` | <对话框名称> | <触发条件> |
 
 #### FORM-001 登录表单
 
@@ -153,16 +161,63 @@ flowchart LR
 
 | 标签 | 状态 | 说明 |
 |---|---|---|
-| `state:M-001:P-001:S-001` | 状态引用 | 由 `state.md` 定义运行时状态与转换 |
-| `state:M-001:P-001:S-001:pending` | 待实现 | Draft 保留的复杂状态实现边界 |
+| `state:M-001:P-001:S-001` | 状态引用 | UX、Draft 和 `state.md` 共用；运行时状态与转换由 `state.md` 定义 |
 ````
 
-- 文件开头的页面表是页面、路由和说明的唯一索引；二级标题固定为 `## M-001 <模块名称>`，三级标题固定为
-  `### P-001 <页面名称>`，页面引用统一为 `ux:M-001:P-001`。
-- 布局、表单和对话框分别使用 `LAYOUT-001`、`FORM-001`、`DIALOG-001`；对话框内容通过表格引用内部表单。
-- 页面内复杂状态使用 `#### S-001 <状态名称>` 和状态标签表；`:pending` 只表示 Draft 待实现，不表示运行时 `loading`。
+- 文件开头的页面表是页面、路由、布局和说明的唯一索引；二级标题固定为 `## M-001 <模块名称>`。
+- Layout 与 Page 都是模块下的三级标题，分别使用 `### LAYOUT-001 <布局名称>`、`### P-001 <页面名称>`；引用使用
+  `ux:M-001:LAYOUT-001`、`ux:M-001:P-001`。其他模块复用 Layout 时引用其完整所有者标识，不复制定义。
+- Layout 定义可复用结构、区域和跨页面共享内容，可以直接包含导航栏、搜索框、登录/登出按钮等共享元素或组件；
+  不包含页面专属表单、摘要或状态。页面通过“页面内容”表把 Form、Dialog 或普通内容绑定到 Layout 区域。
+- 表单和对话框分别使用 `FORM-001`、`DIALOG-001`；对话框内容通过表格引用内部表单。
+- `P-001` 和 `LAYOUT-001` 分别在每个模块内从 `001` 开始；`FORM-001`、`DIALOG-001`、`COMP-001`、`S-001` 分别在每个页面内
+  从 `001` 独立编号。同页使用短标识，跨页引用使用 `ux:M-001:P-001:FORM-001` 等完整标识。
+- 已分配编号是稳定引用，不因展示顺序或条目删除而重排、复用；页面内新增项使用同类型历史最大编号加一。
+- 页面内复杂状态使用 `#### S-001 <状态名称>` 和状态标签表；UX、Draft、`state.md` 和 dev 全程使用
+  `state:M-001:P-001:S-001`，不增加生命周期后缀。
 - 定义用户可观察的页面、导航和交互，不指定框架组件、请求缓存或生产源码结构。
 - 每个模块、页面和关键交互在首次定义处引用具体 FR，不复制需求或契约内容。
+
+### 数据表格型 `COMP-001`
+
+具有排序、分页、筛选、行操作或独立状态的数据表格使用页面级复合组件 `COMP-001`；简单静态表格不分配组件编号：
+
+````md
+#### COMP-001 预约列表
+
+- 类型：数据表格
+- 状态引用：`state:M-002:P-001:S-001`
+- 行标识：`appointmentId`
+- 默认排序：预约时间倒序
+- 分页：每页 20 条
+
+| 列标识 | 列名称 | 数据字段 | 展示方式 | 排序 | 窄屏表现 |
+|---|---|---|---|---|---|
+| `time` | 预约时间 | `appointmentTime` | 日期时间 | 是 | 始终显示 |
+| `department` | 科室 | `departmentName` | 文本 | 是 | 始终显示 |
+| `doctor` | 医生 | `doctorName` | 文本 | 否 | 隐藏 |
+| `status` | 状态 | `status` | 状态标签 | 是 | 始终显示 |
+| `actions` | 操作 | — | 操作按钮 | 否 | 折叠菜单 |
+
+##### 行操作
+
+| 操作 | 权限引用 | 显示条件 | 目标页面 | 无权限表现 |
+|---|---|---|---|---|
+| 查看详情 | `patient:appointment:read` | 始终 | `ux:M-002:P-002` | 隐藏 |
+| 取消预约 | `patient:appointment:cancel` | 状态为待就诊 | — | 隐藏 |
+
+##### 页面表现
+
+| 运行时状态 | 页面表现 |
+|---|---|
+| `loading` | 显示表格骨架 |
+| `empty` | 显示“暂无预约”和创建入口 |
+| `success` | 显示预约数据 |
+| `error` | 显示错误提示和重试按钮 |
+````
+
+- `ux.md` 维护列、排序、响应式表现、行操作和用户反馈；`state.md` 维护状态转换、缓存、并发和恢复。
+- 权限必须引用 Require 已登记的 PERM；数据字段引用契约或已确认的页面视图字段，不在 UX 猜测数据库字段。
 
 ## Design Token
 
@@ -210,10 +265,11 @@ draft/
 ├─ index.html
 ├─ app.js
 ├─ layouts/
-│  └─ LAYOUT-001-<layout>.js
+│  └─ M-001-LAYOUT-001-<layout>.js
 ├─ components/
 │  ├─ app-shell.js
-│  └─ draft-state.js
+│  ├─ draft-state.js
+│  └─ M-001-P-001-COMP-001-<component>.js
 ├─ pages/
 │  └─ M-001-P-001-<page>.js
 └─ assets/
@@ -233,7 +289,7 @@ unauthorized、缓存、过期、乐观更新、并发请求及跨页面共享�
 
 ```html
 <draft-state
-  ref="state:M-001:P-001:S-001:pending"
+  ref="state:M-001:P-001:S-001"
   states="loading empty success error unauthorized">
   <p>复杂状态留待 state.md 定义</p>
 </draft-state>
@@ -241,8 +297,8 @@ unauthorized、缓存、过期、乐观更新、并发请求及跨页面共享�
 
 ## `state.md`
 
-Draft 初稿必须为复杂状态及其交互保留 `state:M-001:P-001:S-001:pending` 标签。存在该标签时创建 `state.md`，
-分配稳定 `state:M-001:P-001:S-001` 并定义；`S-001` 在每个页面内独立编号：
+Draft 初稿必须为复杂状态及其交互保留稳定 `state:M-001:P-001:S-001` 标签。存在该标签时创建 `state.md` 并定义；
+`S-001` 在每个页面内独立编号：
 
 ```md
 ### state:M-001:P-001:S-001 <状态名称>
@@ -255,19 +311,20 @@ Draft 初稿必须为复杂状态及其交互保留 `state:M-001:P-001:S-001:pen
 - 缓存：<存在时填写>
 - 并发：<存在时填写>
 - 恢复：<重试、回滚或回退>
-- Draft：`draft-state[ref="state:M-001:P-001:S-001:pending"]`
+- Draft：`draft-state[ref="state:M-001:P-001:S-001"]`
 ```
 
-`state.md` 填写状态含义、转换和恢复要求，但不回填或实现 Draft 标签；以 `:pending` 结尾的状态标签是交给 `<dev 组件>` 的明确实现边界，
-允许保留在完成的 Draft 中。Draft 只展示占位界面和预期交互入口，生产状态逻辑由开发阶段按 `state.md` 实现。
+`state.md` 填写状态含义、转换和恢复要求，但不在 Draft 实现生产状态逻辑；稳定状态标签是交给 `<dev 组件>` 的明确实现边界。
+Draft 只展示占位界面和预期交互入口，生产状态逻辑由开发阶段按 `state.md` 实现。
 
 ## `mapping.md`
 
 ```md
 | Draft | UX/State 引用 | 框架组件 | 目标路径 | 职责 | 输入/输出 | 实现状态 |
 |---|---|---|---|---|---|---|
-| `draft/layouts/LAYOUT-001-app.js` | `ux:布局:LAYOUT-001` | `AppLayout` | `src/layouts/AppLayout.<扩展名>` | 应用外壳 | `<输入/输出>` | planned |
+| `draft/layouts/M-001-LAYOUT-001-app.js` | `ux:M-001:LAYOUT-001` | `AppLayout` | `src/layouts/AppLayout.<扩展名>` | 应用外壳 | `<输入/输出>` | planned |
 | `draft/pages/M-001-P-001-home.js` | `ux:M-001:P-001` | `HomePage` | `src/pages/HomePage.<扩展名>` | 首页 | `<输入/输出>` | planned |
+| `draft/components/M-002-P-001-COMP-001-appointment-list.js` | `ux:M-002:P-001:COMP-001` | `AppointmentList` | `src/components/AppointmentList.<扩展名>` | 预约列表 | `<输入/输出>` | planned |
 ```
 
 - 每个 Draft layout、page 和可复用 component 必须且只能映射一个生产框架组件；纯展示辅助文件不映射。
@@ -290,7 +347,7 @@ Draft 初稿必须为复杂状态及其交互保留 `state:M-001:P-001:S-001:pen
 - UX、Token、Draft、State、Mapping、配置和测试引用方向一致，没有 `*.ui.yml`、重复事实或孤立文件。
 - `design.tokens.json` 符合 DTCG 2025.10 的 `$type`、`$value` 和类型值结构，没有第二份手工 Token。
 - Draft 使用 Web Components 和开放 Shadow DOM，能完整导航并渲染所有已定义 layout、page、component 和状态占位。
-- 每个 `state:M-001:P-001:S-001:pending` 都在 `state.md` 有唯一 `state:M-001:P-001:S-001` 定义；Draft 未实现复杂生产状态逻辑。
+- 每个 `state:M-001:P-001:S-001` 都在 `state.md` 有唯一同名定义；Draft 未实现复杂生产状态逻辑。
 - `mapping.md` 覆盖全部需生产实现的 Draft layout、page 和 component，框架组件及目标路径明确。
 - Draft 无框架、无构建依赖、无真实 API 和生产业务逻辑；无障碍与响应式检查已完成。
 - README 最终索引、文件关系和文末技术实现结构已校对。
