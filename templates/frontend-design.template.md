@@ -23,7 +23,7 @@ README.md 技术入口 + 显式 req
 - 只读取 README、`ux.md`、`design.tokens.json` 和现有 Draft 依赖；显式给出 `req` 时，可再读取该页面引用的 Require 文件。
 - 只创建或修改该页面的 `draft/src/M-001/P-001/**` 及其引用的 `draft/src/M-001/LAYOUT-*/**`，以及让该页面可预览所必需的
   `draft/index.html`、`draft/src/index.js`、
-  `draft/src/app.js`、`draft/src/components/app-shell/**`、`draft/src/components/draft-state/**`、`draft/src/styles/**` 和
+  `draft/src/app.js`、`draft/src/components/app-shell/**`、`draft/src/components/draft-dialog/**`、`draft/src/components/draft-state/**`、`draft/src/styles/**` 和
   `draft/src/utils/load-text.js`。
 - 共享 Draft 文件只做注册、导航和渲染当前页所需的最小修改，保留其他页面及用户修改。
 - 不修改 `ux.md` 或 `design.tokens.json`，不创建或修改 `state.md`、`mapping.md`、`configuration.md`、`testing.md`
@@ -32,7 +32,7 @@ README.md 技术入口 + 显式 req
 
 ## 专家团
 
-- UX 与无障碍专家：负责用户、页面、导航、交互语义、响应式和可访问性边界。
+- UX 与无障碍专家：负责用户、页面、导航、交互语义、目标设备和可访问性边界。
 - UI 与 Web Components 专家：负责 Design Token、组件边界、Shadow DOM 和完整 Draft 渲染。
 - Frontend 架构与测试专家：负责复杂状态、配置、性能和测试策略。
 
@@ -106,7 +106,7 @@ flowchart LR
 | `state.md` | 供开发阶段实现的复杂数据请求、共享状态、缓存、转换、并发和错误恢复 |
 | `mapping.md` | Draft 布局、页面和组件到生产框架组件及目标路径的唯一映射 |
 | `configuration.md` | 配置项、环境差异和启动校验 |
-| `testing.md` | 页面、状态、响应式、可访问性、视觉、性能和契约验证要求 |
+| `testing.md` | 页面、状态、目标设备、可访问性、视觉、性能和契约验证要求 |
 
 没有复杂状态时不创建 `state.md`。README、UX、Token、Draft、映射、配置和测试仍按实际需要维护，
 不再生成旧式 UI YAML 或手工维护第二份 Token 格式。
@@ -118,15 +118,16 @@ flowchart LR
 
 > Ref: `docs/<req组件>/README.md`
 
-| 页面 | 路由 | 布局 | 说明 |
-|---|---|---|---|
-| `M-001:P-001` | `/login` | `ux:M-001:LAYOUT-001` | 登录页 |
+| 页面 | 路由 | 布局 | 目标设备 | 说明 |
+|---|---|---|---|---|
+| `M-001:P-001` | `/login` | `ux:M-001:LAYOUT-001` | `desktop` | 登录页 |
 
 ## M-001 身份与认证
 
 ### LAYOUT-001 居中卡片布局
 
 - 居中卡片，无导航栏
+- 目标设备：`desktop`
 
 | 区域 | 组件引用 | 共享内容 | 显示条件 |
 |---|---|---|---|
@@ -137,6 +138,7 @@ flowchart LR
 > Ref: `docs/<req组件>/M-001/FR-002.md`
 
 - 布局：`ux:M-001:LAYOUT-001`
+- 目标设备：`desktop`
 
 | 目标页面 | 访问权限 | 无权限表现 |
 |---|---|---|
@@ -180,11 +182,13 @@ flowchart LR
 | `state:M-001:P-001:S-001` | 状态引用 | UX、Draft 和 `state.md` 共用；运行时状态与转换由 `state.md` 定义 |
 ````
 
-- 文件开头的页面表是页面、路由、布局和说明的唯一索引；二级标题固定为 `## M-001 <模块名称>`。
+- 文件开头的页面表是页面、路由、布局、目标设备和说明的唯一索引；二级标题固定为 `## M-001 <模块名称>`。
 - Layout 与 Page 都是模块下的三级标题，分别使用 `### LAYOUT-001 <布局名称>`、`### P-001 <页面名称>`；引用使用
   `ux:M-001:LAYOUT-001`、`ux:M-001:P-001`。其他模块复用 Layout 时引用其完整所有者标识，不复制定义。
 - Layout 定义可复用结构、区域和跨页面共享内容，可以直接包含导航栏、搜索框、登录/登出按钮等共享元素或组件；
   不包含页面专属表单、摘要或状态。页面通过“页面内容”表把 Form、Dialog 或普通内容绑定到 Layout 区域。
+- Layout、Page 和页面级 `COMP-001` 各自只声明一个 `desktop`、`tablet` 或 `mobile` 目标设备；不要求同一组件同时自适应其他设备。
+  需要另一设备时分配新的稳定 Layout、Page 或 Component 标识，不在原组件内增加未声明的自适应分支。
 - 表单和对话框分别使用 `FORM-001`、`DIALOG-001`；对话框内容通过表格引用内部表单。
 - `P-001` 和 `LAYOUT-001` 分别在每个模块内从 `001` 开始；`FORM-001`、`DIALOG-001`、`COMP-001`、`S-001` 分别在每个页面内
   从 `001` 独立编号。同页使用短标识，跨页引用使用 `ux:M-001:P-001:FORM-001` 等完整标识。
@@ -202,18 +206,19 @@ flowchart LR
 #### COMP-001 预约列表
 
 - 类型：数据表格
+- 目标设备：`desktop`
 - 状态引用：`state:M-002:P-001:S-001`
 - 行标识：`appointmentId`
 - 默认排序：预约时间倒序
 - 分页：每页 20 条
 
-| 列标识 | 列名称 | 数据字段 | 展示方式 | 排序 | 窄屏表现 |
-|---|---|---|---|---|---|
-| `time` | 预约时间 | `appointmentTime` | 日期时间 | 是 | 始终显示 |
-| `department` | 科室 | `departmentName` | 文本 | 是 | 始终显示 |
-| `doctor` | 医生 | `doctorName` | 文本 | 否 | 隐藏 |
-| `status` | 状态 | `status` | 状态标签 | 是 | 始终显示 |
-| `actions` | 操作 | — | 操作按钮 | 否 | 折叠菜单 |
+| 列标识 | 列名称 | 数据字段 | 展示方式 | 排序 |
+|---|---|---|---|---|
+| `time` | 预约时间 | `appointmentTime` | 日期时间 | 是 |
+| `department` | 科室 | `departmentName` | 文本 | 是 |
+| `doctor` | 医生 | `doctorName` | 文本 | 否 |
+| `status` | 状态 | `status` | 状态标签 | 是 |
+| `actions` | 操作 | — | 操作按钮 | 否 |
 
 ##### 行操作
 
@@ -232,7 +237,7 @@ flowchart LR
 | `error` | 显示错误提示和重试按钮 |
 ````
 
-- `ux.md` 维护列、排序、响应式表现、行操作和用户反馈；`state.md` 维护状态转换、缓存、并发和恢复。
+- `ux.md` 维护列、排序、目标设备、行操作和用户反馈；`state.md` 维护状态转换、缓存、并发和恢复。
 - 权限必须引用 Require 已登记的 PERM；数据字段引用契约或已确认的页面视图字段，不在 UX 猜测数据库字段。
 
 ## Design Token
@@ -290,6 +295,10 @@ draft/
    │  │  ├─ index.js
    │  │  ├─ style.css
    │  │  └─ template.html  # 按需
+   │  ├─ draft-dialog/
+   │  │  ├─ index.js
+   │  │  ├─ style.css
+   │  │  └─ template.html
    │  └─ draft-state/
    │     ├─ index.js
    │     └─ style.css
@@ -325,7 +334,7 @@ draft/
 - `index.html` 使用 `<script type="module" src="./src/index.js"></script>`；ES Modules 和 CSS/HTML 资源通过本地 HTTP 服务器预览，
   不再支持 `file://` 直接打开。开发服务器和构建方式使用 README 已确认的技术基线，不在 Draft 另选工具。
 - 不调用真实 API、不写生产业务逻辑、不复制到应用源码，也不被生产应用导入。
-- 使用语义化 HTML，覆盖桌面与移动视口、键盘、焦点、对比度和动效降级。
+- 使用语义化 HTML，在组件声明的唯一目标设备上覆盖键盘、焦点、对比度和动效降级；不额外要求跨设备自适应。
 
 ### Custom Element 文件格式
 
@@ -377,6 +386,7 @@ window.customElements.define("m001-p001-login", LoginPage);
 - 标签名全小写且至少包含一个连字符；文件名保留 UX 稳定标识，类名使用 PascalCase。
 - 组件私有样式从同目录 `style.css` 注入 `template` 的 `<style>`，使用 `:host` 定义宿主样式；`src/styles/global.css` 只保留全局外壳样式，
   `src/styles/tokens.css` 是由 `design.tokens.json` 机械转换的 CSS Custom Properties，Shadow DOM 通过 `var(--token-name)` 继承使用。
+- Draft 所有颜色，包括页面、组件、状态和弹窗颜色，必须来自 `src/styles/tokens.css`；组件 CSS 不手写 hex、`rgb()`、`hsl()` 或颜色名。
 - 每次创建组件实例都使用 `template.content.cloneNode(true)`，不在多个实例间移动或共享可变 DOM 节点。
 - 事件直接绑定到 Shadow DOM 内的目标元素或根节点；需要通知外部时派发语义明确的 `CustomEvent`。
 
@@ -389,13 +399,22 @@ window.customElements.define("m001-p001-login", LoginPage);
 - `app-shell` 提供已登录、退出和匿名状态的可见切换入口，使需要身份的页面默认可交互，同时可验证无权限表现。
 - 账户和会话只存在内存中，刷新后恢复默认状态；不使用 Cookie、`localStorage` 或真实认证请求。
 
-Hover、focus、active、disabled、展开、选择和简单表单校验直接在 Draft 实现。API loading、empty、error、
-unauthorized、缓存、过期、乐观更新、并发请求及跨页面共享状态先使用标签：
+### 弹窗与运行状态
+
+- `app-shell` 只挂载一个共享 `<draft-dialog>`，内部使用原生 `<dialog>`、`showModal()` 和 `close()`；同一时刻只显示一条提示。
+- 用户跳转到 `ux.md` 已定义但 Draft 尚未生成的页面时，弹窗显示“页面尚未生成”、目标 UX 标识和返回操作；
+  保留当前可用页，该预期分支不记录为控制台 error。
+- 当前页面实际适用的 loading、empty、success、error 或 unauthorized 等运行状态可由 `draft-state` 派发事件，
+  统一交给 `draft-dialog` 显示；状态列表必须来自当前 UX/State，不机械生成不适用状态，不把所有状态堆叠在页面内。
+- 弹窗必须有标题、可访问名称、明确关闭操作和焦点管理；打开后焦点进入弹窗，关闭后返回触发元素。
+- 弹窗的背景、文字、边框、阴影、遮罩和各状态颜色只使用 Token CSS Variables。
+
+Hover、focus、active、disabled、展开、选择和简单表单校验直接在 Draft 实现。复杂状态使用稳定标签：
 
 ```html
 <draft-state
   ref="state:M-001:P-001:S-001"
-  states="loading empty success error unauthorized">
+  states="loading error success">
   <p>复杂状态留待 state.md 定义</p>
 </draft-state>
 ```
@@ -441,23 +460,28 @@ Draft 只展示占位界面和预期交互入口，生产状态逻辑由开发�
 - HTTP 请求引用显式需求组件中 OpenAPI 的稳定 `operationId`；契约缺失时停止，不在 Frontend 文档补造。
 - 临时 Mock 必须标记 `pending`，由 OpenAPI Schema 或示例生成，并说明移除条件。
 - `configuration.md` 只维护配置项、环境差异和启动校验，不重复 README 技术选择。
-- `testing.md` 使用 Given/When/Then 描述页面和状态结果，并覆盖 Draft 页面、响应式、键盘、焦点、
-  语义、对比度、视觉差异、性能预算和契约映射中实际适用的部分。
+- `testing.md` 使用 Given/When/Then 描述页面和状态结果，并覆盖 Draft 页面、目标设备、键盘、焦点、
+  语义、对比度、视觉差异、性能预算和契约映射中实际适用的部分；尺寸只验证组件声明的目标设备，
+  不要求未声明的跨设备自适应。
 - 箭头表示“被引用文件 → 使用者”：Require → README、UX；UX、Design Token → Draft；Draft → Mapping、State；Draft、Mapping、State、Configuration → Testing。
   `design.tokens.json` 不引用 `ux.md`，`configuration.md` 不引用其他设计文件。
 
 ## 完成检查
 
-`ux` 页面范围只检查目标页面可直接预览、默认演示账户可完成该页主要交互、页面引用与 `ux.md` 一致、Token 无重复硬编码、
+`ux` 页面范围只检查目标页面可直接预览、默认演示账户可完成该页主要交互、未生成页面和适用运行状态能通过弹窗显示、
+页面引用与 `ux.md` 一致、所有颜色均来自 Token、目标设备表现正确、控制台无未处理 error，
 共享文件未破坏已有页面，并确认没有修改页面范围外的文档产物。以下全量检查仅适用于未指定 `ux` 或 `opt` 的任务：
 
 - README 在其他设计前建立，第一条引用指向显式 Require，应用目录、`frontend` 模板、实际版本和官方文档完整可用。
 - UX、Token、Draft、State、Mapping、配置和测试引用方向一致，没有 `*.ui.yml`、重复事实或孤立文件。
 - `design.tokens.json` 符合 DTCG 2025.10 的 `$type`、`$value` 和类型值结构，没有第二份手工 Token。
 - Draft 使用 Web Components 和开放 Shadow DOM，能完整导航并渲染所有已定义 layout、page、component 和状态占位；
-  默认演示账户可完成主要交互，且可切换匿名态验证无权限表现。
+  默认演示账户可完成主要交互，且可切换匿名态验证无权限表现；所有可见控件有实际结果，
+  禁止 `href="#"`、空事件处理器和无可观察反馈的提交。
+- UX 中的必填、类型和规则已落到表单约束，错误反馈使用 `aria-invalid` 和 `aria-describedby` 关联；控制台没有未处理 error、
+  Promise rejection 或资源 404，预期的未生成页面分支已通过 Token 样式的 `draft-dialog` 验证。
 - 每个 `state:M-001:P-001:S-001` 都在 `state.md` 有唯一同名定义；Draft 未实现复杂生产状态逻辑。
 - `mapping.md` 覆盖全部需生产实现的 Draft layout、page 和 component，框架组件及目标路径明确。
 - Draft 按正式 Web Components 项目结构组织，ES Modules 和同目录资源可通过已确认的开发服务器加载，
-  无真实 API 和生产业务逻辑；无障碍与响应式检查已完成。
+  无真实 API 和生产业务逻辑；无障碍与目标设备检查已完成。
 - README 最终索引、文件关系和文末技术实现结构已校对。
