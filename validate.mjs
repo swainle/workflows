@@ -304,9 +304,9 @@ function runSelfTests() {
     assert.doesNotMatch(frontend, /ux:模块:/);
     assert.match(frontend, /\| 顺序 \| 内容类型 \| 内容引用 \| 显示条件 \|/);
     assert.match(frontend, /## M-001 <模块名称>/);
-    assert.match(frontend, /登录请求：`state:M-001:P-001:D-001`/);
-    assert.match(frontend, /state:M-001:P-001:D-001:pending/);
-    assert.doesNotMatch(frontend, /DATA-001|state:M-001:P-001:登录请求:pending/);
+    assert.match(frontend, /登录请求：`state:M-001:P-001:S-001`/);
+    assert.match(frontend, /state:M-001:P-001:S-001:pending/);
+    assert.doesNotMatch(frontend, /DATA-001|state:M-001:P-001:D-001|state:M-001:P-001:登录请求:pending/);
     assert.match(frontend, /不回填或实现 Draft 标签/);
     assert.match(frontend, /生产状态逻辑由开发阶段按 `state\.md` 实现/);
     assert.match(frontend, /## `mapping\.md`/);

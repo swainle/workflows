@@ -147,8 +147,8 @@ flowchart LR
 
 #### 状态引用
 
-- 登录请求：`state:M-001:P-001:D-001`
-- Draft 标签：`state:M-001:P-001:D-001:pending`
+- 登录请求：`state:M-001:P-001:S-001`
+- Draft 标签：`state:M-001:P-001:S-001:pending`
 ````
 
 - 二级标题固定为 `## M-001 <模块名称>`，三级标题是模块内页面编号 `### P-001 <页面名称>`；页面引用统一为 `ux:M-001:P-001`。
@@ -225,7 +225,7 @@ unauthorized、缓存、过期、乐观更新、并发请求及跨页面共享�
 
 ```html
 <draft-state
-  ref="state:M-001:P-001:D-001:pending"
+  ref="state:M-001:P-001:S-001:pending"
   states="loading empty success error unauthorized">
   <p>复杂状态留待 state.md 定义</p>
 </draft-state>
@@ -233,13 +233,13 @@ unauthorized、缓存、过期、乐观更新、并发请求及跨页面共享�
 
 ## `state.md`
 
-Draft 初稿必须为复杂状态及其交互保留 `state:M-001:P-001:D-001:pending` 标签。存在该标签时创建 `state.md`，
-分配稳定 `state:M-001:P-001:D-001` 并定义；`D-001` 在每个页面内独立编号：
+Draft 初稿必须为复杂状态及其交互保留 `state:M-001:P-001:S-001:pending` 标签。存在该标签时创建 `state.md`，
+分配稳定 `state:M-001:P-001:S-001` 并定义；`S-001` 在每个页面内独立编号：
 
 ```md
-### state:M-001:P-001:D-001 <状态名称>
+### state:M-001:P-001:S-001 <状态名称>
 
-- 标识：`state:M-001:P-001:D-001`
+- 标识：`state:M-001:P-001:S-001`
 - 来源：<OpenAPI operationId 或本地状态来源>
 - 初始状态：<状态>
 - 状态：<状态列表>
@@ -247,7 +247,7 @@ Draft 初稿必须为复杂状态及其交互保留 `state:M-001:P-001:D-001:pen
 - 缓存：<存在时填写>
 - 并发：<存在时填写>
 - 恢复：<重试、回滚或回退>
-- Draft：`draft-state[ref="state:M-001:P-001:D-001:pending"]`
+- Draft：`draft-state[ref="state:M-001:P-001:S-001:pending"]`
 ```
 
 `state.md` 填写状态含义、转换和恢复要求，但不回填或实现 Draft 标签；以 `:pending` 结尾的状态标签是交给 `<dev 组件>` 的明确实现边界，
@@ -282,7 +282,7 @@ Draft 初稿必须为复杂状态及其交互保留 `state:M-001:P-001:D-001:pen
 - UX、Token、Draft、State、Mapping、配置和测试引用方向一致，没有 `*.ui.yml`、重复事实或孤立文件。
 - `design.tokens.json` 符合 DTCG 2025.10 的 `$type`、`$value` 和类型值结构，没有第二份手工 Token。
 - Draft 使用 Web Components 和开放 Shadow DOM，能完整导航并渲染所有已定义 layout、page、component 和状态占位。
-- 每个 `state:M-001:P-001:D-001:pending` 都在 `state.md` 有唯一 `state:M-001:P-001:D-001` 定义；Draft 未实现复杂生产状态逻辑。
+- 每个 `state:M-001:P-001:S-001:pending` 都在 `state.md` 有唯一 `state:M-001:P-001:S-001` 定义；Draft 未实现复杂生产状态逻辑。
 - `mapping.md` 覆盖全部需生产实现的 Draft layout、page 和 component，框架组件及目标路径明确。
 - Draft 无框架、无构建依赖、无真实 API 和生产业务逻辑；无障碍与响应式检查已完成。
 - README 最终索引、文件关系和文末技术实现结构已校对。
