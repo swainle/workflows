@@ -22,9 +22,7 @@ README.md 技术入口 + 显式 req
 - 页面标识必须严格符合 `M-<三位编号>:P-<三位编号>`，并已存在于 `ux.md` 页面索引和对应页面章节；不存在时停止。
 - 只读取 README、`ux.md`、`design.tokens.json` 和现有 Draft 依赖；显式给出 `req` 时，可再读取该页面引用的 Require 文件。
 - 只创建或修改该页面的 `draft/src/M-001/P-001/**` 及其引用的 `draft/src/M-001/LAYOUT-*/**`，以及让该页面可预览所必需的
-  `draft/index.html`、`draft/src/index.js`、
-  `draft/src/app.js`、`draft/src/components/app-shell/**`、`draft/src/components/draft-dialog/**`、`draft/src/components/draft-state/**`、`draft/src/styles/**` 和
-  `draft/src/utils/load-text.js`。
+  `draft/index.html`、`draft/src/index.js`、`draft/src/components/**` 和 `draft/src/styles/**`。
 - 共享 Draft 文件只做注册、导航和渲染当前页所需的最小修改，保留其他页面及用户修改。
 - 不修改 `ux.md` 或 `design.tokens.json`，不创建或修改 `state.md`、`mapping.md`、`configuration.md`、`testing.md`
   或 README；复杂状态只保留 `draft-state` 占位。
@@ -289,54 +287,40 @@ draft/
 ├─ index.html
 └─ src/
    ├─ index.js
-   ├─ app.js
    ├─ components/
    │  ├─ app-shell/
-   │  │  ├─ index.js
-   │  │  ├─ style.css
-   │  │  └─ template.html  # 按需
+   │  │  └─ index.js
    │  ├─ draft-dialog/
-   │  │  ├─ index.js
-   │  │  ├─ style.css
-   │  │  └─ template.html
+   │  │  └─ index.js
    │  └─ draft-state/
-   │     ├─ index.js
-   │     └─ style.css
+   │     └─ index.js
    ├─ M-001/
    │  ├─ LAYOUT-001/
-   │  │  ├─ index.js
-   │  │  ├─ style.css
-   │  │  └─ template.html  # 按需
+   │  │  └─ index.js
    │  └─ P-001/
    │     ├─ index.js
-   │     ├─ style.css
-   │     ├─ template.html  # 按需
-   │     └─ COMP-001-<component>/
-   │        ├─ index.js
-   │        ├─ style.css
-   │        └─ template.html  # 按需
-   ├─ styles/
-   │  ├─ global.css
-   │  └─ tokens.css
-   └─ utils/
-      └─ load-text.js
+   │     └─ COMP-001/
+   │        └─ index.js
+   └─ styles/
+      ├─ global.css
+      └─ tokens.css
 ```
 
 - `index.html` 只提供视口、全局样式和统一模块入口；`src/index.js` 导入并注册当前范围的 layout、page 和 component，
-  再启动 `src/app.js`。
+  初始化演示状态并挂载应用，不再拆分第二个启动文件。
 - 页面、布局、可复用区域及独立状态边界使用原生 Custom Elements；名称必须包含连字符。模块目录使用 `M-001/`，页面目录使用
-  `M-001/P-001/`，页面专属组件使用 `M-001/P-001/COMP-001-<component>/`，布局使用
+  `M-001/P-001/`，页面专属组件使用 `M-001/P-001/COMP-001/`，布局使用
   `M-001/LAYOUT-001/`；目录名只保留稳定编号，只有跨模块共享组件放在 `src/components/`。
 - Custom Element 使用 `attachShadow({ mode: "open" })`，便于评审、自动化检查和调试。
 - 只拆分页面、布局、复用区域和独立状态边界，不把一次性小元素组件化。
-- 每个 layout、page 和 component 使用独立目录；`index.js` 维护类、事件和标签注册，`style.css` 维护 Shadow DOM 私有样式，
-  HTML 较多时才创建 `template.html`，简短模板直接写在 `index.js` 内。不创建空 `template.html` 或空 `utils/` 文件。
-- `index.html` 使用 `<script type="module" src="./src/index.js"></script>`；ES Modules 和 CSS/HTML 资源通过本地 HTTP 服务器预览，
+- 每个 layout、page 和 component 使用独立目录且只包含 `index.js`；组件的类、HTML 模板、私有样式、事件和标签注册均写在该文件内。
+  页面专属内容不得移入无稳定 UX 标识的通用目录。
+- `index.html` 使用 `<script type="module" src="./src/index.js"></script>`；ES6 Modules 通过本地 HTTP 服务器预览，
   不再支持 `file://` 直接打开。开发服务器和构建方式使用 README 已确认的技术基线，不在 Draft 另选工具。
 - 不调用真实 API、不写生产业务逻辑、不复制到应用源码，也不被生产应用导入。
 - 使用语义化 HTML，在组件声明的唯一目标设备上覆盖键盘、焦点、对比度和动效降级；不额外要求跨设备自适应。
 
-### Custom Element 文件格式
+### ES6 Component 文件格式
 
 `index.html` 只加载全局样式和统一入口：
 
@@ -346,28 +330,18 @@ draft/
 <script type="module" src="./src/index.js"></script>
 ```
 
-`src/utils/load-text.js` 对非成功响应抛错，并返回文本内容：
+组件的 `index.js` 使用 ES6 语法，并把模板和私有样式保留在同一文件：
 
 ```js
-export async function loadText(url) {
-  const response = await fetch(url);
-  if (!response.ok) throw new Error(`Unable to load ${url}: ${response.status}`);
-  return response.text();
-}
-```
-
-组件的 `index.js` 按下列格式加载同目录资源：
-
-```js
-import { loadText } from "../../utils/load-text.js";
-
-const [style, markup] = await Promise.all([
-  loadText(new URL("./style.css", import.meta.url)),
-  loadText(new URL("./template.html", import.meta.url)),
-]);
-
 const template = document.createElement("template");
-template.innerHTML = `<style>${style}</style>${markup}`;
+template.innerHTML = `
+  <style>
+    :host { display: block; }
+  </style>
+  <main>
+    <h1>登录</h1>
+  </main>
+`;
 
 class LoginPage extends HTMLElement {
   constructor() {
@@ -384,15 +358,27 @@ window.customElements.define("m001-p001-login", LoginPage);
 ```
 
 - 标签名全小写且至少包含一个连字符；文件名保留 UX 稳定标识，类名使用 PascalCase。
-- 组件私有样式从同目录 `style.css` 注入 `template` 的 `<style>`，使用 `:host` 定义宿主样式；`src/styles/global.css` 只保留全局外壳样式，
+- 组件私有样式写在 `index.js` 的模板 `<style>` 中，使用 `:host` 定义宿主样式；`src/styles/global.css` 只保留全局外壳样式，
   `src/styles/tokens.css` 是由 `design.tokens.json` 机械转换的 CSS Custom Properties，Shadow DOM 通过 `var(--token-name)` 继承使用。
 - Draft 所有颜色，包括页面、组件、状态和弹窗颜色，必须来自 `src/styles/tokens.css`；组件 CSS 不手写 hex、`rgb()`、`hsl()` 或颜色名。
 - 每次创建组件实例都使用 `template.content.cloneNode(true)`，不在多个实例间移动或共享可变 DOM 节点。
 - 事件直接绑定到 Shadow DOM 内的目标元素或根节点；需要通知外部时派发语义明确的 `CustomEvent`。
 
+### 代码与语法规范
+
+- Draft 遵循 README 技术基线及项目已有的 formatter、linter 和类型检查配置；存在对应命令时必须运行并通过，
+  不为 Draft 单独引入格式化或检查依赖。
+- JavaScript 只使用浏览器原生 ES6 语法和 ES6 Modules，包括 `import`、`export`、`class`、`const`、`let`、箭头函数、
+  解构和模板字符串；禁止 CommonJS、TypeScript、JSX 及依赖转译器的非标准语法。
+- JavaScript 缩进两个空格，使用双引号和分号；默认使用 `const`，需要重新赋值时才使用 `let`，禁止 `var`，
+  不保留未使用的导入、变量或空事件处理器，并通过项目已有的 JavaScript 语法检查。
+- HTML 使用小写标签和属性、双引号属性值及合法嵌套，`id` 在所属 Shadow Root 内唯一；禁止内联事件处理器和内联样式。
+- CSS 使用浏览器支持的标准语法，类名和 CSS Custom Properties 使用 kebab-case；禁止预处理器语法、无效声明和重复硬编码 Token 值。
+- 预览时 HTML、CSS 和 JavaScript 必须成功解析和加载；控制台不得出现语法错误、未处理异常、Promise rejection 或资源 404。
+
 ### 默认演示账户
 
-- `src/app.js` 在内存中初始化一个默认演示账户，至少包含稳定的 `id`、显示名称，以及 UX 已引用的适用角色或权限；
+- `src/index.js` 在内存中初始化一个默认演示账户，至少包含稳定的 `id`、显示名称，以及 UX 已引用的适用角色或权限；
   不猜测或扩大生产权限。
 - 账户标识、姓名和凭据必须是明确标注的合成 Draft 数据，不使用真实个人信息、生产凭据或密钥。
 - 存在登录页时，在页面上显示并可预填能通过 UX 校验的演示凭据，提交后只在本地切换为已登录账户。
@@ -448,7 +434,7 @@ Draft 只展示占位界面和预期交互入口，生产状态逻辑由开发�
 |---|---|---|---|---|---|---|
 | `draft/src/M-001/LAYOUT-001/index.js` | `ux:M-001:LAYOUT-001` | `AppLayout` | `src/layouts/AppLayout.<扩展名>` | 应用外壳 | `<输入/输出>` | planned |
 | `draft/src/M-001/P-001/index.js` | `ux:M-001:P-001` | `HomePage` | `src/pages/HomePage.<扩展名>` | 首页 | `<输入/输出>` | planned |
-| `draft/src/M-002/P-001/COMP-001-appointment-list/index.js` | `ux:M-002:P-001:COMP-001` | `AppointmentList` | `src/components/AppointmentList.<扩展名>` | 预约列表 | `<输入/输出>` | planned |
+| `draft/src/M-002/P-001/COMP-001/index.js` | `ux:M-002:P-001:COMP-001` | `AppointmentList` | `src/components/AppointmentList.<扩展名>` | 预约列表 | `<输入/输出>` | planned |
 ```
 
 - 每个 Draft layout、page 和可复用 component 必须且只能映射一个生产框架组件；纯展示辅助文件不映射。
@@ -482,6 +468,6 @@ Draft 只展示占位界面和预期交互入口，生产状态逻辑由开发�
   Promise rejection 或资源 404，预期的未生成页面分支已通过 Token 样式的 `draft-dialog` 验证。
 - 每个 `state:M-001:P-001:S-001` 都在 `state.md` 有唯一同名定义；Draft 未实现复杂生产状态逻辑。
 - `mapping.md` 覆盖全部需生产实现的 Draft layout、page 和 component，框架组件及目标路径明确。
-- Draft 按正式 Web Components 项目结构组织，ES Modules 和同目录资源可通过已确认的开发服务器加载，
+- Draft 按稳定 UX 标识组织单文件 Web Components，ES6 Modules 可通过已确认的开发服务器加载，
   无真实 API 和生产业务逻辑；无障碍与目标设备检查已完成。
 - README 最终索引、文件关系和文末技术实现结构已校对。
