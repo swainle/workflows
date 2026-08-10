@@ -125,7 +125,7 @@ Page {
 
 ## 导航、数据与状态
 
-- `App.qml` 根据 Require 中的页面入口和目标关系维护最小导航；未生成页面以主题化对话框明确提示，不创建空页面。
+- `App.qml` 根据 Require 页面索引中的“入口”和“目标页面”维护最小导航，并只实现该页映射 FR 的可观察行为；未生成页面以主题化对话框明确提示，不创建空页面。
 - 临时数据必须标记为合成数据，只保存在唯一使用它的 `mock.mjs` 或共享 `MockStore.qml` 中。
 - Mock 字段来自 Require 契约、OpenAPI Schema 或已确认页面视图，不猜测生产数据库结构。
 - 页面必须演示 Require 适用的 loading、empty、success、error、unauthorized 等可观察状态，以及重试、取消、提交和导航结果。
@@ -156,7 +156,7 @@ Emscripten，仍完成静态检查，并明确报告未执行的构建项，不�
 
 ## 完成检查
 
-- 目标页面来自显式 Require 或既有 Draft；目录与稳定 Module、Layout、Page、Component 标识一致。
+- 目标页面来自显式 Require 页面索引或既有 Draft；目录与稳定 Module、Layout、Page、Component 标识一致，页面行为只覆盖其映射 FR。
 - 页面通过 QML 完整表达组件树、属性、布局、绑定、状态、事件、动画、复用、响应式和主题。
 - 同一份 QML 可用于桌面和 WebAssembly 构建，没有并行 HTML/Web Components 实现。
 - `View.qml`、共享组件和 `.mjs` 符合语法规范；没有 `.ui.qml`、`index.js`、TypeScript、JSX 或平台插件。
