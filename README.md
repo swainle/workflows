@@ -74,7 +74,7 @@ docs/
 - Frontend 文件规范固定说明 `README.md`、`design.tokens.json`、`draft/**`、`configuration.md` 和 `testing.md`
   的作用、结构、用法与关系；不再创建 `ux.md`、`state.md` 或 `mapping.md`。
 - `draft M-001:P-001` 仅用于 `tmp frontend`，只加载 `frontend-draft.template.md`，创建或更新该页面及其必要依赖；
-  新页面必须通过显式 `req` 在 Require 中存在，已有页面也可从既有 Draft 确认。
+  新页面必须通过显式 `req` 在 Require 中存在，已有页面也可从既有 Draft 确认；首次页面同时自举完整启动与构建链，不能只交付页面片段。
 - Draft 使用稳定编号目录和 `View.qml`，通过临时合成数据完整展示组件树、布局、绑定、状态、事件、动画、复用、响应式和主题；
   同一份 QML 构建桌面与 Qt WebAssembly 浏览器预览，不维护并行 HTML/Web Components 版本。
 - `<dev 组件>` 读取 Require、Design Token、QML Draft、Configuration 和 Testing，将 Draft 转换为 README 声明的目标平台生产代码。
