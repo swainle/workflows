@@ -19,9 +19,10 @@
 
 1. 先确认 Require 页面及映射 FR、Frontend README 中的精确 Qt 版本、可解析的 `design.tokens.json` 和现有 Draft 文件；缺少需求或文档输入时停止，不猜测。
 2. 发现本机 Qt、CMake、Ninja、Emscripten 及已有项目命令；优先使用 README 声明版本对应的 `qt-cmake` 和 Qt WebAssembly 工具链，不把本机偶然安装路径写入项目。
-3. 首次页面创建完整启动链；已有页面只补齐本次目标和维持启动所需的文件，并同步 CMake QML/资源清单。
-4. 生成主题、格式化、lint、配置、构建并启动检查；遇到源码、资源、CMake 或运行错误时修复后重跑，不能把失败的构建当成完成。
-5. 最终区分“桌面已运行”“WebAssembly 已在浏览器运行”“源码完整但因缺少具体工具链未验证”，并给出实际执行命令和首个失败原因。
+3. 若精确版本、Kit、工具链或本机路径经读取和发现后仍无法唯一确定，或多个可用选择会改变构建结果，暂停该不确定项并通过对话一次询问一个关键问题；同时给出已发现证据和推荐项。用户确认前不得猜测、写入或宣称该项已验证。
+4. 首次页面创建完整启动链；已有页面只补齐本次目标和维持启动所需的文件，并同步 CMake QML/资源清单。
+5. 生成主题、格式化、lint、配置、构建并启动检查；遇到源码、资源、CMake 或运行错误时修复后重跑，不能把失败的构建当成完成。
+6. 最终区分“WebAssembly 已在浏览器运行”与“源码完整但因缺少具体工具链未验证”，并给出实际执行命令和首个失败原因。
 
 ## `draft` 页面范围
 
@@ -35,7 +36,7 @@
 
 ## 固定文件结构
 
-Draft 是完整 Qt Quick/QML 项目，使用临时数据，可构建桌面预览和 WebAssembly 浏览器预览：
+Draft 是完整 Qt Quick/QML 项目，使用临时数据，可构建并直接启动 WebAssembly 浏览器预览：
 
 ```text
 draft/
@@ -63,7 +64,6 @@ draft/
 │     └─ P-002/
 │        └─ View.qml
 └─ build/
-   ├─ desktop/
    ├─ wasm/
    └─ reports/
 ```
@@ -153,8 +153,8 @@ Page {
 ## 构建与浏览器预览
 
 - `main.cpp` 只创建应用和加载 `App.qml`；不写业务逻辑。
-- `CMakeLists.txt` 使用 Qt 官方 CMake API 声明可执行目标、QML 模块、每个实际 QML/JavaScript 文件与资产，并链接实际使用的 Qt 模块；同一源码目标可分别由桌面和 WebAssembly Qt 工具链构建。
-- 桌面与 WebAssembly 使用独立构建目录，禁止复用 CMake cache。配置完成后必须构建应用目标，不得只以 CMake configure 成功代替编译成功。
+- `CMakeLists.txt` 使用 Qt 官方 CMake API 声明可执行目标、QML 模块、每个实际 QML/JavaScript 文件与资产，并链接实际使用的 Qt 模块；应用目标由 Qt WebAssembly 工具链构建。
+- WebAssembly 固定使用 `build/wasm/`；配置完成后必须构建应用目标，不得只以 CMake configure 成功代替编译成功。
 - WebAssembly 构建生成 HTML、JavaScript loader 和 `.wasm` 静态文件，通过本地 HTTP 服务器预览；不另写 HTML/CSS 版 Draft。
 - 只使用目标 Qt WebAssembly 版本支持的 Qt 模块；网络、线程或浏览器沙箱限制必须在采用前验证。
 - 优先复用项目已有 Qt、CMake、Emscripten、formatter 和 lint 配置，不为 Draft 引入 UI 框架、QML 解析器或第二预览实现。
@@ -165,22 +165,20 @@ Page {
 
 1. `qmlformat` 检查或格式化本次修改的 QML。
 2. `qmllint` 检查 QML 类型、属性、绑定、信号和 import。
-3. 使用桌面 Qt 工具链在 `build/desktop/` 完成 CMake 配置并构建应用目标。
-4. 启动桌面产物，确认 `App.qml` 加载、目标页可见且关键交互可观察。
-5. 使用匹配版本的 Qt WebAssembly 工具链在 `build/wasm/` 重新配置并构建应用目标。
-6. 从真实 WASM 输出目录启动本地 HTTP 服务器，在浏览器打开生成的 HTML，检查目标页、关键交互、网络请求和控制台。
+3. 使用匹配版本的 Qt WebAssembly 工具链在 `build/wasm/` 配置并构建应用目标。
+4. 从真实 WASM 输出目录启动本地 HTTP 服务器，在浏览器打开生成的 HTML，检查目标页、关键交互、网络请求和控制台。
 
 浏览器控制台不得出现未处理异常、Promise rejection、资源 404 或 QML 加载错误。任一已安装工具执行失败时必须修复并重跑；
-若本机缺少 Qt WebAssembly 或 Emscripten，仍完成源码、资源清单、格式、lint 和可用的桌面构建，并明确标记“WASM 未验证”，不得声称“可运行 WASM 已完成”。
+若本机缺少 Qt WebAssembly 或 Emscripten，仍完成源码、资源清单、格式和 lint，并明确标记“WASM 未验证”，不得声称“可运行 WASM 已完成”。
 
 ## 完成检查
 
 - 目标页面来自显式 Require 页面索引或既有 Draft；目录与稳定 Module、Layout、Page、Component 标识一致，页面行为只覆盖其映射 FR。
 - 页面通过 QML 完整表达组件树、属性、布局、绑定、状态、事件、动画、复用、响应式和主题。
-- 同一份 QML 可用于桌面和 WebAssembly 构建，没有并行 HTML/Web Components 实现。
+- QML 通过 Qt for WebAssembly 生成网页应用，没有桌面构建要求，也没有并行 HTML/Web Components 实现。
 - CMake 清单覆盖所有实际 QML、JavaScript 模块和资产，`main.cpp → App.qml → 目标页面` 启动链完整，目标页全部 required 输入和可见控件已接线。
 - `View.qml`、共享组件和 `.mjs` 符合语法规范；没有 `.ui.qml`、`index.js`、TypeScript、JSX 或平台插件。
 - 临时数据、账户和写操作只存在 Draft 内存，所有可见控件和声明状态都有可观察结果。
 - `Theme.qml` 与 `design.tokens.json` 同步；没有重复硬编码已有 Token。
-- 已运行可用的格式、lint、桌面构建/启动和 WASM 构建/浏览器检查；已安装工具不存在失败项，未执行项有明确缺失工具与原因。
+- 已运行可用的格式、lint、WASM 构建和浏览器检查；已安装工具不存在失败项，未执行项有明确缺失工具与原因。
 - `draft M-001:P-001` 只修改目标页面和必要依赖，没有触碰其他文档或生产应用源码。

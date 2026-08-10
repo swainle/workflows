@@ -263,7 +263,7 @@ function runSelfTests() {
     assert.match(agents, /<doc 组件> tmp require \[issue 编号\]/);
     assert.match(agents, /<doc 组件> tmp frontend/);
     assert.match(agents, /draft M-<三位编号>:P-<三位编号>/);
-    assert.match(agents, /首次页面必须自举完整可运行应用，后续页面必须保持桌面与 WebAssembly 构建闭环/);
+    assert.match(agents, /首次页面必须自举完整可运行应用，后续页面必须保持 WebAssembly 网页构建与浏览器验证闭环/);
     assert.match(agents, /`draft` 值或未列出的 `tmp` 值都是未知语法/);
     assert.match(agents, /templates\/frontend-draft\.template\.md/);
     assert.match(agents, /<doc 组件> tmp backend/);
@@ -312,6 +312,10 @@ function runSelfTests() {
     assert.match(frontendDraft, /所有创建的 QML、JavaScript 模块和资产必须登记到 CMake/);
     assert.match(frontendDraft, /`main\.cpp` 必须加载 CMake 声明的 QML 模块与 `App\.qml`/);
     assert.match(frontendDraft, /工具链缺失只降低验证级别，不得把完整源码降级成示例/);
+    assert.match(frontendDraft, /经读取和发现后仍无法唯一确定/);
+    assert.match(frontendDraft, /通过对话一次询问一个关键问题/);
+    assert.match(frontendDraft, /同时给出已发现证据和推荐项/);
+    assert.match(frontendDraft, /用户确认前不得猜测、写入或宣称该项已验证/);
     assert.match(frontend, /第一个创建或确认/);
     assert.match(frontend, /> Ref: `docs\/<req组件>\/README\.md`/);
     assert.match(frontend, /开发模板：`frontend`/);
@@ -336,7 +340,7 @@ function runSelfTests() {
     assert.doesNotMatch(frontend, /原生 Web Components|Shadow DOM|Custom Element|tokens\.css|src\/index\.js/);
     assert.match(frontendDraft, /完整 Qt Quick\/QML 项目/);
     assert.match(frontendDraft, /Qt for WebAssembly/);
-    assert.match(frontendDraft, /同一份 QML/);
+    assert.match(frontendDraft, /可构建并直接启动 WebAssembly 浏览器预览/);
     assert.match(frontendDraft, /不另写 HTML\/CSS 版 Draft/);
     assert.match(frontendDraft, /├─ CMakeLists\.txt/);
     assert.match(frontendDraft, /├─ main\.cpp/);
@@ -364,8 +368,8 @@ function runSelfTests() {
     assert.match(frontendDraft, /不得实现生产缓存、并发控制、持久化、鉴权基础设施/);
     assert.match(frontendDraft, /`qmlformat`/);
     assert.match(frontendDraft, /`qmllint`/);
-    assert.match(frontendDraft, /`build\/desktop\/` 完成 CMake 配置并构建应用目标/);
-    assert.match(frontendDraft, /`build\/wasm\/` 重新配置并构建应用目标/);
+    assert.doesNotMatch(frontendDraft, /build\/desktop|使用桌面|启动桌面|桌面与 WebAssembly/);
+    assert.match(frontendDraft, /`build\/wasm\/` 配置并构建应用目标/);
     assert.match(frontendDraft, /从真实 WASM 输出目录启动本地 HTTP 服务器/);
     assert.match(frontendDraft, /不得声称“可运行 WASM 已完成”/);
     assert.match(prompt("stages/doc.md"), /`tmp frontend draft` 是唯一例外/);
