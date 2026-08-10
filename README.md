@@ -69,10 +69,10 @@ docs/
 - `require` 是普通组件名，不是保留字。
 - `<doc require> tmp require issue 1` 总是运行需求、架构和验收专家流程；Issue 编号只标识来源和限定本次范围。
 - `req require` 递归读取 `docs/require/` 的全部文件；后接 `issue 2` 时再读取该 Issue 作为当前任务输入。
-- `tmp require|frontend|backend|docker` 加载对应模板；完整 Frontend 任务同时加载独立 Draft 编码模板。
+- `tmp require|frontend|backend|docker` 加载对应模板；`tmp frontend` 只维护 Frontend 文件规范，不隐式加载或执行 Draft。
 - `tmp frontend` 是文档阶段模板，不是目录名；Require 先决定模块、功能、页面、业务规则、权限、流程与验收。
-- Frontend 组件固定维护 `README.md`、`design.tokens.json`、完整可运行的 `draft/**` QML 项目、
-  `configuration.md` 和 `testing.md`；不再创建 `ux.md`、`state.md` 或 `mapping.md`。
+- Frontend 文件规范固定说明 `README.md`、`design.tokens.json`、`draft/**`、`configuration.md` 和 `testing.md`
+  的作用、结构、用法与关系；不再创建 `ux.md`、`state.md` 或 `mapping.md`。
 - `draft M-001:P-001` 仅用于 `tmp frontend`，只加载 `frontend-draft.template.md`，创建或更新该页面及其必要依赖；
   新页面必须通过显式 `req` 在 Require 中存在，已有页面也可从既有 Draft 确认。
 - Draft 使用稳定编号目录和 `View.qml`，通过临时合成数据完整展示组件树、布局、绑定、状态、事件、动画、复用、响应式和主题；
@@ -106,7 +106,7 @@ node docs/workflows/install.mjs --branch develop
 |---|---|
 | `templates/AGENTS.template.md` | 指令解析、组件发现、版本门禁和阶段路由 |
 | `templates/require.template.md`、`templates/require/*` | 统一需求、Issue 分析与全局架构模板 |
-| `templates/*-design.template.md` | Frontend、Backend、Docker 文档模板 |
+| `templates/*-design.template.md` | Frontend 文件规范、Backend 设计、Docker 文档模板 |
 | `stages/*.md` | doc、dev、组件测试、全局测试和 Docker 权限 |
 | `install.mjs` | 安装或更新宿主 `AGENTS.md` 托管区块 |
 | `validate.mjs` | 校验提示词、路由、README 映射和安装器行为 |

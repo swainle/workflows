@@ -94,7 +94,7 @@ node docs/workflows/install.mjs --workflows-updated
 |---|---|
 | `<doc 组件>` | `docs/workflows/stages/doc.md` |
 | `<doc 组件> tmp require [issue 编号]` | `stages/doc.md`、`templates/require.template.md`、`templates/require/requirements.md`、`templates/require/architecture.md` |
-| `<doc 组件> tmp frontend` | `stages/doc.md`、`templates/frontend-design.template.md`、`templates/frontend-draft.template.md` |
+| `<doc 组件> tmp frontend` | `stages/doc.md`、`templates/frontend-design.template.md` |
 | `<doc 组件> tmp frontend draft M-001:P-001` | `stages/doc.md`、`templates/frontend-draft.template.md` |
 | `<doc 组件> tmp backend` | `stages/doc.md`、`templates/backend-design.template.md` |
 | `<doc 组件> tmp docker` | `stages/doc.md`、`templates/docker-design.template.md` |

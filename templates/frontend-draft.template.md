@@ -1,14 +1,12 @@
 # Frontend QML Draft 提示词模板
 
-用于 `<doc 组件> tmp frontend` 的 Draft 编码阶段。未指定 `draft` 时，根据显式 Require 完整生成当前组件的
-QML 中间应用；指定 `draft M-001:P-001` 时，只生成或更新该页面及其必要依赖。
+仅用于 `<doc 组件> tmp frontend draft M-001:P-001`。只生成或更新目标页面及其必要依赖；
+未指定 `draft` 时不得加载或执行本模板。
 
 本模板只定义 QML Draft；README、Design Token、转换配置和转换测试由
 `templates/frontend-design.template.md` 维护。
 
 ## `draft` 页面范围
-
-以下限制只适用于 `<doc 组件> tmp frontend draft M-001:P-001`：
 
 - 页面标识必须严格符合 `M-<三位编号>:P-<三位编号>`。
 - 已存在的页面可从 `draft/src/M-001/P-001/` 确认；创建新页面必须显式给出 `req <需求组件>`，并能在 Require 中找到该页面及功能依据，否则停止。
