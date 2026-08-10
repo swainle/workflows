@@ -20,6 +20,7 @@ export const PROMPT_FILES = [
   "templates/require/requirements.md",
   "templates/require/architecture.md",
   "templates/frontend-design.template.md",
+  "templates/frontend-draft.template.md",
   "templates/backend-design.template.md",
   "templates/docker-design.template.md",
   "stages/doc.md",
@@ -134,7 +135,7 @@ function runSelfTests() {
     assert.match(agents, /tmp require\|frontend\|backend\|docker/);
     assert.doesNotMatch(agents, /<deploy(?: |>)|stages\/deploy\.md/);
     assert.match(agents, /req 需求组件 \[issue 编号\]/);
-    assert.match(agents, /\[ux M-001:P-001\|opt 文件\]/);
+    assert.match(agents, /\[draft M-001:P-001\|opt 文件\]/);
     assert.match(agents, /\[opt 文件\]/);
     assert.match(agents, /docs\/<组件>\/README\.md/);
     assert.match(agents, /docs\/workflows\/.*除外/);
@@ -251,12 +252,13 @@ function runSelfTests() {
     assert.match(issue, /## 需求评审重点/);
   });
 
-  test("require, frontend, backend and docker are optional doc templates", () => {
+  test("require, frontend design, frontend draft, backend and docker are optional doc templates", () => {
     const agents = prompt("templates/AGENTS.template.md");
     assert.match(agents, /<doc 组件> tmp require \[issue 编号\]/);
     assert.match(agents, /<doc 组件> tmp frontend/);
-    assert.match(agents, /ux M-<三位编号>:P-<三位编号>/);
-    assert.match(agents, /`ux` 值或未列出的 `tmp` 值都是未知语法/);
+    assert.match(agents, /draft M-<三位编号>:P-<三位编号>/);
+    assert.match(agents, /`draft` 值或未列出的 `tmp` 值都是未知语法/);
+    assert.match(agents, /templates\/frontend-draft\.template\.md/);
     assert.match(agents, /<doc 组件> tmp backend/);
     assert.match(agents, /<doc 组件> tmp docker/);
     const requireTemplate = prompt("templates/require.template.md");
@@ -279,13 +281,17 @@ function runSelfTests() {
     assert.match(arch, /不在本文件维护组件清单、应用路径、设计路径、凭据值/);
     assert.match(arch, /不指定 npm 包、SDK 初始化、Dashboard 配置或 Collector/);
     assert.match(arch, /## 架构评审重点/);
-    const frontend = prompt("templates/frontend-design.template.md");
-    assert.match(frontend, /## `ux` 页面范围/);
-    assert.match(frontend, /tmp frontend ux M-001:P-001/);
-    assert.match(frontend, /`ux` 与 `opt` 互斥/);
-    assert.match(frontend, /不修改 `ux\.md` 或 `design\.tokens\.json`/);
-    assert.match(frontend, /不创建或修改 `state\.md`、`mapping\.md`、`configuration\.md`、`testing\.md`/);
-    assert.match(frontend, /draft\/src\/M-001\/P-001\/\*\*/);
+    const frontendDesign = prompt("templates/frontend-design.template.md");
+    const frontendDraft = prompt("templates/frontend-draft.template.md");
+    const frontend = `${frontendDesign}\n${frontendDraft}`;
+    assert.doesNotMatch(frontendDesign, /## Custom Element 文件格式|## 默认演示账户|## 弹窗、交互与运行状态/);
+    assert.match(frontendDesign, /Draft 编码规范由 `templates\/frontend-draft\.template\.md` 独立维护/);
+    assert.match(frontendDraft, /tmp frontend draft M-001:P-001/);
+    assert.match(frontendDraft, /未指定 `draft` 时完整渲染 `ux\.md` 中当前组件的所有页面/);
+    assert.match(frontendDraft, /`draft` 与 `opt` 互斥/);
+    assert.match(frontendDraft, /不修改 README、`ux\.md` 或 `design\.tokens\.json`/);
+    assert.match(frontendDraft, /不创建或修改 `state\.md`、`mapping\.md`、`configuration\.md` 或 `testing\.md`/);
+    assert.match(frontendDraft, /draft\/src\/modules\/M-001\/P-001\/\*\*/);
     assert.match(frontend, /README 第一个创建或确认/);
     assert.match(frontend, /> Ref: `docs\/<req组件>\/README\.md`/);
     assert.match(frontend, /REQUIRE --> UX\["ux\.md"\]/);
@@ -312,19 +318,20 @@ function runSelfTests() {
     assert.match(frontend, /正式 Web Components 项目结构和 ES Modules/);
     assert.match(frontend, /不再支持 `file:\/\/` 直接打开/);
     assert.match(frontend, /src\/utils\/load-text\.js/);
-    assert.match(frontend, /import \{ loadText \} from "\.\.\/\.\.\/utils\/load-text\.js"/);
+    assert.match(frontend, /import \{ loadText \} from "\.\.\/\.\.\/\.\.\/utils\/load-text\.js"/);
     assert.match(frontend, /const template = document\.createElement\("template"\)/);
     assert.match(frontend, /template\.content\.cloneNode\(true\)/);
     assert.match(frontend, /window\.customElements\.define\("m001-p001-login", LoginPage\)/);
     assert.match(frontend, /`style\.css` 注入 `template` 的 `<style>`/);
     assert.match(frontend, /Shadow DOM 通过 `var\(--token-name\)` 继承使用/);
-    assert.match(frontend, /### 默认演示账户/);
-    assert.match(frontend, /`src\/app\.js` 在内存中初始化一个默认演示账户/);
+    assert.match(frontendDraft, /## 默认演示账户/);
+    assert.match(frontendDraft, /`src\/api\.js` 提供读取或登录默认演示账户的方法/);
+    assert.match(frontendDraft, /`src\/app\/app\.js` 在启动时通过该方法取得账户并写入 Store/);
     assert.match(frontend, /export async function loadText\(url\)/);
     assert.match(frontend, /已登录、退出和匿名状态的可见切换入口/);
     assert.match(frontend, /不使用 Cookie、`localStorage` 或真实认证请求/);
     assert.match(frontend, /默认演示账户可完成该页主要交互/);
-    assert.match(frontend, /├─ M-001\//);
+    assert.match(frontendDraft, /M-001\//);
     assert.doesNotMatch(frontend, /draft\/src\/(?:pages|layouts)\//);
     assert.match(frontend, /ux:M-002:P-001/);
     assert.doesNotMatch(frontend, /ux:模块:/);
@@ -350,7 +357,7 @@ function runSelfTests() {
     assert.match(frontend, /\| 列标识 \| 列名称 \| 数据字段 \| 展示方式 \| 排序 \|/);
     assert.doesNotMatch(frontend, /窄屏表现/);
     assert.match(frontend, /不额外要求跨设备自适应/);
-    assert.match(frontend, /M-001\/P-001\/COMP-001-<component>\//);
+    assert.match(frontend, /modules\/M-001\/P-001\/COMP-001-<component>\//);
     assert.match(frontend, /draft-dialog\//);
     assert.match(frontend, /页面尚未生成/);
     assert.match(frontend, /<dialog>`、`showModal\(\)` 和 `close\(\)`/);
@@ -360,9 +367,24 @@ function runSelfTests() {
     assert.match(frontend, /禁止 `href="#"`/);
     assert.match(frontend, /`aria-invalid` 和 `aria-describedby`/);
     assert.match(frontend, /控制台没有未处理 error/);
+    assert.match(frontendDraft, /├─ package\.json/);
+    assert.match(frontendDraft, /├─ router\.js/);
+    assert.match(frontendDraft, /├─ store\.js/);
+    assert.match(frontendDraft, /├─ api\.js/);
+    assert.match(frontendDraft, /`dev`、`build` 和 `preview` 脚本/);
+    assert.match(frontendDraft, /SPA History fallback/);
+    assert.match(frontendDraft, /history\.pushState\(\)/);
+    assert.match(frontendDraft, /监听 `popstate`/);
+    assert.match(frontendDraft, /`getState\(\)`、`setState\(updater\)` 和 `subscribe\(listener\)`/);
+    assert.match(frontendDraft, /`idle \| loading \| success \| empty \| error`/);
+    assert.match(frontendDraft, /`src\/api\.js` 是 Draft 数据的唯一入口/);
+    assert.match(frontendDraft, /不得直接声明业务数据数组或对象/);
+    assert.match(frontendDraft, /export async function listAppointments/);
+    assert.match(frontendDraft, /AbortSignal/);
+    assert.match(frontendDraft, /只替换 `api\.js` 内部实现/);
     assert.match(frontend, /##### 行操作/);
     assert.match(frontend, /##### 页面表现/);
-    assert.match(frontend, /M-001\/P-001\/COMP-001-<component>\//);
+    assert.match(frontend, /modules\/M-001\/P-001\/COMP-001-<component>\//);
     assert.match(frontend, /ux:M-002:P-001:COMP-001/);
     assert.match(frontend, /#### S-001 登录请求/);
     assert.match(frontend, /\| 标签 \| 状态 \| 说明 \|/);
@@ -371,9 +393,16 @@ function runSelfTests() {
     assert.match(frontend, /UX、Draft、`state\.md` 和 dev 全程使用/);
     assert.match(frontend, /生产状态逻辑由开发阶段按 `state\.md` 实现/);
     assert.match(frontend, /## `mapping\.md`/);
-    assert.match(frontend, /\| Draft \| UX\/State 引用 \| 框架组件 \| 目标路径 \|/);
-    assert.match(frontend, /<dev 组件>` 按映射实现/);
-    assert.match(frontend, /完整渲染 `ux\.md` 中当前组件的所有页面/);
+    assert.match(frontend, /\| Draft Manifest \| UX\/State 引用 \| 框架组件 \| 目标路径 \|/);
+    assert.match(frontend, /<dev 组件>` 读取 Manifest 与映射生成目标平台骨架/);
+    assert.match(frontendDraft, /每个可映射的 Layout、Page 和 Component 都必须在同目录提供 `component\.json`/);
+    assert.match(frontendDraft, /`component\.schema\.json` 使用 JSON Schema 2020-12/);
+    assert.match(frontendDraft, /启动和构建前必须全量验证/);
+    assert.match(frontendDraft, /`ref` 是唯一主键/);
+    assert.match(frontendDraft, /不出现 React Props、Vue Emits、Angular Input/);
+    assert.match(frontendDraft, /`src\/app\/registry\.js` 只登记各 `component\.json` 的路径/);
+    assert.match(frontendDraft, /生成真实平台代码时只遍历 Manifest 依赖图/);
+    assert.match(frontendDraft, /指定 `draft` 时只渲染目标页面及必要依赖/);
     assert.doesNotMatch(frontend, /ui\/\*\.ui\.yml/);
     assert.doesNotMatch(frontend, /<组件>\.design-token\.css/);
     assert.match(frontend, /## 专家团/);

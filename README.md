@@ -39,7 +39,7 @@ docs/
 ## 指令
 
 ```text
-<doc 组件> [tmp require|frontend|backend|docker] [req 需求组件 [issue 编号]] [issue 编号] [ux M-001:P-001|opt 文件] 任务
+<doc 组件> [tmp require|frontend|backend|docker] [req 需求组件 [issue 编号]] [issue 编号] [draft M-001:P-001|opt 文件] 任务
 <dev 组件> [opt 文件] 任务
 <test 组件> [opt 文件] 任务
 <docker 组件> [opt 文件] 任务
@@ -56,7 +56,7 @@ docs/
 <doc api> tmp backend req require issue 1 设计初始化接口
 <doc api> tmp backend req require issue 2 opt domain.md 调整手机号规则
 <doc web> tmp frontend req require issue 2 设计手机号页面
-<doc web> tmp frontend ux M-001:P-001 创建登录页 Draft
+<doc web> tmp frontend draft M-001:P-001 创建登录页 Draft
 <doc telemetry> tmp docker 设计遥测容器编排
 <dev api> 实现手机号接口
 <test api> 验证手机号接口
@@ -68,8 +68,10 @@ docs/
 - `require` 是普通组件名，不是保留字。
 - `<doc require> tmp require issue 1` 总是运行需求、架构和验收专家流程；Issue 编号只标识来源和限定本次范围。
 - `req require` 递归读取 `docs/require/` 的全部文件；后接 `issue 2` 时再读取该 Issue 作为当前任务输入。
-- `tmp require|frontend|backend|docker` 加载对应模板。
-- `ux M-001:P-001` 仅用于 `tmp frontend`，只创建或更新该 UX 页面可预览所需的 Draft 文件。
+- `tmp require|frontend|backend|docker` 加载对应模板；完整 Frontend 任务同时加载独立 Draft 编码模板。
+- `draft M-001:P-001` 仅用于 `tmp frontend`，只加载 `frontend-draft.template.md`，创建或更新该 UX 页面可预览所需的完整前端项目文件；
+  Draft 使用独立 Router、Store 和 `api.js`，页面数据统一通过 `api.js` 取得临时合成数据。
+  Layout、Page 和 Component 使用 `component.json` 声明平台无关契约，供后续映射与真实平台代码生成。
 - `opt <文件>` 只创建或更新阶段内的一个文件。
 - `<test>` 和 `<docker>` 是全局命令；`<docker 组件>` 固定维护根目录 `docker/<组件>/**`。
 

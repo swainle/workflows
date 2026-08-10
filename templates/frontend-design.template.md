@@ -1,7 +1,7 @@
 # Frontend 文档模板
 
-用于 `<doc 组件> tmp frontend`。未指定 `ux` 或 `opt` 时，先创建或读取 README 技术入口，
-再按以下顺序维护：
+用于 `<doc 组件> tmp frontend`。未指定 `draft` 或 `opt` 时，先创建或读取 README 技术入口，
+再按以下顺序维护；Draft 编码规范由 `templates/frontend-draft.template.md` 独立维护：
 
 ```text
 README.md 技术入口 + 显式 req
@@ -14,21 +14,6 @@ README.md 技术入口 + 显式 req
   → testing.md
   → README.md 索引与文件关系校对
 ```
-
-## `ux` 页面范围
-
-`<doc 组件> tmp frontend ux M-001:P-001 <任务>` 只从现有 `ux.md` 选择一个页面生成或更新可运行 Draft：
-
-- 页面标识必须严格符合 `M-<三位编号>:P-<三位编号>`，并已存在于 `ux.md` 页面索引和对应页面章节；不存在时停止。
-- 只读取 README、`ux.md`、`design.tokens.json` 和现有 Draft 依赖；显式给出 `req` 时，可再读取该页面引用的 Require 文件。
-- 只创建或修改该页面的 `draft/src/M-001/P-001/**` 及其引用的 `draft/src/M-001/LAYOUT-*/**`，以及让该页面可预览所必需的
-  `draft/index.html`、`draft/src/index.js`、
-  `draft/src/app.js`、`draft/src/components/app-shell/**`、`draft/src/components/draft-dialog/**`、`draft/src/components/draft-state/**`、`draft/src/styles/**` 和
-  `draft/src/utils/load-text.js`。
-- 共享 Draft 文件只做注册、导航和渲染当前页所需的最小修改，保留其他页面及用户修改。
-- 不修改 `ux.md` 或 `design.tokens.json`，不创建或修改 `state.md`、`mapping.md`、`configuration.md`、`testing.md`
-  或 README；复杂状态只保留 `draft-state` 占位。
-- `ux` 与 `opt` 互斥；两者同时出现时停止。
 
 ## 专家团
 
@@ -102,7 +87,7 @@ flowchart LR
 | `README.md` | Require 引用、职责、应用目录、开发模板、技术基线、官方文档、文件关系和按主题组织的技术实现 |
 | `ux.md` | 用户、模块、页面、入口、导航、布局、表单、交互和可访问性规则 |
 | `design.tokens.json` | DTCG 2025.10 格式的颜色、字体、间距、尺寸、圆角、阴影和动效 Token |
-| `draft/**` | 使用原生 Web Components 完整渲染当前组件的布局、页面、复用组件和复杂状态交互占位 |
+| `draft/**` | 可独立运行的完整前端项目，使用 Web Components、Router、Store 和统一 API 层渲染布局、页面、组件及状态 |
 | `state.md` | 供开发阶段实现的复杂数据请求、共享状态、缓存、转换、并发和错误恢复 |
 | `mapping.md` | Draft 布局、页面和组件到生产框架组件及目标路径的唯一映射 |
 | `configuration.md` | 配置项、环境差异和启动校验 |
@@ -279,145 +264,9 @@ flowchart LR
 
 ## Draft
 
-Draft 使用正式 Web Components 项目结构和 ES Modules 组织可运行原型；未指定 `ux` 时完整渲染 `ux.md` 中当前组件的所有页面，
-指定 `ux` 时只渲染目标页面及必要依赖：
-
-> 文件封装与 Custom Element 语法参考：[Web Components 入门实例教程](https://www.ruanyifeng.com/blog/2019/08/web_components.html)
-
-```text
-draft/
-├─ index.html
-└─ src/
-   ├─ index.js
-   ├─ app.js
-   ├─ components/
-   │  ├─ app-shell/
-   │  │  ├─ index.js
-   │  │  ├─ style.css
-   │  │  └─ template.html  # 按需
-   │  ├─ draft-dialog/
-   │  │  ├─ index.js
-   │  │  ├─ style.css
-   │  │  └─ template.html
-   │  └─ draft-state/
-   │     ├─ index.js
-   │     └─ style.css
-   ├─ M-001/
-   │  ├─ LAYOUT-001/
-   │  │  ├─ index.js
-   │  │  ├─ style.css
-   │  │  └─ template.html  # 按需
-   │  └─ P-001/
-   │     ├─ index.js
-   │     ├─ style.css
-   │     ├─ template.html  # 按需
-   │     └─ COMP-001-<component>/
-   │        ├─ index.js
-   │        ├─ style.css
-   │        └─ template.html  # 按需
-   ├─ styles/
-   │  ├─ global.css
-   │  └─ tokens.css
-   └─ utils/
-      └─ load-text.js
-```
-
-- `index.html` 只提供视口、全局样式和统一模块入口；`src/index.js` 导入并注册当前范围的 layout、page 和 component，
-  再启动 `src/app.js`。
-- 页面、布局、可复用区域及独立状态边界使用原生 Custom Elements；名称必须包含连字符。模块目录使用 `M-001/`，页面目录使用
-  `M-001/P-001/`，页面专属组件使用 `M-001/P-001/COMP-001-<component>/`，布局使用
-  `M-001/LAYOUT-001/`；目录名只保留稳定编号，只有跨模块共享组件放在 `src/components/`。
-- Custom Element 使用 `attachShadow({ mode: "open" })`，便于评审、自动化检查和调试。
-- 只拆分页面、布局、复用区域和独立状态边界，不把一次性小元素组件化。
-- 每个 layout、page 和 component 使用独立目录；`index.js` 维护类、事件和标签注册，`style.css` 维护 Shadow DOM 私有样式，
-  HTML 较多时才创建 `template.html`，简短模板直接写在 `index.js` 内。不创建空 `template.html` 或空 `utils/` 文件。
-- `index.html` 使用 `<script type="module" src="./src/index.js"></script>`；ES Modules 和 CSS/HTML 资源通过本地 HTTP 服务器预览，
-  不再支持 `file://` 直接打开。开发服务器和构建方式使用 README 已确认的技术基线，不在 Draft 另选工具。
-- 不调用真实 API、不写生产业务逻辑、不复制到应用源码，也不被生产应用导入。
-- 使用语义化 HTML，在组件声明的唯一目标设备上覆盖键盘、焦点、对比度和动效降级；不额外要求跨设备自适应。
-
-### Custom Element 文件格式
-
-`index.html` 只加载全局样式和统一入口：
-
-```html
-<link rel="stylesheet" href="./src/styles/tokens.css">
-<link rel="stylesheet" href="./src/styles/global.css">
-<script type="module" src="./src/index.js"></script>
-```
-
-`src/utils/load-text.js` 对非成功响应抛错，并返回文本内容：
-
-```js
-export async function loadText(url) {
-  const response = await fetch(url);
-  if (!response.ok) throw new Error(`Unable to load ${url}: ${response.status}`);
-  return response.text();
-}
-```
-
-组件的 `index.js` 按下列格式加载同目录资源：
-
-```js
-import { loadText } from "../../utils/load-text.js";
-
-const [style, markup] = await Promise.all([
-  loadText(new URL("./style.css", import.meta.url)),
-  loadText(new URL("./template.html", import.meta.url)),
-]);
-
-const template = document.createElement("template");
-template.innerHTML = `<style>${style}</style>${markup}`;
-
-class LoginPage extends HTMLElement {
-  constructor() {
-    super();
-    const shadow = this.attachShadow({ mode: "open" });
-    shadow.appendChild(template.content.cloneNode(true));
-    shadow.addEventListener("click", (event) => {
-      // 只处理该组件内的 Draft 交互。
-    });
-  }
-}
-
-window.customElements.define("m001-p001-login", LoginPage);
-```
-
-- 标签名全小写且至少包含一个连字符；文件名保留 UX 稳定标识，类名使用 PascalCase。
-- 组件私有样式从同目录 `style.css` 注入 `template` 的 `<style>`，使用 `:host` 定义宿主样式；`src/styles/global.css` 只保留全局外壳样式，
-  `src/styles/tokens.css` 是由 `design.tokens.json` 机械转换的 CSS Custom Properties，Shadow DOM 通过 `var(--token-name)` 继承使用。
-- Draft 所有颜色，包括页面、组件、状态和弹窗颜色，必须来自 `src/styles/tokens.css`；组件 CSS 不手写 hex、`rgb()`、`hsl()` 或颜色名。
-- 每次创建组件实例都使用 `template.content.cloneNode(true)`，不在多个实例间移动或共享可变 DOM 节点。
-- 事件直接绑定到 Shadow DOM 内的目标元素或根节点；需要通知外部时派发语义明确的 `CustomEvent`。
-
-### 默认演示账户
-
-- `src/app.js` 在内存中初始化一个默认演示账户，至少包含稳定的 `id`、显示名称，以及 UX 已引用的适用角色或权限；
-  不猜测或扩大生产权限。
-- 账户标识、姓名和凭据必须是明确标注的合成 Draft 数据，不使用真实个人信息、生产凭据或密钥。
-- 存在登录页时，在页面上显示并可预填能通过 UX 校验的演示凭据，提交后只在本地切换为已登录账户。
-- `app-shell` 提供已登录、退出和匿名状态的可见切换入口，使需要身份的页面默认可交互，同时可验证无权限表现。
-- 账户和会话只存在内存中，刷新后恢复默认状态；不使用 Cookie、`localStorage` 或真实认证请求。
-
-### 弹窗与运行状态
-
-- `app-shell` 只挂载一个共享 `<draft-dialog>`，内部使用原生 `<dialog>`、`showModal()` 和 `close()`；同一时刻只显示一条提示。
-- 用户跳转到 `ux.md` 已定义但 Draft 尚未生成的页面时，弹窗显示“页面尚未生成”、目标 UX 标识和返回操作；
-  保留当前可用页，该预期分支不记录为控制台 error。
-- 当前页面实际适用的 loading、empty、success、error 或 unauthorized 等运行状态可由 `draft-state` 派发事件，
-  统一交给 `draft-dialog` 显示；状态列表必须来自当前 UX/State，不机械生成不适用状态，不把所有状态堆叠在页面内。
-- 弹窗必须有标题、可访问名称、明确关闭操作和焦点管理；打开后焦点进入弹窗，关闭后返回触发元素。
-- 弹窗的背景、文字、边框、阴影、遮罩和各状态颜色只使用 Token CSS Variables。
-
-Hover、focus、active、disabled、展开、选择和简单表单校验直接在 Draft 实现。复杂状态使用稳定标签：
-
-```html
-<draft-state
-  ref="state:M-001:P-001:S-001"
-  states="loading error success">
-  <p>复杂状态留待 state.md 定义</p>
-</draft-state>
-```
+Draft 的页面范围、Web Components 目录、Custom Element、样式、演示账户、弹窗、交互、复杂状态占位和验证规范，
+统一由 `templates/frontend-draft.template.md` 维护。完整 Frontend 设计任务按 UX 与 Design Token 生成 Draft；
+`draft M-001:P-001` 页面任务只加载该独立模板。
 
 ## `state.md`
 
@@ -438,22 +287,23 @@ Draft 初稿必须为复杂状态及其交互保留稳定 `state:M-001:P-001:S-0
 - Draft：`draft-state[ref="state:M-001:P-001:S-001"]`
 ```
 
-`state.md` 填写状态含义、转换和恢复要求，但不在 Draft 实现生产状态逻辑；稳定状态标签是交给 `<dev 组件>` 的明确实现边界。
-Draft 只展示占位界面和预期交互入口，生产状态逻辑由开发阶段按 `state.md` 实现。
+`state.md` 填写生产状态含义、转换和恢复要求；Draft 只实现由临时 API 驱动的可观察行为，不伪装为生产缓存、并发或恢复逻辑。
+稳定状态标签是交给 `<dev 组件>` 的明确实现边界，生产状态逻辑由开发阶段按 `state.md` 实现。
 
 ## `mapping.md`
 
 ```md
-| Draft | UX/State 引用 | 框架组件 | 目标路径 | 职责 | 输入/输出 | 实现状态 |
-|---|---|---|---|---|---|---|
-| `draft/src/M-001/LAYOUT-001/index.js` | `ux:M-001:LAYOUT-001` | `AppLayout` | `src/layouts/AppLayout.<扩展名>` | 应用外壳 | `<输入/输出>` | planned |
-| `draft/src/M-001/P-001/index.js` | `ux:M-001:P-001` | `HomePage` | `src/pages/HomePage.<扩展名>` | 首页 | `<输入/输出>` | planned |
-| `draft/src/M-002/P-001/COMP-001-appointment-list/index.js` | `ux:M-002:P-001:COMP-001` | `AppointmentList` | `src/components/AppointmentList.<扩展名>` | 预约列表 | `<输入/输出>` | planned |
+| Draft Manifest | UX/State 引用 | 框架组件 | 目标路径 | 职责 | 实现状态 |
+|---|---|---|---|---|---|
+| `draft/src/modules/M-001/LAYOUT-001/component.json` | `ux:M-001:LAYOUT-001` | `AppLayout` | `src/layouts/AppLayout.<扩展名>` | 应用外壳 | planned |
+| `draft/src/modules/M-001/P-001/component.json` | `ux:M-001:P-001` | `HomePage` | `src/pages/HomePage.<扩展名>` | 首页 | planned |
+| `draft/src/modules/M-002/P-001/COMP-001-appointment-list/component.json` | `ux:M-002:P-001:COMP-001` | `AppointmentList` | `src/components/AppointmentList.<扩展名>` | 预约列表 | planned |
 ```
 
-- 每个 Draft layout、page 和可复用 component 必须且只能映射一个生产框架组件；纯展示辅助文件不映射。
+- 每个 Draft layout、page 和可复用 component 的 `component.json` 必须且只能映射一个生产框架组件；Draft 基础设施和纯展示辅助文件不映射。
 - 框架组件名和目标路径遵循 README 已确认的框架及项目结构，不在映射文件重新选择技术。
-- `mapping.md` 只定义实现去向和边界，不复制 Draft 代码；`<dev 组件>` 按映射实现并更新实现状态。
+- 输入、输出、Slot、状态和依赖以 `component.json` 为唯一事实源；`mapping.md` 只定义目标平台实现去向和状态，不复制组件契约或 Draft 代码。
+- `<dev 组件>` 读取 Manifest 与映射生成目标平台骨架，再按 UX、State 和 Require 实现并更新实现状态。
 
 ## 契约、配置与测试
 
@@ -468,9 +318,7 @@ Draft 只展示占位界面和预期交互入口，生产状态逻辑由开发�
 
 ## 完成检查
 
-`ux` 页面范围只检查目标页面可直接预览、默认演示账户可完成该页主要交互、未生成页面和适用运行状态能通过弹窗显示、
-页面引用与 `ux.md` 一致、所有颜色均来自 Token、目标设备表现正确、控制台无未处理 error，
-共享文件未破坏已有页面，并确认没有修改页面范围外的文档产物。以下全量检查仅适用于未指定 `ux` 或 `opt` 的任务：
+`draft` 页面范围的完成检查由 `templates/frontend-draft.template.md` 定义。以下全量检查仅适用于未指定 `draft` 或 `opt` 的任务：
 
 - README 在其他设计前建立，第一条引用指向显式 Require，应用目录、`frontend` 模板、实际版本和官方文档完整可用。
 - UX、Token、Draft、State、Mapping、配置和测试引用方向一致，没有 `*.ui.yml`、重复事实或孤立文件。
