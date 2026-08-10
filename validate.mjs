@@ -344,7 +344,8 @@ function runSelfTests() {
     assert.match(frontend, /- 布局：`ux:M-001:LAYOUT-001`/);
     assert.match(frontend, /\| 布局区域 \| 组件引用 \| 组件名称 \| 显示条件 \|/);
     assert.match(frontend, /Layout 与 Page 都是模块下的三级标题/);
-    assert.match(frontend, /M-001\/LAYOUT-001-<layout>\//);
+    assert.match(frontend, /M-001\/LAYOUT-001\//);
+    assert.doesNotMatch(frontend, /LAYOUT-001-(?:<layout>|app)/);
     assert.match(frontend, /### 数据表格型 `COMP-001`/);
     assert.match(frontend, /\| 列标识 \| 列名称 \| 数据字段 \| 展示方式 \| 排序 \|/);
     assert.doesNotMatch(frontend, /窄屏表现/);

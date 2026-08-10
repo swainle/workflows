@@ -303,7 +303,7 @@ draft/
    │     ├─ index.js
    │     └─ style.css
    ├─ M-001/
-   │  ├─ LAYOUT-001-<layout>/
+   │  ├─ LAYOUT-001/
    │  │  ├─ index.js
    │  │  ├─ style.css
    │  │  └─ template.html  # 按需
@@ -326,7 +326,7 @@ draft/
   再启动 `src/app.js`。
 - 页面、布局、可复用区域及独立状态边界使用原生 Custom Elements；名称必须包含连字符。模块目录使用 `M-001/`，页面目录使用
   `M-001/P-001/`，页面专属组件使用 `M-001/P-001/COMP-001-<component>/`，布局使用
-  `M-001/LAYOUT-001-<layout>/`；只有跨模块共享组件放在 `src/components/`。
+  `M-001/LAYOUT-001/`；目录名只保留稳定编号，只有跨模块共享组件放在 `src/components/`。
 - Custom Element 使用 `attachShadow({ mode: "open" })`，便于评审、自动化检查和调试。
 - 只拆分页面、布局、复用区域和独立状态边界，不把一次性小元素组件化。
 - 每个 layout、page 和 component 使用独立目录；`index.js` 维护类、事件和标签注册，`style.css` 维护 Shadow DOM 私有样式，
@@ -446,7 +446,7 @@ Draft 只展示占位界面和预期交互入口，生产状态逻辑由开发�
 ```md
 | Draft | UX/State 引用 | 框架组件 | 目标路径 | 职责 | 输入/输出 | 实现状态 |
 |---|---|---|---|---|---|---|
-| `draft/src/M-001/LAYOUT-001-app/index.js` | `ux:M-001:LAYOUT-001` | `AppLayout` | `src/layouts/AppLayout.<扩展名>` | 应用外壳 | `<输入/输出>` | planned |
+| `draft/src/M-001/LAYOUT-001/index.js` | `ux:M-001:LAYOUT-001` | `AppLayout` | `src/layouts/AppLayout.<扩展名>` | 应用外壳 | `<输入/输出>` | planned |
 | `draft/src/M-001/P-001/index.js` | `ux:M-001:P-001` | `HomePage` | `src/pages/HomePage.<扩展名>` | 首页 | `<输入/输出>` | planned |
 | `draft/src/M-002/P-001/COMP-001-appointment-list/index.js` | `ux:M-002:P-001:COMP-001` | `AppointmentList` | `src/components/AppointmentList.<扩展名>` | 预约列表 | `<输入/输出>` | planned |
 ```
