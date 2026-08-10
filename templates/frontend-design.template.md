@@ -7,7 +7,7 @@
 README.md 技术入口 + 显式 req
   → ux.md
   → design.tokens.json
-  → draft 初稿（包含 layout、page、component 和复杂状态占位标签）
+  → draft SPA（包含 layout、page、component 和临时 API 驱动的状态演示）
   → state.md（存在复杂状态时，定义与 Draft 相同的稳定状态引用）
   → mapping.md
   → configuration.md
@@ -18,7 +18,7 @@ README.md 技术入口 + 显式 req
 ## 专家团
 
 - UX 与无障碍专家：负责用户、页面、导航、交互语义、目标设备和可访问性边界。
-- UI 与 Web Components 专家：负责 Design Token、组件边界、Shadow DOM 和完整 Draft 渲染。
+- UI 与 Web Components 专家：负责 Design Token、组件边界、Light/Shadow DOM 封装和完整 Draft 渲染。
 - Frontend 架构与测试专家：负责复杂状态、配置、性能和测试策略。
 
 专家只读分析并返回决策、风险、建议和阻塞；主 Agent 统一修改与验证。
@@ -259,12 +259,12 @@ flowchart LR
 ```
 
 - Token 名称稳定且语义化；对象含 `$value` 时是 Token，不含 `$value` 时是分组，类型必须显式声明或从最近分组继承。
-- Draft 读取或机械转换该 JSON，不在页面、Layout 或 Shadow DOM 内重复硬编码同一风格事实。
+- Draft 机械转换该 JSON，不在 Light DOM、Shadow DOM 或页面私有样式中重复硬编码同一风格事实。
 - 生产平台需要 CSS Custom Properties 或框架主题时，由开发阶段从 JSON 转换，不手工维护第二份 Token。
 
 ## Draft
 
-Draft 的页面范围、Web Components 目录、Custom Element、样式、演示账户、弹窗、交互、复杂状态占位和验证规范，
+Draft 的页面范围、Web Components 目录、Custom Element、样式、演示账户、弹窗、交互、临时状态和验证规范，
 统一由 `templates/frontend-draft.template.md` 维护。完整 Frontend 设计任务按 UX 与 Design Token 生成 Draft；
 `draft M-001:P-001` 页面任务只加载该独立模板。
 
@@ -323,7 +323,8 @@ Draft 初稿必须为复杂状态及其交互保留稳定 `state:M-001:P-001:S-0
 - README 在其他设计前建立，第一条引用指向显式 Require，应用目录、`frontend` 模板、实际版本和官方文档完整可用。
 - UX、Token、Draft、State、Mapping、配置和测试引用方向一致，没有 `*.ui.yml`、重复事实或孤立文件。
 - `design.tokens.json` 符合 DTCG 2025.10 的 `$type`、`$value` 和类型值结构，没有第二份手工 Token。
-- Draft 使用 Web Components 和开放 Shadow DOM，能完整导航并渲染所有已定义 layout、page、component 和状态占位；
+- Draft 使用 Web Components；App Shell、Layout、Page 使用 Light DOM，可复用组件按 Manifest 使用开放 Shadow DOM，
+  并能完整导航、渲染所有已定义 layout、page、component 和临时状态；
   默认演示账户可完成主要交互，且可切换匿名态验证无权限表现；所有可见控件有实际结果，
   禁止 `href="#"`、空事件处理器和无可观察反馈的提交。
 - UX 中的必填、类型和规则已落到表单约束，错误反馈使用 `aria-invalid` 和 `aria-describedby` 关联；控制台没有未处理 error、

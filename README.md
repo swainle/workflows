@@ -72,6 +72,8 @@ docs/
 - `draft M-001:P-001` 仅用于 `tmp frontend`，只加载 `frontend-draft.template.md`，创建或更新该 UX 页面可预览所需的完整前端项目文件；
   Draft 使用独立 Router、Store 和 `api.js`，页面数据统一通过 `api.js` 取得临时合成数据。
   Layout、Page 和 Component 使用 `component.json` 声明平台无关契约，供后续映射与真实平台代码生成。
+  Router 优先使用 Navigation API，Store 基于 EventTarget；App、Layout、Page 使用 Light DOM，可复用组件按 Manifest 使用 Shadow DOM。
+  `tokens.css` 从 `design.tokens.json` 自动生成，并在启动与构建前校验样式。
 - `opt <文件>` 只创建或更新阶段内的一个文件。
 - `<test>` 和 `<docker>` 是全局命令；`<docker 组件>` 固定维护根目录 `docker/<组件>/**`。
 
