@@ -316,6 +316,8 @@ function runSelfTests() {
     assert.match(frontendDraft, /通过对话一次询问一个关键问题/);
     assert.match(frontendDraft, /同时给出已发现证据和推荐项/);
     assert.match(frontendDraft, /用户确认前不得猜测、写入或宣称该项已验证/);
+    assert.match(frontendDraft, /`anchors\.fill` 的子项不会向父项贡献隐式尺寸/);
+    assert.match(frontendDraft, /LAYOUT_AUDIT_FAILED/);
     assert.match(frontend, /第一个创建或确认/);
     assert.match(frontend, /> Ref: `docs\/<req组件>\/README\.md`/);
     assert.match(frontend, /开发模板：`frontend`/);
@@ -334,6 +336,9 @@ function runSelfTests() {
     assert.match(frontend, /draft\/src\/Theme\.qml/);
     assert.match(frontendDraft, /禁止手工编辑/);
     assert.match(frontendDraft, /不要求另建生成器程序/);
+    assert.match(frontendDraft, /不得假设浏览器或操作系统字体可被 Qt WebAssembly 使用/);
+    assert.match(frontendDraft, /`FontLoader` 加载并使用其实际 `name`/);
+    assert.match(frontendDraft, /FONT_LOAD_FAILED/);
     assert.match(frontendDraft, /目标平台由 `<dev 组件>` 从原始 JSON 生成主题/);
     assert.match(frontendDesign, /不创建 `ux\.md`、`state\.md` 或 `mapping\.md`/);
     assert.doesNotMatch(frontendDesign, /^## `?(?:ux|state|mapping)\.md`?$/m);
@@ -372,6 +377,11 @@ function runSelfTests() {
     assert.match(frontendDraft, /`build\/wasm\/` 配置并构建应用目标/);
     assert.match(frontendDraft, /从真实 WASM 输出目录启动本地 HTTP 服务器/);
     assert.match(frontendDraft, /不得声称“可运行 WASM 已完成”/);
+    for (const level of ["视觉已验证", "仅结构与交互已验证", "仅构建已验证"]) {
+      assert.match(frontendDraft, new RegExp(level), `missing Draft validation level: ${level}`);
+    }
+    assert.match(frontendDraft, /不支持图片但支持浏览器/);
+    assert.match(frontendDraft, /仅有“编译成功”或“控制台无普通异常”不能证明页面样式完成/);
     assert.match(prompt("stages/doc.md"), /`tmp frontend draft` 是唯一例外/);
     assert.match(frontendDraft, /没有 `\.ui\.qml`、`index\.js`、TypeScript、JSX 或平台插件/);
     assert.match(frontendDesign, /## `configuration\.md`/);
