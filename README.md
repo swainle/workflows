@@ -20,7 +20,7 @@ docs/
 │  │  └─ AC-001.feature
 │  ├─ system.md
 │  └─ openapi.json
-├─ web/
+├─ browser/
 │  └─ README.md
 └─ api/
    └─ README.md
@@ -55,10 +55,11 @@ docs/
 <doc require> tmp require opt security.md 调整安全基线
 <doc api> tmp backend req require issue 1 设计初始化接口
 <doc api> tmp backend req require issue 2 opt domain.md 调整手机号规则
-<doc web> tmp frontend req require issue 2 设计手机号页面
-<doc web> tmp frontend draft M-001:P-001 创建登录页 Draft
+<doc browser> tmp frontend req require issue 2 生成完整 QML Frontend
+<doc browser> tmp frontend req require draft M-001:P-001 创建登录页 Draft
 <doc telemetry> tmp docker 设计遥测容器编排
 <dev api> 实现手机号接口
+<dev browser> 将 QML Draft 转换为目标平台代码
 <test api> 验证手机号接口
 <docker telemetry> 创建遥测 Compose 和配置
 <test> 验证注册流程
@@ -69,11 +70,14 @@ docs/
 - `<doc require> tmp require issue 1` 总是运行需求、架构和验收专家流程；Issue 编号只标识来源和限定本次范围。
 - `req require` 递归读取 `docs/require/` 的全部文件；后接 `issue 2` 时再读取该 Issue 作为当前任务输入。
 - `tmp require|frontend|backend|docker` 加载对应模板；完整 Frontend 任务同时加载独立 Draft 编码模板。
-- `draft M-001:P-001` 仅用于 `tmp frontend`，只加载 `frontend-draft.template.md`，创建或更新该 UX 页面可预览所需的完整前端项目文件；
-  Draft 使用独立 Router、Store 和 `api.js`，页面数据统一通过 `api.js` 取得临时合成数据。
-  Layout、Page 和 Component 使用 `component.json` 声明平台无关契约，供后续映射与真实平台代码生成。
-  Router 优先使用 Navigation API，Store 基于 EventTarget；App、Layout、Page 使用 Light DOM，可复用组件按 Manifest 使用 Shadow DOM。
-  `tokens.css` 从 `design.tokens.json` 自动生成，并在启动与构建前校验样式。
+- `tmp frontend` 是文档阶段模板，不是目录名；Require 先决定模块、功能、页面、业务规则、权限、流程与验收。
+- Frontend 组件固定维护 `README.md`、`design.tokens.json`、完整可运行的 `draft/**` QML 项目、
+  `configuration.md` 和 `testing.md`；不再创建 `ux.md`、`state.md` 或 `mapping.md`。
+- `draft M-001:P-001` 仅用于 `tmp frontend`，只加载 `frontend-draft.template.md`，创建或更新该页面及其必要依赖；
+  新页面必须通过显式 `req` 在 Require 中存在，已有页面也可从既有 Draft 确认。
+- Draft 使用稳定编号目录和 `View.qml`，通过临时合成数据完整展示组件树、布局、绑定、状态、事件、动画、复用、响应式和主题；
+  同一份 QML 构建桌面与 Qt WebAssembly 浏览器预览，不维护并行 HTML/Web Components 版本。
+- `<dev 组件>` 读取 Require、Design Token、QML Draft、Configuration 和 Testing，将 Draft 转换为 README 声明的目标平台生产代码。
 - `opt <文件>` 只创建或更新阶段内的一个文件。
 - `<test>` 和 `<docker>` 是全局命令；`<docker 组件>` 固定维护根目录 `docker/<组件>/**`。
 

@@ -1,31 +1,50 @@
 # Frontend 文档模板
 
-用于 `<doc 组件> tmp frontend`。未指定 `draft` 或 `opt` 时，先创建或读取 README 技术入口，
-再按以下顺序维护；Draft 编码规范由 `templates/frontend-draft.template.md` 独立维护：
+用于 `<doc 组件> tmp frontend`。`frontend` 是文档阶段模板，不是目录名；产物始终位于
+`docs/<组件>/`。Require 决定模块、功能、页面、业务规则、权限、流程与验收，Frontend 不重复定义或扩展这些事实。
+
+未指定 `draft` 或 `opt` 时，按以下顺序维护：
 
 ```text
-README.md 技术入口 + 显式 req
-  → ux.md
+README.md
   → design.tokens.json
-  → draft（包含 layout、page、component 和临时状态演示）
-  → state.md（存在复杂状态时，定义与 Draft 相同的稳定状态引用）
-  → mapping.md
+  → draft/**
   → configuration.md
   → testing.md
   → README.md 索引与文件关系校对
 ```
 
+Draft 编码规范由 `templates/frontend-draft.template.md` 独立维护。
+
 ## 专家团
 
-- UX 与无障碍专家：负责用户、页面、导航、交互语义、目标设备和可访问性边界。
-- UI 与 Web Components 专家：负责 Design Token、组件边界、Shadow DOM 和完整 Draft 渲染。
-- Frontend 架构与测试专家：负责复杂状态、配置、性能和测试策略。
+- UX 与无障碍专家：检查 Require 是否足以形成完整页面、导航、交互语义和可访问性表现。
+- QML 与视觉专家：负责 Design Token、QML 组件边界、主题、布局、状态、事件、动画和浏览器预览。
+- Frontend 架构与测试专家：负责 QML 到目标平台的转换边界、配置和验收策略。
 
 专家只读分析并返回决策、风险、建议和阻塞；主 Agent 统一修改与验证。
 
+## 阶段边界
+
+```text
+Require
+  模块、功能、页面、业务规则、权限、流程、契约、验收
+      ↓
+Frontend
+  Design Token + 完整可运行 QML Draft + 转换配置 + 转换测试
+      ↓
+<dev 组件>
+  将 QML Draft 转换为 README 声明的目标平台生产代码
+```
+
+- 创建模块、页面或改变产品行为时必须显式使用 `req <需求组件>`，并引用其稳定标识；缺失时停止，不由 Frontend 猜测。
+- 没有显式 `req` 时，只能维护当前组件已经存在的视觉、Draft、配置或测试事实，不新增模块、页面、业务规则或权限。
+- QML Draft 是可运行的中间产品，不是目标平台生产源码；数据可以是明确标记的临时合成数据。
+- Frontend 不创建 `ux.md`、`state.md` 或 `mapping.md`：产品事实属于 Require，可观察界面与状态属于 QML，转换规则属于本模板与 `configuration.md`。
+
 ## README 技术入口
 
-README 第一个创建或确认，为后续设计提供唯一技术基线：
+README 第一个创建或确认，固定使用以下章节结构：
 
 ````md
 # <组件名称>
@@ -35,199 +54,70 @@ README 第一个创建或确认，为后续设计提供唯一技术基线：
 应用目录：`apps/<实际路径>/`
 开发模板：`frontend`
 
-## 职责
+## 概述
 
-<组件负责和不负责的内容>
+<项目用途、目标用户和职责边界>
 
 ## 技术基线
 
 | 类别 | 选择 | 版本 | 官方文档 |
 |---|---|---|---|
-| 语言 | `<语言>` | `<精确版本>` | `<官方文档 URL>` |
-| 框架 | `<框架>` | `<精确版本>` | `<官方文档 URL>` |
-| 样式 | `<方案>` | `<精确版本>` | `<官方文档 URL>` |
+| Draft | QML / Qt Quick | `<精确版本>` | `<官方文档 URL>` |
+| 浏览器预览 | Qt for WebAssembly | `<精确版本>` | `<官方文档 URL>` |
+| 生产平台 | `<框架>` | `<精确版本>` | `<官方文档 URL>` |
 | 测试 | `<工具>` | `<精确版本>` | `<官方文档 URL>` |
 
 ## 文档索引
 
 | 文件 | 职责 |
 |---|---|
+| `design.tokens.json` | 项目主题唯一事实源 |
+| `draft/` | 完整可运行的 QML 中间应用 |
+| `configuration.md` | QML 转换后的平台配置与接入要求 |
+| `testing.md` | 目标平台转换结果的验收要求 |
 
 ## 文件关系
 
 ```mermaid
 flowchart LR
-  REQUIRE["docs/<req组件>/README.md"] --> README["README.md"]
-  REQUIRE --> UX["ux.md"]
-  UX --> DRAFT["draft/**"]
+  REQUIRE["docs/<req组件>/**"] --> DRAFT["draft/**"]
   TOKENS["design.tokens.json"] --> DRAFT
-  DRAFT --> MAPPING["mapping.md"]
-  DRAFT --> STATE["state.md"]
-  DRAFT --> TESTING["testing.md"]
-  MAPPING --> TESTING
-  STATE --> TESTING
-  CONFIG["configuration.md"] --> TESTING
+  DRAFT --> DEV["<dev 组件>"]
+  CONFIG["configuration.md"] --> DEV
+  REQUIRE --> TESTING["testing.md"]
+  DRAFT --> TESTING
+  DEV --> TESTING
 ```
 
 ## 技术实现
 
 ### <关键技术>
+
+```text
+<最小实现说明>
+```
 ````
 
-- 只列当前组件实际采用的技术；版本来自项目清单、锁文件或已确认决策，不猜测或使用版本范围。
-- 官方文档直接链接所用版本页面。
-- README 的第一条引用必须指向显式 `req` 组件；README 是文件关系、框架、技术实现细节、官方文档和示例代码的唯一事实源。
-- `## 技术实现` 位于 README 文末；初始化时可仅保留空的 `### <关键技术>`，后续按实际情况填写。
-  每个已填写主题各用一个 `###` 和一个代码块，只保留能说明采用方式的最小实现，不复制教程。
+- README 第一条引用必须指向显式 Require 组件；不复制 Require 的模块、功能或页面正文。
+- 应用目录、开发模板、技术版本和官方文档必须唯一且已确认，不猜测版本或使用版本范围。
+- `## 技术实现` 位于文末；只记录影响 Draft 构建或平台转换的关键采用方式，不复制教程。
+- 不创建 `## 职责`；职责边界合并到 `## 概述`。
 
 ## 文件职责
 
 | 文件 | 唯一维护内容 |
 |---|---|
-| `README.md` | Require 引用、职责、应用目录、开发模板、技术基线、官方文档、文件关系和按主题组织的技术实现 |
-| `ux.md` | 用户、模块、页面、入口、导航、布局、表单、交互和可访问性规则 |
+| `README.md` | Require 引用、应用映射、简单概述、技术基线、文档索引、文件关系和关键技术实现 |
 | `design.tokens.json` | DTCG 2025.10 格式的颜色、字体、间距、尺寸、圆角、阴影和动效 Token |
-| `draft/**` | 使用单文件 Web Components 渲染布局、页面、组件及临时状态 |
-| `state.md` | 供开发阶段实现的复杂数据请求、共享状态、缓存、转换、并发和错误恢复 |
-| `mapping.md` | Draft 布局、页面和组件到生产框架组件及目标路径的唯一映射 |
-| `configuration.md` | 配置项、环境差异和启动校验 |
-| `testing.md` | 页面、状态、目标设备、可访问性、视觉、性能和契约验证要求 |
+| `draft/**` | 完整 QML 源码、共享组件、资产、临时数据、桌面与 WebAssembly 构建入口 |
+| `configuration.md` | QML 转目标平台后的环境变量、路由、数据映射、主题接入和启动校验 |
+| `testing.md` | Require 验收在目标平台上的页面、状态、设备、无障碍、视觉、性能和契约验证 |
 
-没有复杂状态时不创建 `state.md`。README、UX、Token、Draft、映射、配置和测试仍按实际需要维护，
-不再生成旧式 UI YAML 或手工维护第二份 Token 格式。
-
-## `ux.md`
-
-````md
-# UX 设计
-
-> Ref: `docs/<req组件>/README.md`
-
-| 页面 | 路由 | 布局 | 目标设备 | 说明 |
-|---|---|---|---|---|
-| `M-001:P-001` | `/login` | `ux:M-001:LAYOUT-001` | `desktop` | 登录页 |
-
-## M-001 身份与认证
-
-### LAYOUT-001 居中卡片布局
-
-- 居中卡片，无导航栏
-- 目标设备：`desktop`
-
-| 区域 | 组件引用 | 共享内容 | 显示条件 |
-|---|---|---|---|
-| `main` | — | 居中卡片内容插槽 | 始终 |
-
-### P-001 登录页
-
-> Ref: `docs/<req组件>/M-001/FR-002.md`
-
-- 布局：`ux:M-001:LAYOUT-001`
-- 目标设备：`desktop`
-
-| 目标页面 | 访问权限 | 无权限表现 |
-|---|---|---|
-| `ux:M-001:P-001` | `anon:auth:login` | 不适用 |
-| `ux:M-002:P-001` | `patient:appointment:read` | 重定向至登录页 |
-| `ux:M-003:P-001` | `doctor:schedule:read` | 重定向至登录页 |
-| `ux:M-004:P-001` | `admin:dashboard:read` | 重定向至登录页 |
-
-#### 页面内容
-
-| 布局区域 | 组件引用 | 组件名称 | 显示条件 |
-|---|---|---|---|
-| `main` | `FORM-001` | 登录表单 | 始终 |
-| `main` | — | 跳转注册链接 | 始终 |
-| `main` | `DIALOG-001` | <对话框名称> | <触发条件> |
-
-#### FORM-001 登录表单
-
-| 字段标识 | 标签 | 控件 | 必填 | 规则引用 | 错误提示 |
-|---|---|---|---|---|---|
-| `phone` | 手机号 | `tel` | 是 | — | 请输入手机号 |
-| `password` | 密码 | `password` | 是 | — | 请输入密码 |
-
-#### DIALOG-001 <对话框名称>
-
-| 顺序 | 内容类型 | 内容引用 | 显示条件 |
-|---|---|---|---|
-| 001 | 表单 | `FORM-002` | 始终 |
-
-#### FORM-002 <对话框表单名称>
-
-| 字段标识 | 标签 | 控件 | 必填 | 规则引用 | 错误提示 |
-|---|---|---|---|---|---|
-| `departmentName` | 科室名称 | `text` | 是 | `M-001/BR-003` | 请输入科室名称 |
-| `description` | 简介 | `textarea` | 否 | — | — |
-
-#### S-001 登录请求
-
-| 标签 | 状态 | 说明 |
-|---|---|---|
-| `state:M-001:P-001:S-001` | 状态引用 | UX、Draft 和 `state.md` 共用；运行时状态与转换由 `state.md` 定义 |
-````
-
-- 文件开头的页面表是页面、路由、布局、目标设备和说明的唯一索引；二级标题固定为 `## M-001 <模块名称>`。
-- Layout 与 Page 都是模块下的三级标题，分别使用 `### LAYOUT-001 <布局名称>`、`### P-001 <页面名称>`；引用使用
-  `ux:M-001:LAYOUT-001`、`ux:M-001:P-001`。其他模块复用 Layout 时引用其完整所有者标识，不复制定义。
-- Layout 定义可复用结构、区域和跨页面共享内容，可以直接包含导航栏、搜索框、登录/登出按钮等共享元素或组件；
-  不包含页面专属表单、摘要或状态。页面通过“页面内容”表把 Form、Dialog 或普通内容绑定到 Layout 区域。
-- Layout、Page 和页面级 `COMP-001` 各自只声明一个 `desktop`、`tablet` 或 `mobile` 目标设备；不要求同一组件同时自适应其他设备。
-  需要另一设备时分配新的稳定 Layout、Page 或 Component 标识，不在原组件内增加未声明的自适应分支。
-- 表单和对话框分别使用 `FORM-001`、`DIALOG-001`；对话框内容通过表格引用内部表单。
-- `P-001` 和 `LAYOUT-001` 分别在每个模块内从 `001` 开始；`FORM-001`、`DIALOG-001`、`COMP-001`、`S-001` 分别在每个页面内
-  从 `001` 独立编号。同页使用短标识，跨页引用使用 `ux:M-001:P-001:FORM-001` 等完整标识。
-- 已分配编号是稳定引用，不因展示顺序或条目删除而重排、复用；页面内新增项使用同类型历史最大编号加一。
-- 页面内复杂状态使用 `#### S-001 <状态名称>` 和状态标签表；UX、Draft、`state.md` 和 dev 全程使用
-  `state:M-001:P-001:S-001`，不增加生命周期后缀。
-- 定义用户可观察的页面、导航和交互，不指定框架组件、请求缓存或生产源码结构。
-- 每个模块、页面和关键交互在首次定义处引用具体 FR，不复制需求或契约内容。
-
-### 数据表格型 `COMP-001`
-
-具有排序、分页、筛选、行操作或独立状态的数据表格使用页面级复合组件 `COMP-001`；简单静态表格不分配组件编号：
-
-````md
-#### COMP-001 预约列表
-
-- 类型：数据表格
-- 目标设备：`desktop`
-- 状态引用：`state:M-002:P-001:S-001`
-- 行标识：`appointmentId`
-- 默认排序：预约时间倒序
-- 分页：每页 20 条
-
-| 列标识 | 列名称 | 数据字段 | 展示方式 | 排序 |
-|---|---|---|---|---|
-| `time` | 预约时间 | `appointmentTime` | 日期时间 | 是 |
-| `department` | 科室 | `departmentName` | 文本 | 是 |
-| `doctor` | 医生 | `doctorName` | 文本 | 否 |
-| `status` | 状态 | `status` | 状态标签 | 是 |
-| `actions` | 操作 | — | 操作按钮 | 否 |
-
-##### 行操作
-
-| 操作 | 权限引用 | 显示条件 | 目标页面 | 无权限表现 |
-|---|---|---|---|---|
-| 查看详情 | `patient:appointment:read` | 始终 | `ux:M-002:P-002` | 隐藏 |
-| 取消预约 | `patient:appointment:cancel` | 状态为待就诊 | — | 隐藏 |
-
-##### 页面表现
-
-| 运行时状态 | 页面表现 |
-|---|---|
-| `loading` | 显示表格骨架 |
-| `empty` | 显示“暂无预约”和创建入口 |
-| `success` | 显示预约数据 |
-| `error` | 显示错误提示和重试按钮 |
-````
-
-- `ux.md` 维护列、排序、目标设备、行操作和用户反馈；`state.md` 维护状态转换、缓存、并发和恢复。
-- 权限必须引用 Require 已登记的 PERM；数据字段引用契约或已确认的页面视图字段，不在 UX 猜测数据库字段。
+完整 Frontend 任务固定维护上述五项产物，不创建额外文档或空占位章节。
 
 ## Design Token
 
-`design.tokens.json` 是风格规范唯一事实源，遵循 DTCG Design Tokens Format Module 2025.10，使用 `$type`、`$value`
+`design.tokens.json` 是主题唯一事实源，遵循 DTCG Design Tokens Format Module 2025.10，使用 `$type`、`$value`
 和分组类型继承：
 
 ```json
@@ -259,76 +149,68 @@ flowchart LR
 ```
 
 - Token 名称稳定且语义化；对象含 `$value` 时是 Token，不含 `$value` 时是分组，类型必须显式声明或从最近分组继承。
-- Draft 机械转换该 JSON，不在 Shadow DOM 或页面私有样式中重复硬编码同一风格事实。
-- 生产平台需要 CSS Custom Properties 或框架主题时，由开发阶段从 JSON 转换，不手工维护第二份 Token。
+- Draft 将 JSON 机械转换为 `draft/src/Theme.qml`；该文件允许提交，但禁止手工修改，启动与构建前必须校验同步。
+- 目标平台主题由 `<dev 组件>` 直接从 `design.tokens.json` 转换，不以 `Theme.qml` 作为第二事实源。
 
-## Draft
+## `configuration.md`
 
-Draft 的页面范围、Web Components 目录、Custom Element、样式、演示账户、弹窗、交互、临时状态和验证规范，
-统一由 `templates/frontend-draft.template.md` 维护。完整 Frontend 设计任务按 UX 与 Design Token 生成 Draft；
-`draft M-001:P-001` 页面任务只加载该独立模板。
-
-## `state.md`
-
-Draft 初稿必须为复杂状态及其交互保留稳定 `state:M-001:P-001:S-001` 标签。存在该标签时创建 `state.md` 并定义；
-`S-001` 在每个页面内独立编号：
+只描述 Draft 转换为目标平台代码后的接入要求：
 
 ```md
-### state:M-001:P-001:S-001 <状态名称>
+# Configuration
 
-- 标识：`state:M-001:P-001:S-001`
-- 来源：<OpenAPI operationId 或本地状态来源>
-- 初始状态：<状态>
-- 状态：<状态列表>
-- 转换：<事件 → 状态>
-- 缓存：<存在时填写>
-- 并发：<存在时填写>
-- 恢复：<重试、回滚或回退>
-- Draft：`draft-state[ref="state:M-001:P-001:S-001"]`
+## Runtime
+
+| 配置项 | 环境 | 必填 | 来源 | 启动校验 |
+|---|---|---|---|---|
+| `API_BASE_URL` | production | 是 | 部署环境 | 必须是 HTTPS URL |
+
+## Data mapping
+
+| Draft 临时数据 | Require/OpenAPI 来源 | 移除条件 |
+|---|---|---|
+| `MockStore.currentUser` | `<operationId>` | 真实客户端接入后移除 |
+
+## Routing
+
+| 页面标识 | 平台路由 |
+|---|---|
+| `M-001:P-001` | `/login` |
+
+## Theme
+
+<design.tokens.json 到目标平台主题系统的机械转换方式>
 ```
 
-`state.md` 填写生产状态含义、转换和恢复要求；Draft 只实现由临时 API 驱动的可观察行为，不伪装为生产缓存、并发或恢复逻辑。
-稳定状态标签是交给 `<dev 组件>` 的明确实现边界，生产状态逻辑由开发阶段按 `state.md` 实现。
+- 不重复 README 技术选择、Require 契约正文或 QML 代码。
+- 不保存真实凭据、环境值或平台私有密钥。
 
-## `mapping.md`
+## `testing.md`
+
+使用稳定页面标识和 Given/When/Then 描述转换后的可观察结果：
 
 ```md
-| Draft | UX/State 引用 | 框架组件 | 目标路径 | 职责 | 实现状态 |
-|---|---|---|---|---|---|
-| `draft/src/M-001/LAYOUT-001/index.js` | `ux:M-001:LAYOUT-001` | `AppLayout` | `src/layouts/AppLayout.<扩展名>` | 应用外壳 | planned |
-| `draft/src/M-001/P-001/index.js` | `ux:M-001:P-001` | `HomePage` | `src/pages/HomePage.<扩展名>` | 首页 | planned |
-| `draft/src/M-002/P-001/COMP-001/index.js` | `ux:M-002:P-001:COMP-001` | `AppointmentList` | `src/components/AppointmentList.<扩展名>` | 预约列表 | planned |
+# Testing
+
+## M-001:P-001
+
+### P-001-T001 正常展示
+
+- Given：临时或契约数据有效
+- When：打开 `M-001:P-001`
+- Then：页面内容、导航和主要操作与 QML Draft 一致
 ```
 
-- 每个 Draft layout、page 和可复用 component 的 `index.js` 必须且只能映射一个生产框架组件；纯展示辅助文件不映射。
-- 框架组件名和目标路径遵循 README 已确认的框架及项目结构，不在映射文件重新选择技术。
-- `mapping.md` 只定义目标平台实现去向和状态，不复制组件契约或 Draft 代码；`<dev 组件>` 按 UX、State、Require 和映射实现并更新状态。
-
-## 契约、配置与测试
-
-- HTTP 请求引用显式需求组件中 OpenAPI 的稳定 `operationId`；契约缺失时停止，不在 Frontend 文档补造。
-- 临时 Mock 必须标记 `pending`，由 OpenAPI Schema 或示例生成，并说明移除条件。
-- `configuration.md` 只维护配置项、环境差异和启动校验，不重复 README 技术选择。
-- `testing.md` 使用 Given/When/Then 描述页面和状态结果，并覆盖 Draft 页面、目标设备、键盘、焦点、
-  语义、对比度、视觉差异、性能预算和契约映射中实际适用的部分；尺寸只验证组件声明的目标设备，
-  不要求未声明的跨设备自适应。
-- 箭头表示“被引用文件 → 使用者”：Require → README、UX；UX、Design Token → Draft；Draft → Mapping、State；Draft、Mapping、State、Configuration → Testing。
-  `design.tokens.json` 不引用 `ux.md`，`configuration.md` 不引用其他设计文件。
+- 覆盖 Require 中适用的 AC，以及 QML 展示的 loading、empty、success、error、unauthorized 等状态。
+- 覆盖页面声明的设备尺寸、键盘、焦点、语义、对比度、动效降级、视觉差异、性能预算和契约映射。
+- 测试目标是 `<dev 组件>` 生成的生产代码；QML Draft 的语法、构建和浏览器冒烟检查属于 Draft 完成检查。
 
 ## 完成检查
 
-`draft` 页面范围的完成检查由 `templates/frontend-draft.template.md` 定义。以下全量检查仅适用于未指定 `draft` 或 `opt` 的任务：
-
-- README 在其他设计前建立，第一条引用指向显式 Require，应用目录、`frontend` 模板、实际版本和官方文档完整可用。
-- UX、Token、Draft、State、Mapping、配置和测试引用方向一致，没有 `*.ui.yml`、重复事实或孤立文件。
-- `design.tokens.json` 符合 DTCG 2025.10 的 `$type`、`$value` 和类型值结构，没有第二份手工 Token。
-- Draft 使用按稳定 UX 编号组织的单文件 Web Components 和开放 Shadow DOM，能完整导航、渲染所有已定义 layout、page、component 和临时状态；
-  默认演示账户可完成主要交互，且可切换匿名态验证无权限表现；所有可见控件有实际结果，
-  禁止 `href="#"`、空事件处理器和无可观察反馈的提交。
-- UX 中的必填、类型和规则已落到表单约束，错误反馈使用 `aria-invalid` 和 `aria-describedby` 关联；控制台没有未处理 error、
-  Promise rejection 或资源 404，预期的未生成页面分支已通过 Token 样式的 `draft-dialog` 验证。
-- 每个 `state:M-001:P-001:S-001` 都在 `state.md` 有唯一同名定义；Draft 未实现复杂生产状态逻辑。
-- `mapping.md` 覆盖全部需生产实现的 Draft layout、page 和 component，框架组件及目标路径明确。
-- Draft 按稳定 UX 标识组织单文件 Web Components，ES6 Modules 可通过已确认的开发服务器加载，
-  无真实 API 和生产业务逻辑；无障碍与目标设备检查已完成。
-- README 最终索引、文件关系和文末技术实现结构已校对。
+- README 章节顺序固定为概述、技术基线、文档索引、文件关系、技术实现，应用映射与 Require 引用完整。
+- 没有 `ux.md`、`state.md`、`mapping.md`、旧式 UI YAML、Web Components Draft 或第二份手工 Token。
+- `design.tokens.json` 符合 DTCG 2025.10；`draft/src/Theme.qml` 是经过校验的机械生成物。
+- Draft 能完整导航并展示 Require 定义的模块、页面、组件、交互、状态、动画、响应式变化和主题。
+- Draft 使用临时合成数据，无真实 API、生产凭据、真实个人信息或生产业务基础设施。
+- `configuration.md` 和 `testing.md` 面向 QML 转换后的目标平台，不重复其他文件事实。
+- README 文档索引与实际文件一致，Draft 完成检查全部通过。

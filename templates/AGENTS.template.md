@@ -75,8 +75,8 @@ node docs/workflows/install.mjs --workflows-updated
 - `<doc 组件> tmp require [issue <编号>]`：总是加载 Require 专家团、需求分析和架构规则；
   `issue` 可选，用于读取并限定特定需求。组件名没有保留值，`require` 只是普通名称。
 - `draft M-<三位编号>:P-<三位编号>`：只能与 `tmp frontend` 同时使用，加载独立的
-  `templates/frontend-draft.template.md`，并将写入范围收窄为 `ux.md` 中该页面可预览所需的 Draft 文件；
-  与 `opt` 互斥。页面标识不存在时停止，不猜测页面。
+  `templates/frontend-draft.template.md`，并将写入范围收窄为该页面及其预览所需的 QML Draft 文件；
+  与 `opt` 互斥。新页面必须能从显式 `req` 找到，已有页面也可由既有 Draft 确认；否则停止，不猜测页面。
 - `opt <文件>`：将写入范围收窄为一个阶段内相对路径；禁止删除、移动和顺手修改关联文件。
 - 对尚不存在的组件使用 `opt` 时，目标只能是 `README.md`；其他目标需要先建立组件入口。
 - `issue` 紧跟 `req <组件>` 时限定被引用组件；没有 `req` 时只能与 `tmp require` 同时使用。
