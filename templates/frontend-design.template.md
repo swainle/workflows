@@ -7,7 +7,7 @@
 README.md 技术入口 + 显式 req
   → ux.md
   → design.tokens.json
-  → draft SPA（包含 layout、page、component 和临时 API 驱动的状态演示）
+  → draft（包含 layout、page、component 和临时状态演示）
   → state.md（存在复杂状态时，定义与 Draft 相同的稳定状态引用）
   → mapping.md
   → configuration.md
@@ -18,7 +18,7 @@ README.md 技术入口 + 显式 req
 ## 专家团
 
 - UX 与无障碍专家：负责用户、页面、导航、交互语义、目标设备和可访问性边界。
-- UI 与 Web Components 专家：负责 Design Token、组件边界、Light/Shadow DOM 封装和完整 Draft 渲染。
+- UI 与 Web Components 专家：负责 Design Token、组件边界、Shadow DOM 和完整 Draft 渲染。
 - Frontend 架构与测试专家：负责复杂状态、配置、性能和测试策略。
 
 专家只读分析并返回决策、风险、建议和阻塞；主 Agent 统一修改与验证。
@@ -87,7 +87,7 @@ flowchart LR
 | `README.md` | Require 引用、职责、应用目录、开发模板、技术基线、官方文档、文件关系和按主题组织的技术实现 |
 | `ux.md` | 用户、模块、页面、入口、导航、布局、表单、交互和可访问性规则 |
 | `design.tokens.json` | DTCG 2025.10 格式的颜色、字体、间距、尺寸、圆角、阴影和动效 Token |
-| `draft/**` | 可独立运行的完整前端项目，使用 Web Components、Router、Store 和统一 API 层渲染布局、页面、组件及状态 |
+| `draft/**` | 使用单文件 Web Components 渲染布局、页面、组件及临时状态 |
 | `state.md` | 供开发阶段实现的复杂数据请求、共享状态、缓存、转换、并发和错误恢复 |
 | `mapping.md` | Draft 布局、页面和组件到生产框架组件及目标路径的唯一映射 |
 | `configuration.md` | 配置项、环境差异和启动校验 |
@@ -259,7 +259,7 @@ flowchart LR
 ```
 
 - Token 名称稳定且语义化；对象含 `$value` 时是 Token，不含 `$value` 时是分组，类型必须显式声明或从最近分组继承。
-- Draft 机械转换该 JSON，不在 Light DOM、Shadow DOM 或页面私有样式中重复硬编码同一风格事实。
+- Draft 机械转换该 JSON，不在 Shadow DOM 或页面私有样式中重复硬编码同一风格事实。
 - 生产平台需要 CSS Custom Properties 或框架主题时，由开发阶段从 JSON 转换，不手工维护第二份 Token。
 
 ## Draft
@@ -293,17 +293,16 @@ Draft 初稿必须为复杂状态及其交互保留稳定 `state:M-001:P-001:S-0
 ## `mapping.md`
 
 ```md
-| Draft Manifest | UX/State 引用 | 框架组件 | 目标路径 | 职责 | 实现状态 |
+| Draft | UX/State 引用 | 框架组件 | 目标路径 | 职责 | 实现状态 |
 |---|---|---|---|---|---|
-| `draft/src/modules/M-001/LAYOUT-001/component.json` | `ux:M-001:LAYOUT-001` | `AppLayout` | `src/layouts/AppLayout.<扩展名>` | 应用外壳 | planned |
-| `draft/src/modules/M-001/P-001/component.json` | `ux:M-001:P-001` | `HomePage` | `src/pages/HomePage.<扩展名>` | 首页 | planned |
-| `draft/src/modules/M-002/P-001/COMP-001-appointment-list/component.json` | `ux:M-002:P-001:COMP-001` | `AppointmentList` | `src/components/AppointmentList.<扩展名>` | 预约列表 | planned |
+| `draft/src/M-001/LAYOUT-001/index.js` | `ux:M-001:LAYOUT-001` | `AppLayout` | `src/layouts/AppLayout.<扩展名>` | 应用外壳 | planned |
+| `draft/src/M-001/P-001/index.js` | `ux:M-001:P-001` | `HomePage` | `src/pages/HomePage.<扩展名>` | 首页 | planned |
+| `draft/src/M-002/P-001/COMP-001/index.js` | `ux:M-002:P-001:COMP-001` | `AppointmentList` | `src/components/AppointmentList.<扩展名>` | 预约列表 | planned |
 ```
 
-- 每个 Draft layout、page 和可复用 component 的 `component.json` 必须且只能映射一个生产框架组件；Draft 基础设施和纯展示辅助文件不映射。
+- 每个 Draft layout、page 和可复用 component 的 `index.js` 必须且只能映射一个生产框架组件；纯展示辅助文件不映射。
 - 框架组件名和目标路径遵循 README 已确认的框架及项目结构，不在映射文件重新选择技术。
-- 输入、输出、Slot、状态和依赖以 `component.json` 为唯一事实源；`mapping.md` 只定义目标平台实现去向和状态，不复制组件契约或 Draft 代码。
-- `<dev 组件>` 读取 Manifest 与映射生成目标平台骨架，再按 UX、State 和 Require 实现并更新实现状态。
+- `mapping.md` 只定义目标平台实现去向和状态，不复制组件契约或 Draft 代码；`<dev 组件>` 按 UX、State、Require 和映射实现并更新状态。
 
 ## 契约、配置与测试
 
@@ -323,14 +322,13 @@ Draft 初稿必须为复杂状态及其交互保留稳定 `state:M-001:P-001:S-0
 - README 在其他设计前建立，第一条引用指向显式 Require，应用目录、`frontend` 模板、实际版本和官方文档完整可用。
 - UX、Token、Draft、State、Mapping、配置和测试引用方向一致，没有 `*.ui.yml`、重复事实或孤立文件。
 - `design.tokens.json` 符合 DTCG 2025.10 的 `$type`、`$value` 和类型值结构，没有第二份手工 Token。
-- Draft 使用 Web Components；App Shell、Layout、Page 使用 Light DOM，可复用组件按 Manifest 使用开放 Shadow DOM，
-  并能完整导航、渲染所有已定义 layout、page、component 和临时状态；
+- Draft 使用按稳定 UX 编号组织的单文件 Web Components 和开放 Shadow DOM，能完整导航、渲染所有已定义 layout、page、component 和临时状态；
   默认演示账户可完成主要交互，且可切换匿名态验证无权限表现；所有可见控件有实际结果，
   禁止 `href="#"`、空事件处理器和无可观察反馈的提交。
 - UX 中的必填、类型和规则已落到表单约束，错误反馈使用 `aria-invalid` 和 `aria-describedby` 关联；控制台没有未处理 error、
   Promise rejection 或资源 404，预期的未生成页面分支已通过 Token 样式的 `draft-dialog` 验证。
 - 每个 `state:M-001:P-001:S-001` 都在 `state.md` 有唯一同名定义；Draft 未实现复杂生产状态逻辑。
 - `mapping.md` 覆盖全部需生产实现的 Draft layout、page 和 component，框架组件及目标路径明确。
-- Draft 按正式 Web Components 项目结构组织，ES Modules 和同目录资源可通过已确认的开发服务器加载，
+- Draft 按稳定 UX 标识组织单文件 Web Components，ES6 Modules 可通过已确认的开发服务器加载，
   无真实 API 和生产业务逻辑；无障碍与目标设备检查已完成。
 - README 最终索引、文件关系和文末技术实现结构已校对。
