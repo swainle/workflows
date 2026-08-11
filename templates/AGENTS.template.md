@@ -57,7 +57,7 @@ node docs/workflows/install.mjs --workflows-updated
 只解析消息开头第一对真实尖括号。指令头如下：
 
 ```text
-<doc 组件> [tmp require|frontend|backend|docker] [req 需求组件 [issue 编号]] [issue 编号] [draft M-001:P-001|opt 文件] 任务
+<doc 组件> [tmp require|frontend|backend|docker] [req 需求组件 [issue 编号]] [issue 编号] [design|draft M-001:P-001|opt 文件] 任务
 <dev 组件> [opt 文件] 任务
 <test 组件> [opt 文件] 任务
 <docker 组件> [opt 文件] 任务
@@ -74,13 +74,15 @@ node docs/workflows/install.mjs --workflows-updated
 - `req <需求组件> issue <编号>`：在上述文件之外读取对应 Issue，用于限定当前任务；Issue 编号不对应文档目录。
 - `<doc 组件> tmp require [issue <编号>]`：总是加载 Require 专家团、需求分析和架构规则；
   `issue` 可选，用于读取并限定特定需求。组件名没有保留值，`require` 只是普通名称。
+- `design`：只能与 `tmp frontend` 和显式 `req <需求组件>` 同时使用，加载
+  `templates/frontend-design-system.template.md`，只创建或修改当前组件根目录的 `DESIGN.md`；与 `draft`、`opt` 互斥。
 - `draft M-<三位编号>:P-<三位编号>`：只能与 `tmp frontend` 同时使用，加载独立的
   `templates/frontend-draft.template.md`，并将写入范围收窄为该页面及其预览所需的 QML Draft 文件；首次页面必须自举完整可运行应用，后续页面必须保持 WebAssembly 网页构建与浏览器验证闭环；
   与 `opt` 互斥。新页面必须能从显式 `req` 找到，已有页面也可由既有 Draft 确认；否则停止，不猜测页面。
 - `opt <文件>`：将写入范围收窄为一个阶段内相对路径；禁止删除、移动和顺手修改关联文件。
 - 对尚不存在的组件使用 `opt` 时，目标只能是 `README.md`；其他目标需要先建立组件入口。
 - `issue` 紧跟 `req <组件>` 时限定被引用组件；没有 `req` 时只能与 `tmp require` 同时使用。
-  其他位置的 `issue`、不符合 `M-001:P-001` 格式的 `draft` 值或未列出的 `tmp` 值都是未知语法。
+  其他位置的 `issue`、脱离 `tmp frontend` 的 `design`、不符合 `M-001:P-001` 格式的 `draft` 值或未列出的 `tmp` 值都是未知语法。
   一条指令只允许出现一个 `issue`。
 
 组件名只能包含字母、数字、点、下划线和连字符。保留全局指令优先于组件名；格式错误、
@@ -95,6 +97,7 @@ node docs/workflows/install.mjs --workflows-updated
 | `<doc 组件>` | `docs/workflows/stages/doc.md` |
 | `<doc 组件> tmp require [issue 编号]` | `stages/doc.md`、`templates/require.template.md`、`templates/require/requirements.md`、`templates/require/architecture.md` |
 | `<doc 组件> tmp frontend` | `stages/doc.md`、`templates/frontend-design.template.md` |
+| `<doc 组件> tmp frontend design` | `stages/doc.md`、`templates/frontend-design-system.template.md` |
 | `<doc 组件> tmp frontend draft M-001:P-001` | `stages/doc.md`、`templates/frontend-draft.template.md` |
 | `<doc 组件> tmp backend` | `stages/doc.md`、`templates/backend-design.template.md` |
 | `<doc 组件> tmp docker` | `stages/doc.md`、`templates/docker-design.template.md` |

@@ -3,6 +3,8 @@
 仅用于 `<doc 组件> tmp frontend`。本模板定义 Frontend 各文件的作用、结构、用法和关系，不包含 Draft 的页面实现、
 临时数据、QML 编码、构建、预览或验证功能。Draft 功能只由
 `<doc 组件> tmp frontend draft M-001:P-001` 加载 `templates/frontend-draft.template.md` 执行。
+需要根据 Require、页面和品牌方向专门创建或更新 `DESIGN.md` 时，显式 `design` 指令加载
+`templates/frontend-design-system.template.md`。
 
 `frontend` 是文档阶段模板，不是目录名；产物位于 `docs/<组件>/`：
 

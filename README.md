@@ -11,6 +11,7 @@ workflows/
 │  ├─ require.template.md
 │  ├─ require/
 │  ├─ frontend-design.template.md
+│  ├─ frontend-design-system.template.md
 │  ├─ frontend-draft.template.md
 │  ├─ backend-design.template.md
 │  └─ docker-design.template.md
@@ -48,7 +49,7 @@ workflows/
 指令格式：
 
 ```text
-<doc 组件> [tmp require|frontend|backend|docker] [req 需求组件 [issue 编号]] [issue 编号] [draft M-001:P-001|opt 文件]
+<doc 组件> [tmp require|frontend|backend|docker] [req 需求组件 [issue 编号]] [issue 编号] [design|draft M-001:P-001|opt 文件]
 - 任务
 
 <dev 组件> [opt 文件]
@@ -77,6 +78,15 @@ workflows/
 <doc api> tmp backend req require issue 1
 - 设计初始化接口
 ```
+
+### 范例：Frontend Design System
+
+```text
+<doc browser> tmp frontend req require design
+- 外贸商城风格
+```
+
+该指令读取 Require、现有页面和品牌资产，只创建或更新组件根目录的 `DESIGN.md`。
 
 ### 范例：Frontend Draft 设计 QML
 
