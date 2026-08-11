@@ -9,7 +9,7 @@
 ```text
 docs/<组件>/
 ├─ README.md
-├─ design.tokens.json
+├─ DESIGN.md
 ├─ draft/
 ├─ configuration.md
 └─ testing.md
@@ -18,7 +18,7 @@ docs/<组件>/
 ## 专家团
 
 - Frontend 文档专家：检查文件职责、章节结构、引用方向和事实唯一性。
-- Design Token 专家：检查主题结构、类型和跨平台消费边界。
+- Design System 专家：检查 DESIGN.md 的 Token、设计理由、组件规则和跨平台消费边界。
 - 平台转换与测试专家：检查 Configuration、Testing 和 `<dev 组件>` 的输入是否完整。
 
 专家只读分析并返回决策、风险、建议和阻塞；主 Agent 统一修改与验证。
@@ -31,7 +31,7 @@ Require 决定模块、功能、页面、业务规则、权限、流程、契约
 flowchart LR
   REQUIRE["docs/<req组件>/**"] --> README["README.md"]
   REQUIRE --> DRAFT["draft/**"]
-  TOKENS["design.tokens.json"] --> DRAFT
+  DESIGN["DESIGN.md"] --> DRAFT
   README --> DRAFT
   DRAFT --> DEV["<dev 组件>"]
   CONFIG["configuration.md"] --> DEV
@@ -42,7 +42,7 @@ flowchart LR
 
 - 创建模块、页面或改变产品行为必须回到显式 `req <需求组件>`，Frontend 不猜测。
 - `README.md` 提供组件入口和目标平台技术基线。
-- `design.tokens.json` 提供唯一主题事实。
+- `DESIGN.md` 提供唯一设计系统事实，包括规范 Token 和人类可读的设计理由。
 - `draft/**` 提供可运行的 QML 中间应用，由显式 `draft M-001:P-001` 指令维护。
 - `configuration.md` 约束 QML 到目标平台后的接入。
 - `testing.md` 验证目标平台实现没有偏离 Require 和 QML Draft。
@@ -81,7 +81,7 @@ flowchart LR
 
 | 文件 | 职责 |
 |---|---|
-| `design.tokens.json` | 项目主题唯一事实源 |
+| `DESIGN.md` | 项目设计系统唯一事实源 |
 | `draft/` | 完整可运行的 QML 中间应用 |
 | `configuration.md` | 目标平台配置与接入要求 |
 | `testing.md` | 目标平台转换结果的验收要求 |
@@ -112,48 +112,61 @@ flowchart LR
 - 被 Draft、Configuration、Testing 和 `<dev 组件>` 读取。
 - 不拥有主题值、页面实现、平台配置值或测试场景正文。
 
-## `design.tokens.json`
+## `DESIGN.md`
 
 ### 作用
 
-`design.tokens.json` 是主题唯一事实源，维护颜色、字体、间距、尺寸、圆角、阴影和动效。
+`DESIGN.md` 是设计系统唯一事实源，遵循 Google Labs DESIGN.md alpha 格式：YAML frontmatter 保存规范 Token，
+Markdown 正文解释视觉方向、使用理由、组件规则和 Do/Don't。QML 和目标平台不得在文件外维护第二份设计值。
 
 ### 结构
 
-遵循 DTCG Design Tokens Format Module 2025.10，使用 `$type`、`$value` 和分组类型继承：
+````md
+---
+version: alpha
+name: <设计系统名称>
+colors:
+  primary: "#2563EB"
+  surface: "#FFFFFF"
+  on-surface: "#111827"
+typography:
+  body-md:
+    fontFamily: <字体名称>
+    fontSize: 16px
+    fontWeight: 400
+    lineHeight: 1.5
+spacing:
+  sm: 8px
+  md: 16px
+rounded:
+  sm: 4px
+  md: 8px
+components:
+  button-primary:
+    backgroundColor: "{colors.primary}"
+    textColor: "{colors.surface}"
+    rounded: "{rounded.sm}"
+    padding: 12px
+---
 
-```json
-{
-  "color": {
-    "$type": "color",
-    "primary": {
-      "$value": {
-        "colorSpace": "srgb",
-        "components": [0.145, 0.388, 0.922],
-        "alpha": 1,
-        "hex": "#2563eb"
-      }
-    }
-  },
-  "space": {
-    "$type": "dimension",
-    "small": {
-      "$value": { "value": 8, "unit": "px" }
-    }
-  },
-  "duration": {
-    "$type": "duration",
-    "fast": {
-      "$value": { "value": 120, "unit": "ms" }
-    }
-  }
-}
-```
+## Overview
+
+<品牌、用户和整体视觉方向>
+
+## Colors
+## Typography
+## Layout
+## Elevation & Depth
+## Shapes
+## Components
+## Do's and Don'ts
+````
 
 ### 用法
 
-- Token 名称稳定且语义化；对象含 `$value` 时是 Token，不含 `$value` 时是分组。
-- 类型必须显式声明或从最近分组继承。
+- Frontmatter Token 是规范值，正文只解释如何使用，不得用自然语言覆盖 Token。
+- 章节按官方顺序排列；不适用章节可省略，未知内容保留，重复规范章节视为错误。
+- 使用项目已有 `@google/design.md` 工具时运行 `npx @google/design.md lint DESIGN.md`；格式仍为 alpha，升级前检查兼容性。
 - 不手工维护第二份主题值；具体 QML 和目标平台转换方式属于对应执行阶段。
 
 ### 关系
@@ -186,6 +199,7 @@ draft/
 │     ├─ LAYOUT-001/
 │     │  └─ View.qml
 │     └─ P-001/
+│        ├─ index.html
 │        ├─ View.qml
 │        ├─ mock.mjs
 │        └─ COMP-001/
@@ -202,7 +216,7 @@ draft/
 
 ### 关系
 
-- 读取 README 技术基线、Require 页面事实和 Design Token。
+- 读取 README 技术基线、Require 页面事实、DESIGN.md 和目标页面 `index.html`。
 - 被 `<dev 组件>` 转换为 README 声明应用目录中的生产代码。
 - 被 Testing 用作可观察页面与交互的验收基准。
 - 不被生产应用直接导入。
@@ -235,7 +249,7 @@ draft/
 
 ## Theme
 
-<design.tokens.json 到目标平台主题系统的转换约束>
+<DESIGN.md 到目标平台主题系统的转换约束>
 ```
 
 ### 用法
@@ -246,7 +260,7 @@ draft/
 
 ### 关系
 
-- 引用稳定页面标识、Require/OpenAPI 来源和 Design Token 文件，不复制其正文。
+- 引用稳定页面标识、Require/OpenAPI 来源和 DESIGN.md，不复制其正文。
 - 被 `<dev 组件>` 和 Testing 读取。
 - 不反向修改 Draft 或 Require。
 
@@ -287,7 +301,7 @@ draft/
 
 ```text
 README.md
-  → design.tokens.json
+  → DESIGN.md
   → configuration.md
   → testing.md
   → README.md 索引与关系校对
@@ -304,5 +318,5 @@ Draft 代码由独立页面指令逐页维护：
 - README 章节顺序固定为概述、技术基线、文档索引、文件关系、技术实现。
 - 五项 Frontend 产物的作用、结构、用法和关系明确，索引与实际文件一致。
 - `tmp frontend` 没有创建或修改 `draft/**`，也没有包含页面实现、临时数据、构建、预览或 Draft 验证规则。
-- 没有 `ux.md`、`state.md`、`mapping.md`、旧式 UI YAML、Web Components Draft 或第二份手工 Token。
+- 没有 `ux.md`、`state.md`、`mapping.md`、旧式 UI YAML 或第二份手工设计系统事实。
 - Configuration 与 Testing 面向转换后的目标平台，不重复 README、Require、Token 或 Draft 的事实。

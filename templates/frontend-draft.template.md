@@ -3,7 +3,7 @@
 仅用于 `<doc 组件> tmp frontend draft M-001:P-001`。只生成或更新目标页面及其必要依赖；
 未指定 `draft` 时不得加载或执行本模板。
 
-本模板只定义 QML Draft；README、Design Token、转换配置和转换测试由
+本模板只定义页面 HTML 到 QML 的 Draft 转换；README、DESIGN.md、转换配置和转换测试由
 `templates/frontend-design.template.md` 维护。
 
 ## 交付契约
@@ -17,7 +17,7 @@
 
 ## 执行闭环
 
-1. 先确认 Require 页面及映射 FR、Frontend README 中的精确 Qt 版本、可解析的 `design.tokens.json` 和现有 Draft 文件；缺少需求或文档输入时停止，不猜测。
+1. 先确认 Require 页面及映射 FR、Frontend README 中的精确 Qt 版本、可解析的 `DESIGN.md`、目标页 `index.html` 和现有 Draft 文件；缺少需求或设计输入时停止，不猜测。
 2. 发现本机 Qt、CMake、Ninja、Emscripten 及已有项目命令；优先使用 README 声明版本对应的 `qt-cmake` 和 Qt WebAssembly 工具链，不把本机偶然安装路径写入项目。
 3. 若精确版本、Kit、工具链或本机路径经读取和发现后仍无法唯一确定，或多个可用选择会改变构建结果，暂停该不确定项并通过对话一次询问一个关键问题；同时给出已发现证据和推荐项。用户确认前不得猜测、写入或宣称该项已验证。
 4. 首次页面创建完整启动链；已有页面只补齐本次目标和维持启动所需的文件，并同步 CMake QML/资源清单。
@@ -28,11 +28,12 @@
 
 - 页面标识必须严格符合 `M-<三位编号>:P-<三位编号>`。
 - 已存在的页面可从 `draft/src/M-001/P-001/` 确认；创建新页面必须显式给出 `req <需求组件>`，并能在 Require 中找到该页面及功能依据，否则停止。
-- 只读取 README、`design.tokens.json`、现有 Draft 依赖和显式 `req`；不读取或依赖 `ux.md`、`state.md`、`mapping.md`。
-- 只创建或修改目标页面 `draft/src/M-001/P-001/**`、其引用的 `draft/src/M-001/LAYOUT-*/**`，以及预览目标页必需的
+- 只读取 README、`DESIGN.md`、目标页 `index.html`、现有 Draft 依赖和显式 `req`；不读取或依赖 `ux.md`、`state.md`、`mapping.md`。
+- `index.html` 是用户提供的只读页面设计输入，可以在一个文件内包含 HTML、CSS 和 JavaScript；Draft Agent 不修改它，也不要求独立 `style.css` 或 `index.js`。
+- 只创建或修改目标页面的 `View.qml`、`mock.mjs`、`COMP-*/**`、其引用的 `draft/src/M-001/LAYOUT-*/**`，以及预览目标页必需的
   `draft/src/App.qml`、`draft/src/MockStore.qml`、`draft/src/Theme.qml`、`draft/src/shared/**` 和构建入口。
 - 共享文件只做注册、导航、主题和渲染当前页所需的最小修改，保留其他页面及用户修改。
-- 不修改 README、`design.tokens.json`、`configuration.md` 或 `testing.md`；`draft` 与 `opt` 互斥。
+- 不修改 README、`DESIGN.md`、目标页 `index.html`、`configuration.md` 或 `testing.md`；`draft` 与 `opt` 互斥。
 
 ## 固定文件结构
 
@@ -57,6 +58,7 @@ draft/
 │     ├─ LAYOUT-001/
 │     │  └─ View.qml
 │     ├─ P-001/
+│     │  ├─ index.html
 │     │  ├─ View.qml
 │     │  ├─ mock.mjs
 │     │  └─ COMP-001/
@@ -74,8 +76,17 @@ draft/
 - 模块、Layout、Page 和页面组件目录只使用稳定编号：`M-001/`、`LAYOUT-001/`、`P-001/`、`COMP-001/`，不附加名称。
 - Layout、Page、Component 的入口统一为 `View.qml`。一次性小元素直接留在所属 `View.qml`，不分配组件目录。
 - 只有跨模块或跨页面复用的组件放在 `src/shared/COMP-001/`；页面私有组件放在 `P-001/COMP-001/`。
-- 资产优先放 `src/assets/`；只被单页使用且与页面一起删除的资产可放页面的 `assets/`。
+- 图片、图标、字体和其他页面资产全部放在唯一的 `src/assets/`；页面目录不创建第二个 `assets/`。
 - `M-001` 等带连字符目录不得作为 QML Module URI；使用相对目录导入并指定别名。
+
+## HTML/CSS/JavaScript 到 QML
+
+- `M-001/P-001/index.html` 是该页面的视觉、布局、响应式状态和演示交互事实源；它可以内嵌 CSS 与 JavaScript，并只引用 `src/assets/` 中的本地资产。
+- 转换前先在浏览器运行 `index.html`，检查目标视口、DOM 语义、computed style、交互状态和资产；QML 复现可观察结果，不复制 DOM 层级或 JavaScript 实现。
+- 一比一指相同视口下的视觉层级、位置、尺寸、颜色、字体、间距、圆角、边框、状态和交互结果一致，不要求每个 HTML 元素对应一个 QML 对象。
+- 多页面复用的导航栏、标题栏、头部、页脚和页面骨架放入 `M-001/LAYOUT-*/`；页面私有业务区域放入 `P-001/COMP-*/`；跨模块复用才放入 `src/shared/COMP-*/`。
+- `P-001/View.qml` 只组装 Layout 与页面组件、提供页面输入并协调信号；一次性小元素保留在最近的 `View.qml`，不为每个 `div` 创建组件。
+- QML 不加载 HTML、DOM 或页面 JavaScript；`index.html` 不登记为 WASM 运行资源。HTML 与 DESIGN.md 冲突时停止并通过对话确认，不自行选择。
 
 ## QML 表达范围
 
@@ -140,12 +151,12 @@ Page {
 - 禁止 CommonJS、TypeScript、JSX、浏览器 DOM API、`Qt.include()`、隐式全局变量和无必要命令式脚本。
 - `.mjs` 使用两个空格缩进、双引号、分号、`const` 优先；需要重新赋值时才使用 `let`，禁止 `var`。
 
-## Design Token 与主题
+## DESIGN.md 与主题
 
-- `design.tokens.json` 是颜色、字体、间距、尺寸、圆角、阴影和动效的唯一事实源。
-- Draft Agent 每次执行时直接从 Token 确定性生成 `src/Theme.qml`；“禁止手工编辑”指不得绕过 Token 猜值或在生成结果中维护第二份主题，不要求另建生成器程序。
-- QML 只使用 `Theme.colorPrimary`、`Theme.spaceSmall` 等稳定属性；生成器负责 DTCG 类型到 QML 类型和单位的确定性转换。
-- 目标平台由 `<dev 组件>` 从原始 JSON 生成主题，不解析 QML 生成物。
+- `DESIGN.md` YAML frontmatter 中的颜色、字体、间距、圆角和组件 Token 是规范值，Markdown 正文提供应用理由和约束。
+- Draft Agent 每次执行时直接从 DESIGN.md 确定性生成 `src/Theme.qml`；“禁止手工编辑”指不得绕过 DESIGN.md 猜值或在生成结果中维护第二份主题，不要求另建生成器程序。
+- QML 只使用 `Theme.colorPrimary`、`Theme.spaceSmall` 等稳定属性；生成过程负责 DESIGN.md Token 引用、CSS 单位和 QML 类型的确定性转换。
+- 目标平台由 `<dev 组件>` 从 DESIGN.md 生成主题，不解析 QML 生成物。
 - 不得假设浏览器或操作系统字体可被 Qt WebAssembly 使用，也不得写入未经验证的本机字体名称。页面包含中文等非 ASCII 字符时，必须使用覆盖目标字符集且授权明确的字体资产。
 - 字体文件登记到 CMake 资源清单，通过 `FontLoader` 加载并使用其实际 `name`；浏览器启动时检查 `FontLoader.Ready`，失败时输出 `FONT_LOAD_FAILED`。
 - 字体文件、授权或目标字符集不确定时通过对话确认，不猜测替代字体；验收不得出现方框字、缺字、错误回退或不可读文本。
@@ -165,7 +176,7 @@ Page {
 - `main.cpp` 只创建应用和加载 `App.qml`；不写业务逻辑。
 - `CMakeLists.txt` 使用 Qt 官方 CMake API 声明可执行目标、QML 模块、每个实际 QML/JavaScript 文件与资产，并链接实际使用的 Qt 模块；应用目标由 Qt WebAssembly 工具链构建。
 - WebAssembly 固定使用 `build/wasm/`；配置完成后必须构建应用目标，不得只以 CMake configure 成功代替编译成功。
-- WebAssembly 构建生成 HTML、JavaScript loader 和 `.wasm` 静态文件，通过本地 HTTP 服务器预览；不另写 HTML/CSS 版 Draft。
+- WebAssembly 构建生成运行用 HTML、JavaScript loader 和 `.wasm` 静态文件，通过本地 HTTP 服务器预览；页面 `index.html` 只是设计输入，不进入运行产物。
 - 只使用目标 Qt WebAssembly 版本支持的 Qt 模块；网络、线程或浏览器沙箱限制必须在采用前验证。
 - 优先复用项目已有 Qt、CMake、Emscripten、formatter 和 lint 配置，不为 Draft 引入 UI 框架、QML 解析器或第二预览实现。
 
@@ -185,7 +196,7 @@ Page {
 
 使用当前 Agent 可达到的最高级别，不因能力不足跳过可执行检查：
 
-- 支持图片理解：等待 QML 首屏稳定后检查真实浏览器截图，确认背景、颜色、字体、圆角、边框、间距和关键控件已呈现，且没有异常空白、重叠、裁切、溢出或缺字；执行一次主要交互后复查可观察结果，报告“视觉已验证”。
+- 支持图片理解：在相同视口分别检查设计 `index.html` 与 QML WASM 截图，确认背景、颜色、字体、圆角、边框、间距和关键控件一比一，且没有异常空白、重叠、裁切、溢出或缺字；执行一次主要交互后复查可观察结果，报告“视觉已验证”。
 - 不支持图片但支持浏览器：检查可访问树、关键控件存在性和交互结果，并确认控制台没有 `LAYOUT_AUDIT_FAILED` 或 `FONT_LOAD_FAILED`；只能报告“仅结构与交互已验证”，不得报告视觉正确或美观。
 - 不支持浏览器：只执行格式、lint 和 WASM 构建，报告“仅构建已验证”，不得声称页面已运行、样式正确或视觉已验证。
 
@@ -199,7 +210,7 @@ Page {
 - CMake 清单覆盖所有实际 QML、JavaScript 模块和资产，`main.cpp → App.qml → 目标页面` 启动链完整，目标页全部 required 输入和可见控件已接线。
 - `View.qml`、共享组件和 `.mjs` 符合语法规范；没有 `.ui.qml`、`index.js`、TypeScript、JSX 或平台插件。
 - 临时数据、账户和写操作只存在 Draft 内存，所有可见控件和声明状态都有可观察结果。
-- `Theme.qml` 与 `design.tokens.json` 同步；没有重复硬编码已有 Token。
+- `Theme.qml` 与 `DESIGN.md` 同步；没有重复硬编码已有 Token。
 - 已运行可用的格式、lint、WASM 构建和浏览器检查；已安装工具不存在失败项，未执行项有明确缺失工具与原因。
 - 关键控件布局审计通过，字体资源加载成功；最终结论严格使用“视觉已验证”“仅结构与交互已验证”或“仅构建已验证”，没有越级声明。
 - `draft M-001:P-001` 只修改目标页面和必要依赖，没有触碰其他文档或生产应用源码。

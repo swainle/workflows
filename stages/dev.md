@@ -20,7 +20,7 @@
 ## 执行
 
 1. 从 README 解析应用目录、唯一 `开发模板` 和第一条 Require 引用，加载 Frontend 或 Backend 模板中的专家团与技术基线规则。
-   Frontend 读取 Require、`design.tokens.json`、`draft/**`、`configuration.md` 和 `testing.md`；QML Draft 是可观察界面与交互的转换输入，不是生产依赖。
+   Frontend 读取 Require、`DESIGN.md`、`draft/**`、`configuration.md` 和 `testing.md`；QML Draft 是可观察界面与交互的转换输入，不是生产依赖，页面 `index.html` 只是设计参考。
 2. 专家只读评审设计、实现风险和验证方式；主 Agent 汇总结论。
 3. 建立“需求或稳定 Draft 标识 → 实现位置”映射；Frontend 按 `M-001/LAYOUT-001/View.qml`、
    `M-001/P-001/View.qml` 和 `M-001/P-001/COMP-001/View.qml` 转换到目标平台，不要求独立 `mapping.md`。
