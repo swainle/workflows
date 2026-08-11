@@ -190,6 +190,9 @@ function runSelfTests() {
     assert.match(issue, /跨模块协作由 FLOW 表达/);
     assert.match(issue, /页面可以映射多个 FR，同一 FR 也可以被多个页面使用/);
     assert.match(issue, /唯一关系事实是页面索引的“功能”列/);
+    assert.match(issue, /对面向界面的需求建立设计输入视图/);
+    assert.match(issue, /不得机械补齐不存在的状态或猜测阈值/);
+    assert.match(issue, /页面控件、视觉值、Layout 和 Component 不属于需求索引/);
     assert.match(issue, /每个 `active` 页面至少映射一个 `active` FR；无界面的 FR 可以不映射页面/);
     assert.match(issue, /跨模块写 `M-001:P-001`/);
     assert.match(issue, /\[#1\]\(https:\/\/github\.com\/swainle\/d5\/issues\/1\)/);
@@ -217,6 +220,7 @@ function runSelfTests() {
     assert.doesNotMatch(issue, /AC-001\.md/);
     assert.match(issue, /一个 AC 对应一个 `\.feature`，包含一个或多个 TC/);
     assert.match(issue, /Scenario: <成功场景>[\s\S]*Scenario: <失败或边界场景>/);
+    assert.match(issue, /不得为凑齐状态而创建虚假 TC/);
     assert.match(issue, /@M-001-AC-001-TC-001/);
     assert.match(issue, /在每个 AC 内从 `001` 独立递增分配/);
     assert.match(issue, /已有 TC 不重排、不复用，删除后允许空缺/);
@@ -231,7 +235,7 @@ function runSelfTests() {
     for (const classification of ["REUSE", "EXTEND", "UPDATE", "REPLACE", "ADD", "REMOVE", "CONFLICT"]) {
       assert.ok(issue.includes(`- \`${classification}\`：`), `missing Issue classification: ${classification}`);
     }
-    assert.match(issue, /`CONFLICT` 或专家分歧会改变行为、契约、安全、数据或兼容性时，在写入前询问用户/);
+    assert.match(issue, /`CONFLICT` 或专家分歧会改变行为、契约、安全、数据、终端范围、语言、可访问性或兼容性时，在写入前一次询问一个关键问题/);
     assert.match(issue, /最后同步 `README\.md` 索引和 FR Mermaid 投影/);
     assert.match(issue, /没有时写“无”/);
     assert.match(issue, /BR 只保留一级标题和一个伪代码规则块/);
@@ -256,6 +260,7 @@ function runSelfTests() {
     assert.match(issue, /PERM 表是权限标识的唯一登记处/);
     assert.match(prompt("stages/dev.md"), /实现 BR 的 `REQUIRES PERMISSION` 前，确认权限已在 PERM 表登记/);
     assert.match(issue, /## 需求评审重点/);
+    assert.match(issue, /README、FR、FLOW、AC、NFR、PERM 和 `context\.md`/);
   });
 
   test("require, frontend design, frontend draft, backend and docker are optional doc templates", () => {
