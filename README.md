@@ -93,10 +93,10 @@ workflows/
 
 ```text
 <doc browser> tmp frontend req require preview
-- 基于 DESIGN.md 生成首页、商品列表、商品详情和结算表单四个静态页面，只用于确认整体风格；CSS、JavaScript 和 SVG 内嵌 HTML，字体与图片放入 design-preview/assets/
+- 基于 DESIGN.md 生成首页、商品列表、商品详情和结算表单四个静态页面，只用于确认整体风格；CSS、JavaScript 和 SVG 内嵌 HTML，字体与图片放入 design-preview/assets/，对全部可见文字生成共享的真实字重可变字体子集
 ```
 
-预览产物位于 `design-preview/**`：每页为内嵌 CSS、JavaScript 和 SVG 的 HTML，预览专用字体与图片位于 `design-preview/assets/`，整个目录可通过 `file://` 独立查看。它可以重新生成或删除；Draft、dev 和 test 不读取它，唯一设计事实仍是 `DESIGN.md`。
+预览产物位于 `design-preview/**`：每页为内嵌 CSS、JavaScript 和 SVG 的 HTML，预览专用字体与图片位于 `design-preview/assets/`，整个目录可通过 `file://` 独立查看。中文字体默认生成覆盖所有预览页文字的共享可变 WOFF2 子集，使用真实 400、500、600、700 字重并禁止浏览器合成粗体。它可以重新生成或删除；Draft、dev 和 test 不读取它，唯一设计事实仍是 `DESIGN.md`。
 
 ### 范例：Frontend Draft 设计 QML
 

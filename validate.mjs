@@ -322,6 +322,9 @@ function runSelfTests() {
     assert.match(frontendDesignPreview, /只创建或修改 `design-preview\/\*\*`/);
     assert.match(frontendDesignPreview, /不作为 Draft、dev 或 test 的输入/);
     assert.match(frontendDesignPreview, /首页、商品列表、商品详情和结算表单/);
+    assert.match(frontendDesignPreview, /共享 WOFF2 字符子集/);
+    assert.match(frontendDesignPreview, /`font-weight: 100 900`/);
+    assert.match(frontendDesignPreview, /`font-synthesis: none`/);
     assert.match(frontendDraft, /tmp frontend draft M-001:P-001/);
     assert.match(frontendDraft, /未指定 `draft` 时不得加载或执行本模板/);
     assert.match(frontendDraft, /`draft` 与 `opt` 互斥/);
