@@ -1,11 +1,42 @@
-# AI 项目工作流
+# AI 工作流
 
 通过安装到宿主项目根目录的 `AGENTS.md`，将文档、开发、测试和 Docker 任务路由到独立阶段，并限制每个阶段的文件权限。
 
-## 文档组件
+## 文件架构
 
-`docs/` 下除 `docs/workflows/` 外，每个一级目录都是一个组件，入口为 `docs/<组件>/README.md`。
-需要开发或组件测试时，在组件 README 中声明：
+```text
+workflows/
+├─ templates/
+│  ├─ AGENTS.template.md
+│  ├─ require.template.md
+│  ├─ require/
+│  ├─ frontend-design.template.md
+│  ├─ frontend-draft.template.md
+│  ├─ backend-design.template.md
+│  └─ docker-design.template.md
+├─ stages/
+│  ├─ doc.md
+│  ├─ dev.md
+│  ├─ component-test.md
+│  ├─ test.md
+│  └─ docker.md
+├─ install.mjs
+├─ validate.mjs
+└─ README.md
+```
+
+| 路径 | 作用 |
+|---|---|
+| `templates/AGENTS.template.md` | 解析指令、发现组件并路由阶段 |
+| `templates/require.template.md`、`templates/require/` | 生成需求、架构和验收文档 |
+| `templates/frontend-*.template.md` | 定义 Frontend 文档和 QML/WASM Draft |
+| `templates/backend-design.template.md` | 定义 Backend 文档 |
+| `templates/docker-design.template.md` | 定义 Docker 文档 |
+| `stages/` | 定义各执行阶段的输入、流程和文件权限 |
+| `install.mjs` | 安装或更新宿主项目的 `AGENTS.md` 托管区块 |
+| `validate.mjs` | 校验工作流和宿主组件映射 |
+
+宿主项目中，`docs/` 下除 `docs/workflows/` 外的每个一级目录都是一个组件，入口为 `docs/<组件>/README.md`。需要开发或组件测试时，在组件 README 中声明：
 
 ```md
 应用目录：`apps/api/`
@@ -14,44 +45,66 @@
 
 ## 指令
 
-```text
-<doc 组件> [tmp require|frontend|backend|docker] [req 需求组件 [issue 编号]] [issue 编号] [draft M-001:P-001|opt 文件] 任务
-<dev 组件> [opt 文件] 任务
-<test 组件> [opt 文件] 任务
-<docker 组件> [opt 文件] 任务
-<test> [opt 文件] 全局验收任务
-<docker> [opt 文件] 全局容器编排任务
-<docker update> [opt 文件] 升级方案任务
-```
-
-示例：
+指令格式：
 
 ```text
-<doc require> tmp require issue 1 初始化系统需求和全局设计
-<doc api> tmp backend req require issue 1 设计初始化接口
-<doc browser> tmp frontend req require draft M-001:P-001 创建登录页 Draft
-<dev api> 实现手机号接口
-<test api> 验证手机号接口
-<docker update> 升级遥测镜像
+<doc 组件> [tmp require|frontend|backend|docker] [req 需求组件 [issue 编号]] [issue 编号] [draft M-001:P-001|opt 文件]
+- 任务
+
+<dev 组件> [opt 文件]
+- 任务
+
+<test 组件> [opt 文件]
+- 任务
+
+<docker 组件> [opt 文件]
+- 任务
+
+<test|docker|docker update> [opt 文件]
+- 全局任务
 ```
 
-- `tmp` 选择模板，`req` 加载需求组件，`issue` 限定任务来源和范围。
-- `draft M-001:P-001` 仅用于 Frontend，按 Require、`DESIGN.md` 和页面设计生成可运行的 QML/WASM Draft。
-- `opt <文件>` 只创建或更新阶段内的一个文件。
-- `<test>`、`<docker>` 和 `<docker update>` 是全局指令。
+### 范例：创建需求
 
-结尾控制：`?` 只回答，`,` 每次澄清一个问题，`.` 修改并验证，`!` 修改、验证、提交并推送；中英文符号等价。
+```text
+<doc require> tmp require issue 1
+- 初始化系统需求、架构和验收标准
+```
 
-## Frontend Draft 页面转换
+### 范例：设计 Backend
 
-页面 `draft/src/M-001/P-001/index.html` 是可内嵌 HTML、CSS 和 JavaScript 的只读设计输入，公共资产放在 `draft/src/assets/`。
+```text
+<doc api> tmp backend req require issue 1
+- 设计初始化接口
+```
+
+### 范例：Frontend Draft 设计 QML
 
 ```text
 <doc browser> tmp frontend req require draft M-001:P-001
 - 按 index.html 一比一转换为 QML，提取 Layout 与 Component，构建 WASM 并验证
 ```
 
-转换规则由 `templates/frontend-draft.template.md` 定义；信息不确定时 Agent 通过对话确认。
+页面 `draft/src/M-001/P-001/index.html` 是可内嵌 HTML、CSS 和 JavaScript 的只读设计输入，公共资产放在 `draft/src/assets/`。信息不确定时 Agent 通过对话确认。
+
+### 范例：开发与测试
+
+```text
+<dev api>
+- 实现手机号接口
+
+<test api>
+- 验证手机号接口
+```
+
+### 范例：升级 Docker 镜像
+
+```text
+<docker update>
+- 升级遥测镜像
+```
+
+`tmp` 选择模板，`req` 加载需求组件，`issue` 限定任务范围，`opt` 只操作一个文件。指令结尾可使用 `?` 只回答、`,` 逐项澄清、`.` 修改并验证、`!` 修改、验证、提交并推送；中英文符号等价。
 
 ## 安装
 
@@ -70,17 +123,6 @@ node docs/workflows/install.mjs --branch develop
 
 安装器保留宿主 `AGENTS.md` 托管区块外的内容，并记录当前工作流 Git SHA。
 
-## 文件
-
-| 路径 | 作用 |
-|---|---|
-| `templates/AGENTS.template.md` | 指令解析、组件发现、版本门禁和阶段路由 |
-| `templates/require.template.md`、`templates/require/*` | 统一需求、Issue 分析与全局架构模板 |
-| `templates/*-design.template.md` | Frontend 文件规范、Backend 设计、Docker 文档模板 |
-| `stages/*.md` | doc、dev、组件测试、全局测试和 Docker 权限 |
-| `install.mjs` | 安装或更新宿主 `AGENTS.md` 托管区块 |
-| `validate.mjs` | 校验提示词、路由、README 映射和安装器行为 |
-
 ## 验证
 
 ```bash
@@ -92,7 +134,3 @@ node validate.mjs
 ```bash
 node docs/workflows/validate.mjs --project-root .
 ```
-
-## 许可证
-
-[MIT](LICENSE)
