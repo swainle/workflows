@@ -5,6 +5,8 @@
 `<doc 组件> tmp frontend draft M-001:P-001` 加载 `templates/frontend-draft.template.md` 执行。
 需要根据 Require、页面和品牌方向专门创建或更新 `DESIGN.md` 时，显式 `design` 指令加载
 `templates/frontend-design-system.template.md`。
+需要用若干可丢弃静态页面评审 `DESIGN.md` 风格时，显式 `preview` 指令加载
+`templates/frontend-design-preview.template.md`；该产物不进入 Draft 或生产转换。
 
 `frontend` 是文档阶段模板，不是目录名；产物位于 `docs/<组件>/`：
 

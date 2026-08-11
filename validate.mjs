@@ -21,6 +21,7 @@ export const PROMPT_FILES = [
   "templates/require/architecture.md",
   "templates/frontend-design.template.md",
   "templates/frontend-design-system.template.md",
+  "templates/frontend-design-preview.template.md",
   "templates/frontend-draft.template.md",
   "templates/backend-design.template.md",
   "templates/docker-design.template.md",
@@ -136,7 +137,7 @@ function runSelfTests() {
     assert.match(agents, /tmp require\|frontend\|backend\|docker/);
     assert.doesNotMatch(agents, /<deploy(?: |>)|stages\/deploy\.md/);
     assert.match(agents, /req 需求组件 \[issue 编号\]/);
-    assert.match(agents, /\[design\|draft M-001:P-001\|opt 文件\]/);
+    assert.match(agents, /\[design\|preview\|draft M-001:P-001\|opt 文件\]/);
     assert.match(agents, /\[opt 文件\]/);
     assert.match(agents, /docs\/<组件>\/README\.md/);
     assert.match(agents, /docs\/workflows\/.*除外/);
@@ -269,6 +270,7 @@ function runSelfTests() {
     assert.match(agents, /<doc 组件> tmp require \[issue 编号\]/);
     assert.match(agents, /<doc 组件> tmp frontend/);
     assert.match(agents, /`design`：只能与 `tmp frontend` 和显式 `req <需求组件>` 同时使用/);
+    assert.match(agents, /`preview`：只能与 `tmp frontend` 和显式 `req <需求组件>` 同时使用/);
     assert.match(agents, /draft M-<三位编号>:P-<三位编号>/);
     assert.match(agents, /首次页面必须自举完整可运行应用，后续页面必须保持 WebAssembly 网页构建与浏览器验证闭环/);
     assert.match(agents, /`draft` 值或未列出的 `tmp` 值都是未知语法/);
@@ -297,8 +299,9 @@ function runSelfTests() {
     assert.match(arch, /## 架构评审重点/);
     const frontendDesign = prompt("templates/frontend-design.template.md");
     const frontendDesignSystem = prompt("templates/frontend-design-system.template.md");
+    const frontendDesignPreview = prompt("templates/frontend-design-preview.template.md");
     const frontendDraft = prompt("templates/frontend-draft.template.md");
-    const frontend = `${frontendDesign}\n${frontendDesignSystem}\n${frontendDraft}`;
+    const frontend = `${frontendDesign}\n${frontendDesignSystem}\n${frontendDesignPreview}\n${frontendDraft}`;
     assert.match(frontendDesign, /本模板定义 Frontend 各文件的作用、结构、用法和关系/);
     assert.match(frontendDesign, /Draft 功能只由[\s\S]*tmp frontend draft M-001:P-001/);
     assert.match(frontendDesign, /`tmp frontend` 只说明并索引该目录，不创建或修改 Draft 代码/);
@@ -309,16 +312,21 @@ function runSelfTests() {
     assert.equal([...frontendDesign.matchAll(/^### 关系$/gm)].length, 5);
     assert.match(agents, /\| `<doc 组件> tmp frontend` \| `stages\/doc\.md`、`templates\/frontend-design\.template\.md` \|/);
     assert.match(agents, /\| `<doc 组件> tmp frontend design` \| `stages\/doc\.md`、`templates\/frontend-design-system\.template\.md` \|/);
+    assert.match(agents, /\| `<doc 组件> tmp frontend preview` \| `stages\/doc\.md`、`templates\/frontend-design-preview\.template\.md` \|/);
     assert.match(agents, /\| `<doc 组件> tmp frontend draft M-001:P-001` \| `stages\/doc\.md`、`templates\/frontend-draft\.template\.md` \|/);
     assert.match(frontendDesignSystem, /只创建或修改当前组件根目录的 `DESIGN\.md`/);
     assert.match(frontendDesignSystem, /README.*页面、角色、入口、直接导航和页面.*FR/s);
     assert.match(frontendDesignSystem, /Require 是产品事实源/);
     assert.match(frontendDesignSystem, /不得机械补齐不存在的状态/);
     assert.match(frontendDesignSystem, /外贸商城风格/);
+    assert.match(frontendDesignPreview, /只创建或修改 `design-preview\/\*\*`/);
+    assert.match(frontendDesignPreview, /不作为 Draft、dev 或 test 的输入/);
+    assert.match(frontendDesignPreview, /首页、商品列表、商品详情和结算表单/);
     assert.match(frontendDraft, /tmp frontend draft M-001:P-001/);
     assert.match(frontendDraft, /未指定 `draft` 时不得加载或执行本模板/);
     assert.match(frontendDraft, /`draft` 与 `opt` 互斥/);
     assert.match(frontendDraft, /不修改 README、`DESIGN\.md`、目标页 `index\.html`、`configuration\.md` 或 `testing\.md`/);
+    assert.match(frontendDraft, /不读取、复制或转换 `design-preview\/\*\*`/);
     assert.match(frontendDraft, /只创建或修改目标页面的 `View\.qml`、`mock\.mjs`、`COMP-\*\/\*\*`/);
     assert.match(frontendDraft, /创建新页面必须显式给出 `req <需求组件>`/);
     assert.match(frontendDraft, /交付单位是“可启动到目标页的完整应用”/);
@@ -403,6 +411,8 @@ function runSelfTests() {
     assert.match(frontendDraft, /仅有“编译成功”或“控制台无普通异常”不能证明页面样式完成/);
     assert.match(prompt("stages/doc.md"), /`tmp frontend draft` 是唯一例外/);
     assert.match(prompt("stages/doc.md"), /`design` 时只修改 `DESIGN\.md`/);
+    assert.match(prompt("stages/doc.md"), /`preview` 时只修改可丢弃的 `design-preview\/\*\*`/);
+    assert.match(prompt("stages/dev.md"), /不得读取或转换 `design-preview\/\*\*`/);
     assert.match(frontendDraft, /没有 `\.ui\.qml`、`index\.js`、TypeScript、JSX 或平台插件/);
     assert.match(frontendDesign, /## `configuration\.md`/);
     assert.match(frontendDesign, /## `testing\.md`/);

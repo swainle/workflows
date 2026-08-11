@@ -29,6 +29,7 @@
 - 页面标识必须严格符合 `M-<三位编号>:P-<三位编号>`。
 - 已存在的页面可从 `draft/src/M-001/P-001/` 确认；创建新页面必须显式给出 `req <需求组件>`，并能在 Require 中找到该页面及功能依据，否则停止。
 - 只读取 README、`DESIGN.md`、目标页 `index.html`、现有 Draft 依赖和显式 `req`；不读取或依赖 `ux.md`、`state.md`、`mapping.md`。
+- 不读取、复制或转换 `design-preview/**`；静态风格预览不是页面设计输入或 Draft 事实。
 - `index.html` 是用户提供的只读页面设计输入，可以在一个文件内包含 HTML、CSS 和 JavaScript；Draft Agent 不修改它，也不要求独立 `style.css` 或 `index.js`。
 - 只创建或修改目标页面的 `View.qml`、`mock.mjs`、`COMP-*/**`、其引用的 `draft/src/M-001/LAYOUT-*/**`，以及预览目标页必需的
   `draft/src/App.qml`、`draft/src/MockStore.qml`、`draft/src/Theme.qml`、`draft/src/shared/**` 和构建入口。

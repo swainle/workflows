@@ -12,6 +12,7 @@ workflows/
 │  ├─ require/
 │  ├─ frontend-design.template.md
 │  ├─ frontend-design-system.template.md
+│  ├─ frontend-design-preview.template.md
 │  ├─ frontend-draft.template.md
 │  ├─ backend-design.template.md
 │  └─ docker-design.template.md
@@ -49,7 +50,7 @@ workflows/
 指令格式：
 
 ```text
-<doc 组件> [tmp require|frontend|backend|docker] [req 需求组件 [issue 编号]] [issue 编号] [design|draft M-001:P-001|opt 文件]
+<doc 组件> [tmp require|frontend|backend|docker] [req 需求组件 [issue 编号]] [issue 编号] [design|preview|draft M-001:P-001|opt 文件]
 - 任务
 
 <dev 组件> [opt 文件]
@@ -87,6 +88,15 @@ workflows/
 ```
 
 该指令读取 Require、现有页面和品牌资产，只创建或更新组件根目录的 `DESIGN.md`。
+
+### 范例：Frontend Design Preview
+
+```text
+<doc browser> tmp frontend req require preview
+- 基于 DESIGN.md 生成首页、商品列表、商品详情和结算表单四个静态页面，只用于确认整体风格
+```
+
+预览产物位于 `design-preview/**`，可以重新生成或删除；Draft、dev 和 test 不读取它，唯一设计事实仍是 `DESIGN.md`。
 
 ### 范例：Frontend Draft 设计 QML
 
